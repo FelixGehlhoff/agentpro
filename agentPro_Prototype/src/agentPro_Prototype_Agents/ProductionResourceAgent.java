@@ -1,0 +1,315 @@
+package agentPro_Prototype_Agents;
+
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
+import java.util.Iterator;
+
+import agentPro.onto.AllocatedWorkingStep;
+import agentPro.onto.CFP;
+import agentPro.onto.Capability;
+import agentPro.onto.Location;
+import agentPro.onto.Operation;
+import agentPro.onto.ProductionResource;
+import agentPro.onto.Proposal;
+import agentPro.onto.Resource;
+import agentPro.onto.Timeslot;
+import agentPro.onto.TransportResource;
+import agentPro_Prototype_ResourceAgent.ReceiveInformWorkpieceDepartureBehaviour;
+import agentPro_Prototype_ResourceAgent.ReceiveIntervalForConnectedResourceBehaviour;
+import jade.domain.DFService;
+import jade.domain.FIPAException;
+import jade.domain.FIPAAgentManagement.DFAgentDescription;
+import jade.domain.FIPAAgentManagement.ServiceDescription;
+import support_classes.Interval;
+
+/* 
+ * Models a production resource. It has capabilites (at the moment 16.05. only one) which it registers at the DF.
+ * It Receives CFPs by the workpiece agents, answers with an offer and waits for an order on that offer (if 
+ * there is no offer, the behaviour quits). After receiving an order the working step is performed.
+ * Current workaround 1 16.05. : Instead of sensing the arrival of the workpiece the agent waits for a message from
+ * 		the transport agent.
+ * Current workaround 2 16.05. : Instead of really performing the working step, the agent waits for a specified time
+ * 		for the performed capability (given as argument at creation).
+ */
+
+public class ProductionResourceAgent extends ResourceAgent{
+
+	private static final long serialVersionUID = 1L;
+	//private String production_capability;				//for testing only one capability
+	private int duration_of_process;
+	//private ReceiveCFPBehaviour ReceiveCFPBehav;
+	//private int offerNumber = 1;
+	private ReceiveInformWorkpieceDepartureBehaviour ReceiveInformWorkpieceDepartureBehav;
+	protected ProductionResource representedResource;
+	private int avg_pickUp = 5; 
+	private int avg_setUp = 0;
+	private String columnNameOfEnablesWPType = "enables_wp_type";
+	private String enabledWorkpiece = null;
+	
+	protected void setup (){		
+		
+		super.setup();
+		
+		// / INITIALISATION
+		// /////////////////////////////////////////////////////////
+		logLinePrefix = logLinePrefix+".ProductionRessourceAgent.";						
+		//Object[] args = getArguments();
+		//production_capability = args[0].toString();
+		//duration_of_process = Integer.valueOf(args[1].toString());
+			
+		 // Register the service in the yellow pages
+		//registerAtDF();
+		representedResource = new ProductionResource();
+		representedResource.setName(this.getLocalName());
+		receiveValuesFromDB(representedResource);
+		
+		receiveCapabilityOperationsValuesFromDB(representedResource);
+		
+		//logLinePrefix = "ProductionRessourceAgent."+production_capability;
+		registerAtDF();
+		// / ADD BEHAVIOURS
+        // /////////////////////////////////////////////////////////
+		ReceiveInformWorkpieceDepartureBehav = new ReceiveInformWorkpieceDepartureBehaviour(this);
+        addBehaviour(ReceiveInformWorkpieceDepartureBehav);
+        if(simulation_mode) {
+        	 if(getLocalName().equals("Skoda_1_1") || getLocalName().equals("Skoda_2_1") || getLocalName().equals("Skoda_3_1")) {
+        		 addBehaviour(new ReceiveIntervalForConnectedResourceBehaviour(this));
+			    }
+        }
+	}
+
+	public int getDuration_of_process() {
+		return duration_of_process;
+	}
+
+	public void setDuration_of_process(int duration_of_process) {
+		this.duration_of_process = duration_of_process;
+	}
+	/*
+	public String getProduction_capability() {
+		return production_capability;
+	}
+
+	public void setProduction_capability(String production_capability) {
+		this.production_capability = production_capability;
+	}*/
+/*
+	public int getOfferNumber() {
+		return offerNumber;
+	}
+
+	public void setOfferNumber(int offerNumber) {
+		this.offerNumber = offerNumber;
+	}*/
+
+	void registerAtDF() {
+		DFAgentDescription dfd = new DFAgentDescription();
+		dfd.setName(getAID());		
+		ServiceDescription sd = new ServiceDescription();
+		sd.setType("production");
+			String capability = this.getRepresentedResource().getHasCapability().getName();
+			String[] parts = capability.split("_");			
+			if(parts.length > 1) {
+				sd.setName(parts[0]);
+			}else {
+				sd.setName(capability);
+			}
+		sd.addProtocols(this.getLocalName());		//to enable search for a specific agent
+		dfd.addServices(sd);
+		try {
+			DFService.register(this, dfd);
+		}
+		catch (FIPAException fe) {
+			fe.printStackTrace();
+		}
+		
+	}
+
+	@Override
+	public boolean feasibilityCheck(Operation operation) {
+	    @SuppressWarnings("unchecked")
+		Iterator<Operation> it = representedResource.getHasCapability().getEnables().iterator();
+	    while(it.hasNext()) {
+	    	Operation possible_op = it.next();
+	    	if(possible_op.getName().equals(operation.getName())) {
+	    		if(operation.getAvg_Duration() > 0) {
+	    			
+	    		}else {
+	    			operation.setAvg_Duration(possible_op.getAvg_Duration());
+	    			System.out.println("DEBUG_____possible_op.getName() "+possible_op.getName()+possible_op.getAvg_Duration()+"___Duration set "+possible_op.getAvg_Duration());	
+	    		}
+	    		
+	    		return true;
+	    	}
+		
+	    }	
+
+		
+		return false;
+	}
+	
+public void receiveValuesFromDB(Resource r) {
+		
+	    Statement stmt = null;
+	    String query = "";
+
+	    	query = "select "+columnNameResourceName_simulation+" , "+columnNameOfSetupTime+" , "+columnNameOfID+" , "+columnNameOfLocationX+" , "+columnNameOfLocationY+" , "+columnNameOfCapability+" , "+columnNameOfResource_Type+" from "+tableNameResource+" where "+columnNameResourceName_simulation+" = '"+representedResource.getName()+"'"; 
+	   
+	    try {
+	        stmt = connection.createStatement();
+	        ResultSet rs = stmt.executeQuery(query);
+	      
+	        while (rs.next()) {
+	        	Location l = new Location(); 
+			    l.setCoordX((float) rs.getDouble(columnNameOfLocationX));
+			    l.setCoordY((float) rs.getDouble(columnNameOfLocationY));
+			    r.setHasLocation(l);
+			    	Capability cap = new Capability();
+			    	cap.setName(rs.getString(columnNameOfCapability));
+			    r.setHasCapability(cap);
+			    r.setType(rs.getString(columnNameOfResource_Type));
+			    r.setID_Number(rs.getInt(columnNameOfID));
+			    this.avg_setUp = (int) rs.getDouble(columnNameOfSetupTime);
+	        }
+	       
+	        
+	    } catch (SQLException e ) {
+	    	e.printStackTrace();
+	    }		
+	}
+
+public void receiveCapabilityOperationsValuesFromDB(Resource r) {	
+	Capability cap2 = r.getHasCapability();
+    Statement stmt = null;
+    String query = "";
+	
+
+		query = "select "+columnNameOfID+" , "+columnNameOfTimeConsumption+" , "+columnNameOfCapability_Name+" , "+columnNameOfEnables_Operation+" , "+columnNameOfOperation_Number+" , "+columnNameOfEnablesWPType+" from "+nameOfCapability_Operations_Mapping_Table+" where "+columnNameOfCapability_Name+" = '"+cap2.getName()+"'";;
+
+	
+	    try {
+	        stmt = connection.createStatement();
+	        ResultSet rs = stmt.executeQuery(query);
+	     
+	        while (rs.next()) {
+	        	Operation op = new Operation();
+	        		op.setName(rs.getString(columnNameOfEnables_Operation));
+	        		cap2.setID_Number(rs.getInt(columnNameOfID));
+	        		op.setAvg_Duration(rs.getInt(columnNameOfTimeConsumption));   	
+	        	cap2.addEnables(op);
+	        		enabledWorkpiece = rs.getString(columnNameOfEnablesWPType);
+	        }
+	     r.setHasCapability(cap2);
+	        
+	    } catch (SQLException e ) {
+	    	e.printStackTrace();
+	    } 
+}
+
+@Override
+//public Proposal checkScheduleDetermineTimeslotAndCreateProposal(long startdate_cfp, long enddate_cfp, Operation operation) {
+public Proposal checkScheduleDetermineTimeslotAndCreateProposal(CFP cfp) {
+	
+	Proposal proposal = new Proposal();
+	Timeslot timeslot_for_proposal = new Timeslot();
+	long estimated_start_date = 0;
+	long estimated_enddate = 0;
+	long set_up_time = avg_setUp; //can be time to reach to workpiece or set up time at a machine
+	float duration_for_price = 0;
+	int deadline_not_met = 0;
+	
+	
+	//extract CFP Timeslot
+			Timeslot cfp_timeslot = cfp.getHasTimeslot();	
+			Operation operation = cfp.getHasOperation();
+			long startdate_cfp = Long.parseLong(cfp_timeslot.getStartDate());
+			long enddate_cfp = Long.parseLong(cfp_timeslot.getEndDate());
+			
+	long enddate_interval = 0;
+	//operation avg duration = 0 in case of buffer place
+	if(operation.getAvg_Duration() == 0) {
+		enddate_interval = enddate_cfp;
+	}else {
+		enddate_interval =  startdate_cfp+(long) (operation.getAvg_Duration()*60*1000);
+
+		
+		duration_for_price = set_up_time + operation.getAvg_Duration();
+	//this.getReceiveCFPBehav().duration_for_price = set_up_time + operation.getAvg_Duration(); //in min
+	}
+
+Interval timeslot_interval_to_be_booked_production = new Interval( startdate_cfp-(set_up_time+avg_pickUp)*60*1000, enddate_interval+avg_pickUp*60*1000, false);	//18.06. pick-up added
+//System.out.println("DEBUG_______productionResourceAgent  timeslot_interval_to_be_booked_production "+timeslot_interval_to_be_booked_production.getSize()/(60*1000));
+for(int i = 0;i<getFree_interval_array().size();i++) {	
+	if(getFree_interval_array().get(i).contains(timeslot_interval_to_be_booked_production)){
+		//desired slot can be fulfilled
+		estimated_start_date = startdate_cfp;
+		estimated_enddate = enddate_interval;	
+		//determine how much time there is between this operation and the one before --> the workpiece can only arrive if the one before is already gone
+		//	put that time in the allocated working step as Buffer
+		this.getReceiveCFPBehav().buffer_time_that_production_can_start_earlier = timeslot_interval_to_be_booked_production.lowerBound()-getFree_interval_array().get(i).lowerBound(); 
+		//System.out.println("DEBUG____CONTAINS   operation.getAvg_Duration()*60*1000 "+operation.getAvg_Duration()*60*1000+" estimated_start_date "+estimated_start_date+"  estimated_enddate  "+estimated_enddate+"     buffer_time_that_production_can_start_earlier    	"+this.getReceiveCFPBehav().buffer_time_that_production_can_start_earlier/60000);
+		break;
+	
+	}else if(getFree_interval_array().get(i).getSize() >= timeslot_interval_to_be_booked_production.getSize()){
+		//the desired slot is not fully in a free interval
+		//check whether the slot can be postponed to a later interval (which has the correct size) but not the earliest start date
+		//for(int j = 0;j<getFree_interval_array().size();j++) {
+			//if(getFree_interval_array().get(j).getSize() >= timeslot_interval_to_be_booked_production.getSize()) {
+			if(getFree_interval_array().get(i).lowerBound() >= timeslot_interval_to_be_booked_production.lowerBound()) {	
+				
+				estimated_start_date = getFree_interval_array().get(i).lowerBound()+avg_pickUp*60*1000;
+				estimated_enddate =  estimated_start_date+(long) (operation.getAvg_Duration()*60*1000+set_up_time*60*1000);	//start at the lower bound with the set up + duration = enddate
+				timeslot_interval_to_be_booked_production = new Interval(estimated_start_date - avg_pickUp*60*1000, estimated_enddate + avg_pickUp*60*1000);
+				
+				this.getReceiveCFPBehav().buffer_time_that_production_can_start_earlier = 0; //because the lowerBound of a free Interval is taken --> before that is a busy interval
+				//System.out.println("DEBUG_______________i "+i+" getFree_interval_array().get(i).lowerBound()"+getFree_interval_array().get(i).lowerBound());
+				deadline_not_met = 1000;
+				break;
+			}
+			
+		//}				
+	}
+	
+}	
+
+	float price = duration_for_price + deadline_not_met;		//strafkosten, wenn deadline_not_met
+	if(simulation_mode && (this.getRepresentedResource().getName().contains("Skoda_2") || this.getRepresentedResource().getName().contains("Skoda_3")) ) {		//skoda 1 is better
+		price = price + 50;
+	}else if(simulation_mode && this.getRepresentedResource().getName().contains("Konfektion") || this.getRepresentedResource().getName().contains("FAD")) {
+		if(this.getWorkplan().getConsistsOfAllocatedWorkingSteps().size() > 0) {
+			AllocatedWorkingStep lastAllWS = (AllocatedWorkingStep) this.getWorkplan().getConsistsOfAllocatedWorkingSteps().get(this.getWorkplan().getConsistsOfAllocatedWorkingSteps().size()-1);
+			long difference = estimated_start_date - Long.parseLong(lastAllWS.getHasTimeslot().getEndDate());
+			double difference_double = difference/(1000*60);
+			price = price + this.getWorkplan().getConsistsOfAllocatedWorkingSteps().size()*10000-(float)difference_double;	//biggest difference should get order
+		}	
+	}
+	timeslot_for_proposal.setEndDate(Long.toString(estimated_enddate));
+	timeslot_for_proposal.setStartDate(Long.toString(estimated_start_date));	
+	timeslot_for_proposal.setLength(estimated_enddate-estimated_start_date);
+	this.getReceiveCFPBehav().timeslot_for_schedule.setEndDate(Long.toString(timeslot_interval_to_be_booked_production.upperBound()));
+	this.getReceiveCFPBehav().timeslot_for_schedule.setStartDate(Long.toString(timeslot_interval_to_be_booked_production.lowerBound()));
+	
+	proposal = createProposal(price, operation, timeslot_for_proposal, cfp.getHasSender());
+	//System.out.println("DEBUG____"+getLocalName()+" getFree_interval_array().size() = "+getFree_interval_array().size());
+	if(timeslot_for_proposal.getLength() == 0) {
+	proposal = null;	
+	}
+	System.out.println("DEBUG_____operation.getAvg_Duration() "+operation.getAvg_Duration()+"______"+this.getLocalName()+" timeslot "+timeslot_for_proposal.getStartDate()+" "+timeslot_for_proposal.getEndDate()+" "+timeslot_for_proposal.getLength());
+	return proposal;
+}
+
+@Override
+public ProductionResource getRepresentedResource() {
+	return representedResource;
+}
+
+@Override
+public void setRepresentedResource(Resource res) {
+	representedResource = (ProductionResource) res;
+}
+
+
+
+} 
+
