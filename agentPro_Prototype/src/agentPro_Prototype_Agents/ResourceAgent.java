@@ -136,7 +136,8 @@ public abstract class ResourceAgent extends _Agent_Template{
 		proposal.setID_Number(proposal_id);
 		
 		AllocatedWorkingStep proposed_slot = new AllocatedWorkingStep();
-		
+		//25.02. in Operation
+		operation.setBuffer_before_operation(this.getReceiveCFPBehav().buffer_time_that_production_can_start_earlier);
 		proposed_slot.setHasOperation(operation);
 		
 		Resource thisResource = new Resource();
@@ -152,7 +153,8 @@ public abstract class ResourceAgent extends _Agent_Template{
 		proposed_slot.setHasTimeslot(timeslot_for_proposal);
 		proposed_slot.setID_String(sender.getLocalName()+"@"+getLocalName()+"."+proposal_id);
 		//System.out.println("DEBUG_________Res Agent create Proposal ID String "+sender.getLocalName()+"@"+getLocalName()+"."+proposal_id);
-		proposed_slot.setBuffer_before_operation(this.getReceiveCFPBehav().buffer_time_that_production_can_start_earlier);
+		//25.02. in Operation
+		//proposed_slot.setBuffer_before_operation(this.getReceiveCFPBehav().buffer_time_that_production_can_start_earlier);
 		
 		proposal.addConsistsOfAllocatedWorkingSteps(proposed_slot);
 		

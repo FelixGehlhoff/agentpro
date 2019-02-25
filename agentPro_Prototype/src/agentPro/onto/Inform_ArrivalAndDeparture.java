@@ -7,19 +7,19 @@ import jade.core.*;
 /**
 * Protege name: Inform_ArrivalAndDeparture
 * @author ontology bean generator
-* @version 2019/01/15, 10:47:24
+* @version 2019/02/25, 12:12:45
 */
 public class Inform_ArrivalAndDeparture extends Message{ 
 
    /**
-* Protege name: DepartureTime
+* Protege name: ID_String
    */
-   private String departureTime;
-   public void setDepartureTime(String value) { 
-    this.departureTime=value;
+   private String iD_String;
+   public void setID_String(String value) { 
+    this.iD_String=value;
    }
-   public String getDepartureTime() {
-     return this.departureTime;
+   public String getID_String() {
+     return this.iD_String;
    }
 
    /**
@@ -34,17 +34,6 @@ public class Inform_ArrivalAndDeparture extends Message{
    }
 
    /**
-* Protege name: ID_String
-   */
-   private String iD_String;
-   public void setID_String(String value) { 
-    this.iD_String=value;
-   }
-   public String getID_String() {
-     return this.iD_String;
-   }
-
-   /**
 * Protege name: ArrivalTime
    */
    private String arrivalTime;
@@ -53,6 +42,17 @@ public class Inform_ArrivalAndDeparture extends Message{
    }
    public String getArrivalTime() {
      return this.arrivalTime;
+   }
+
+   /**
+* Protege name: DepartureTime
+   */
+   private String departureTime;
+   public void setDepartureTime(String value) { 
+    this.departureTime=value;
+   }
+   public String getDepartureTime() {
+     return this.departureTime;
    }
 
 }

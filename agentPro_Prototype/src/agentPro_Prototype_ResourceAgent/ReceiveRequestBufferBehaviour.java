@@ -86,7 +86,7 @@ public class ReceiveRequestBufferBehaviour extends CyclicBehaviour{
 						    relevant_allWS = (AllocatedWorkingStep) myAgent.getWorkplan().getConsistsOfAllocatedWorkingSteps().get(position);
 						 //determine & set Buffer
 						    float buffer = determineBuffer(relevant_allWS, position);
-						    allWS.setBuffer_before_operation(buffer);
+						    ((Operation)allWS.getHasOperation()).setBuffer_before_operation(buffer);
 						 //add to ontology element
 						  inform_buffer.addConsistsOfAllocatedWorkingSteps(allWS);			    	
 				    }

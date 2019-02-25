@@ -8,20 +8,9 @@ import jade.core.*;
 /**
 * Protege name: Location
 * @author ontology bean generator
-* @version 2019/01/15, 10:47:24
+* @version 2019/02/25, 12:12:45
 */
 public class Location implements Concept {
-
-   /**
-* Protege name: coordX
-   */
-   private float coordX;
-   public void setCoordX(float value) { 
-    this.coordX=value;
-   }
-   public float getCoordX() {
-     return this.coordX;
-   }
 
    /**
 * Protege name: coordY
@@ -32,6 +21,17 @@ public class Location implements Concept {
    }
    public float getCoordY() {
      return this.coordY;
+   }
+
+   /**
+* Protege name: coordX
+   */
+   private float coordX;
+   public void setCoordX(float value) { 
+    this.coordX=value;
+   }
+   public float getCoordX() {
+     return this.coordX;
    }
 
 }

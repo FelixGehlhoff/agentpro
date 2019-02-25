@@ -8,52 +8,19 @@ import jade.core.*;
 /**
 * Protege name: OrderPosition
 * @author ontology bean generator
-* @version 2019/01/15, 10:47:24
+* @version 2019/02/25, 12:12:45
 */
 public class OrderPosition implements Concept {
 
    /**
-* Protege name: containsProduct
+* Protege name: dueDate
    */
-   private Product containsProduct;
-   public void setContainsProduct(Product value) { 
-    this.containsProduct=value;
+   private String dueDate;
+   public void setDueDate(String value) { 
+    this.dueDate=value;
    }
-   public Product getContainsProduct() {
-     return this.containsProduct;
-   }
-
-   /**
-* Protege name: priority
-   */
-   private int priority;
-   public void setPriority(int value) { 
-    this.priority=value;
-   }
-   public int getPriority() {
-     return this.priority;
-   }
-
-   /**
-* Protege name: endDate
-   */
-   private String endDate;
-   public void setEndDate(String value) { 
-    this.endDate=value;
-   }
-   public String getEndDate() {
-     return this.endDate;
-   }
-
-   /**
-* Protege name: sequence_Number
-   */
-   private int sequence_Number;
-   public void setSequence_Number(int value) { 
-    this.sequence_Number=value;
-   }
-   public int getSequence_Number() {
-     return this.sequence_Number;
+   public String getDueDate() {
+     return this.dueDate;
    }
 
    /**
@@ -68,14 +35,14 @@ public class OrderPosition implements Concept {
    }
 
    /**
-* Protege name: startDate_actual
+* Protege name: sequence_Number
    */
-   private float startDate_actual;
-   public void setStartDate_actual(float value) { 
-    this.startDate_actual=value;
+   private int sequence_Number;
+   public void setSequence_Number(int value) { 
+    this.sequence_Number=value;
    }
-   public float getStartDate_actual() {
-     return this.startDate_actual;
+   public int getSequence_Number() {
+     return this.sequence_Number;
    }
 
    /**
@@ -90,36 +57,14 @@ public class OrderPosition implements Concept {
    }
 
    /**
-* Protege name: startDate
+* Protege name: containsProduct
    */
-   private String startDate;
-   public void setStartDate(String value) { 
-    this.startDate=value;
+   private Product containsProduct;
+   public void setContainsProduct(Product value) { 
+    this.containsProduct=value;
    }
-   public String getStartDate() {
-     return this.startDate;
-   }
-
-   /**
-* Protege name: dueDate
-   */
-   private String dueDate;
-   public void setDueDate(String value) { 
-    this.dueDate=value;
-   }
-   public String getDueDate() {
-     return this.dueDate;
-   }
-
-   /**
-* Protege name: endDate_actual
-   */
-   private float endDate_actual;
-   public void setEndDate_actual(float value) { 
-    this.endDate_actual=value;
-   }
-   public float getEndDate_actual() {
-     return this.endDate_actual;
+   public Product getContainsProduct() {
+     return this.containsProduct;
    }
 
    /**
@@ -131,6 +76,28 @@ public class OrderPosition implements Concept {
    }
    public String getReleaseDate() {
      return this.releaseDate;
+   }
+
+   /**
+* Protege name: endDate_String
+   */
+   private String endDate_String;
+   public void setEndDate_String(String value) { 
+    this.endDate_String=value;
+   }
+   public String getEndDate_String() {
+     return this.endDate_String;
+   }
+
+   /**
+* Protege name: startDate
+   */
+   private String startDate;
+   public void setStartDate(String value) { 
+    this.startDate=value;
+   }
+   public String getStartDate() {
+     return this.startDate;
    }
 
 }

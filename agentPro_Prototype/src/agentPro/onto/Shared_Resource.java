@@ -7,7 +7,7 @@ import jade.core.*;
 /**
 * Protege name: Shared_Resource
 * @author ontology bean generator
-* @version 2019/01/15, 10:47:24
+* @version 2019/02/25, 12:12:45
 */
 public class Shared_Resource extends Resource{ 
 

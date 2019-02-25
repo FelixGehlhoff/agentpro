@@ -619,7 +619,7 @@ public class RequestPerformer extends Behaviour {
 						//Name = Start_Ziel in format  X;Y_DestinationResource
 						transport_operation_local.setName(location.getCoordX()+";"+location.getCoordY()+"_"+res.getName());
 						transport_operation_local.setAppliedOn(myAgent.getRepresented_Workpiece());
-						transport_operation_local.setBuffer_before_operation(booked_production_step.getBuffer_before_operation());
+						transport_operation_local.setBuffer_before_operation(((Operation) booked_production_step.getHasOperation()).getBuffer_before_operation());
 										
 						myAgent.addBehaviour(new RequestPerformer(myAgent, transport_operation_local, null, last_operation, false)); //null = start_date_for_this_task
 						step = 7; 

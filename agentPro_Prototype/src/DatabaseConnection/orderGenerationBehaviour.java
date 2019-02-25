@@ -192,7 +192,7 @@ public class orderGenerationBehaviour extends OneShotBehaviour{
 	        	orderPos.setDueDate(myAgent.SimpleDateFormat.format(rs.getTime(myAgent.columnNameOfDueDate)));
 	        	orderPos.setReleaseDate(myAgent.SimpleDateFormat.format(rs.getTime(myAgent.columnNameOfReleaseDate)));
 	        	orderPos.setStartDate(myAgent.SimpleDateFormat.format(rs.getTime(myAgent.columnNameOfPlanStart)));
-	        	orderPos.setEndDate(myAgent.SimpleDateFormat.format(rs.getTime(myAgent.columnNameOfPlanEnd)));
+	        	orderPos.setEndDate_String(myAgent.SimpleDateFormat.format(rs.getTime(myAgent.columnNameOfPlanEnd)));
 	        	
 	        	String prod_name = rs.getString(myAgent.columnNameOfProduct);
 	        	Product product = new Product();

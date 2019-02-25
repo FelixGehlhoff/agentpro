@@ -7,9 +7,20 @@ import jade.core.*;
 /**
 * Protege name: Transport_Operation
 * @author ontology bean generator
-* @version 2019/01/15, 10:47:24
+* @version 2019/02/25, 12:12:45
 */
 public class Transport_Operation extends Operation{ 
+
+   /**
+* Protege name: hasEndLocation
+   */
+   private Location hasEndLocation;
+   public void setHasEndLocation(Location value) { 
+    this.hasEndLocation=value;
+   }
+   public Location getHasEndLocation() {
+     return this.hasEndLocation;
+   }
 
    /**
 * Protege name: avg_PickupTime
@@ -34,14 +45,14 @@ public class Transport_Operation extends Operation{
    }
 
    /**
-* Protege name: hasEndLocation
+* Protege name: hasDetailedOperationDescription
    */
-   private Location hasEndLocation;
-   public void setHasEndLocation(Location value) { 
-    this.hasEndLocation=value;
+   private DetailedOperationDescription hasDetailedOperationDescription;
+   public void setHasDetailedOperationDescription(DetailedOperationDescription value) { 
+    this.hasDetailedOperationDescription=value;
    }
-   public Location getHasEndLocation() {
-     return this.hasEndLocation;
+   public DetailedOperationDescription getHasDetailedOperationDescription() {
+     return this.hasDetailedOperationDescription;
    }
 
    /**
@@ -53,17 +64,6 @@ public class Transport_Operation extends Operation{
    }
    public Location getHasStartLocation() {
      return this.hasStartLocation;
-   }
-
-   /**
-* Protege name: hasDetailedOperationDescription
-   */
-   private DetailedOperationDescription hasDetailedOperationDescription;
-   public void setHasDetailedOperationDescription(DetailedOperationDescription value) { 
-    this.hasDetailedOperationDescription=value;
-   }
-   public DetailedOperationDescription getHasDetailedOperationDescription() {
-     return this.hasDetailedOperationDescription;
    }
 
    /**

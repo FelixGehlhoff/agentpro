@@ -8,30 +8,19 @@ import jade.core.*;
 /**
 * Protege name: Resource
 * @author ontology bean generator
-* @version 2019/01/15, 10:47:24
+* @version 2019/02/25, 12:12:45
 */
 public class Resource implements Concept {
 
    /**
-* Protege name: type
+* Protege name: detailed_Type
    */
-   private String type;
-   public void setType(String value) { 
-    this.type=value;
+   private String detailed_Type;
+   public void setDetailed_Type(String value) { 
+    this.detailed_Type=value;
    }
-   public String getType() {
-     return this.type;
-   }
-
-   /**
-* Protege name: hasCapability
-   */
-   private Capability hasCapability;
-   public void setHasCapability(Capability value) { 
-    this.hasCapability=value;
-   }
-   public Capability getHasCapability() {
-     return this.hasCapability;
+   public String getDetailed_Type() {
+     return this.detailed_Type;
    }
 
    /**
@@ -46,25 +35,14 @@ public class Resource implements Concept {
    }
 
    /**
-* Protege name: detailed_Type
+* Protege name: hasCapability
    */
-   private String detailed_Type;
-   public void setDetailed_Type(String value) { 
-    this.detailed_Type=value;
+   private Capability hasCapability;
+   public void setHasCapability(Capability value) { 
+    this.hasCapability=value;
    }
-   public String getDetailed_Type() {
-     return this.detailed_Type;
-   }
-
-   /**
-* Protege name: iD_Number
-   */
-   private int iD_Number;
-   public void setID_Number(int value) { 
-    this.iD_Number=value;
-   }
-   public int getID_Number() {
-     return this.iD_Number;
+   public Capability getHasCapability() {
+     return this.hasCapability;
    }
 
    /**
@@ -87,6 +65,28 @@ public class Resource implements Concept {
    }
    public Disturbance getHasDisturbance() {
      return this.hasDisturbance;
+   }
+
+   /**
+* Protege name: iD_Number
+   */
+   private int iD_Number;
+   public void setID_Number(int value) { 
+    this.iD_Number=value;
+   }
+   public int getID_Number() {
+     return this.iD_Number;
+   }
+
+   /**
+* Protege name: type
+   */
+   private String type;
+   public void setType(String value) { 
+    this.type=value;
+   }
+   public String getType() {
+     return this.type;
    }
 
 }

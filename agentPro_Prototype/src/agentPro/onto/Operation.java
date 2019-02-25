@@ -8,30 +8,19 @@ import jade.core.*;
 /**
 * Protege name: Operation
 * @author ontology bean generator
-* @version 2019/01/15, 10:47:24
+* @version 2019/02/25, 12:12:45
 */
 public class Operation implements Concept {
 
    /**
-* Protege name: type
+* Protege name: set_up_time
    */
-   private String type;
-   public void setType(String value) { 
-    this.type=value;
+   private float set_up_time;
+   public void setSet_up_time(float value) { 
+    this.set_up_time=value;
    }
-   public String getType() {
-     return this.type;
-   }
-
-   /**
-* Protege name: appliedOn
-   */
-   private Workpiece appliedOn;
-   public void setAppliedOn(Workpiece value) { 
-    this.appliedOn=value;
-   }
-   public Workpiece getAppliedOn() {
-     return this.appliedOn;
+   public float getSet_up_time() {
+     return this.set_up_time;
    }
 
    /**
@@ -43,6 +32,17 @@ public class Operation implements Concept {
    }
    public float getAvg_Duration() {
      return this.avg_Duration;
+   }
+
+   /**
+* Protege name: buffer_before_operation
+   */
+   private float buffer_before_operation;
+   public void setBuffer_before_operation(float value) { 
+    this.buffer_before_operation=value;
+   }
+   public float getBuffer_before_operation() {
+     return this.buffer_before_operation;
    }
 
    /**
@@ -67,14 +67,14 @@ public class Operation implements Concept {
    public void setIsEnabledBy(List l) {isEnabledBy = l; }
 
    /**
-* Protege name: set_up_time
+* Protege name: appliedOn
    */
-   private float set_up_time;
-   public void setSet_up_time(float value) { 
-    this.set_up_time=value;
+   private Workpiece appliedOn;
+   public void setAppliedOn(Workpiece value) { 
+    this.appliedOn=value;
    }
-   public float getSet_up_time() {
-     return this.set_up_time;
+   public Workpiece getAppliedOn() {
+     return this.appliedOn;
    }
 
    /**
@@ -86,6 +86,28 @@ public class Operation implements Concept {
    }
    public String getName() {
      return this.name;
+   }
+
+   /**
+* Protege name: buffer_after_operation
+   */
+   private float buffer_after_operation;
+   public void setBuffer_after_operation(float value) { 
+    this.buffer_after_operation=value;
+   }
+   public float getBuffer_after_operation() {
+     return this.buffer_after_operation;
+   }
+
+   /**
+* Protege name: type
+   */
+   private String type;
+   public void setType(String value) { 
+    this.type=value;
+   }
+   public String getType() {
+     return this.type;
    }
 
 }

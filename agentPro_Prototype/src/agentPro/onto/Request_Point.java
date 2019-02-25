@@ -8,9 +8,20 @@ import jade.core.*;
 /**
 * Protege name: Request_Point
 * @author ontology bean generator
-* @version 2019/01/15, 10:47:24
+* @version 2019/02/25, 12:12:45
 */
 public class Request_Point implements Concept {
+
+   /**
+* Protege name: time
+   */
+   private String time;
+   public void setTime(String value) { 
+    this.time=value;
+   }
+   public String getTime() {
+     return this.time;
+   }
 
    /**
 * Protege name: coordX
@@ -32,17 +43,6 @@ public class Request_Point implements Concept {
    }
    public String getType() {
      return this.type;
-   }
-
-   /**
-* Protege name: time
-   */
-   private String time;
-   public void setTime(String value) { 
-    this.time=value;
-   }
-   public String getTime() {
-     return this.time;
    }
 
 }

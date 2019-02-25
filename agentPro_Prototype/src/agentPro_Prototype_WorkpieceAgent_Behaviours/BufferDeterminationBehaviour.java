@@ -7,6 +7,7 @@ import agentPro.onto.AllocatedWorkingStep;
 import agentPro.onto.Disturbance;
 import agentPro.onto.DisturbanceType;
 import agentPro.onto.Machine_Error;
+import agentPro.onto.Operation;
 import agentPro.onto.Request_Buffer;
 import agentPro.onto._SendInform_Buffer;
 import agentPro.onto._SendRequest_Buffer;
@@ -192,8 +193,11 @@ public class BufferDeterminationBehaviour extends Behaviour{
 					Iterator<AllocatedWorkingStep> it = inform_Buffer.getHasInform_Buffer().getConsistsOfAllocatedWorkingSteps().iterator();
 				    while(it.hasNext()) {
 				    	AllocatedWorkingStep step_in_message = it.next();	
-				    	((AllocatedWorkingStep) myAgent.getWorkplan().getConsistsOfAllocatedWorkingSteps().get(position_in_AllocWS)).setBuffer_before_operation(step_in_message.getBuffer_before_operation());
-				    	System.out.println(myAgent.SimpleDateFormat.format(new Date())+" "+myAgent.getLocalName()+myAgent.logLinePrefix+" buffer from "+reply.getSender().getLocalName()+" received. Buffer in min = "+(step_in_message.getBuffer_before_operation()/(1000*60)));
+				    	AllocatedWorkingStep allWS = (AllocatedWorkingStep) myAgent.getWorkplan().getConsistsOfAllocatedWorkingSteps().get(position_in_AllocWS);
+				    	Operation op = (Operation) allWS.getHasOperation();
+				    	op.setBuffer_before_operation(((Operation) step_in_message.getHasOperation()).getBuffer_before_operation());
+				    	//((AllocatedWorkingStep) myAgent.getWorkplan().getConsistsOfAllocatedWorkingSteps().get(position_in_AllocWS)).setBuffer_before_operation(step_in_message.getBuffer_before_operation());
+				    	System.out.println(myAgent.SimpleDateFormat.format(new Date())+" "+myAgent.getLocalName()+myAgent.logLinePrefix+" buffer from "+reply.getSender().getLocalName()+" received. Buffer in min = "+((Operation) step_in_message.getHasOperation()).getBuffer_before_operation()/(1000*60));
 				    }
 					
 					//buffer = infBuffer.getHasInform_Buffer().getBuffer();
@@ -232,16 +236,17 @@ public class BufferDeterminationBehaviour extends Behaviour{
 			
 			for(int i = 0;i<3;i++) {
 				AllocatedWorkingStep allWS = (AllocatedWorkingStep) myAgent.getWorkplan().getConsistsOfAllocatedWorkingSteps().get(positions_in_allocatedWorkingSteps_List[i]);
-				if(allWS.getBuffer_before_operation()>0) {
+				Operation op = allWS.getHasOperation();
+				if(op.getBuffer_before_operation()>0) {
 					buffer_for_all_exists = true;
 					if(shared_minimum_buffer == null) {
-						shared_minimum_buffer = allWS.getBuffer_before_operation();
-					}else if(allWS.getBuffer_before_operation()<shared_minimum_buffer) {
-						shared_minimum_buffer = allWS.getBuffer_before_operation();
+						shared_minimum_buffer = op.getBuffer_before_operation();
+					}else if(op.getBuffer_before_operation()<shared_minimum_buffer) {
+						shared_minimum_buffer = op.getBuffer_before_operation();
 					}
 				}else {
 					buffer_for_all_exists = false;
-					shared_minimum_buffer = allWS.getBuffer_before_operation();
+					shared_minimum_buffer = op.getBuffer_before_operation();
 					shared_minimum_buffer_stored = shared_minimum_buffer;
 				}
 			}
