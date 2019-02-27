@@ -45,7 +45,9 @@ public class CreateAgentsAccordingToDatabase extends OneShotBehaviour{
 	        	String res_type = rs.getString(myAgent.columnNameResourceType);
 	        	String res_detailed_type = rs.getString(myAgent.columnNameResourceDetailedType);
 	        	String path_for_agent_class = "agentPro_Prototype_Agents.";
-	        	if(res_type.equals("transport")) {
+	        	if(res_type.equals("transport") && res_detailed_type.equals("buffer")) {
+	        		path_for_agent_class = path_for_agent_class + "BufferAgent_Stringer";
+	        	}else if(res_type.equals("transport")){
 	        		path_for_agent_class = path_for_agent_class + "TransportResourceAgent";
 	        	}else if(res_type.equals("production")){
 	        		path_for_agent_class = path_for_agent_class + "ProductionResourceAgent";

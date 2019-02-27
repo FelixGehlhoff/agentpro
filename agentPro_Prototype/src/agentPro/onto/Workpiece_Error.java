@@ -7,7 +7,7 @@ import jade.core.*;
 /**
 * Protege name: Workpiece_Error
 * @author ontology bean generator
-* @version 2019/02/25, 12:12:45
+* @version 2019/02/26, 10:51:45
 */
 public class Workpiece_Error extends DisturbanceType{ 
 

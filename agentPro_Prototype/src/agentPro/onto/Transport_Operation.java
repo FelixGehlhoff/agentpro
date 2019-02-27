@@ -7,7 +7,7 @@ import jade.core.*;
 /**
 * Protege name: Transport_Operation
 * @author ontology bean generator
-* @version 2019/02/25, 12:12:45
+* @version 2019/02/26, 10:51:45
 */
 public class Transport_Operation extends Operation{ 
 
@@ -34,17 +34,6 @@ public class Transport_Operation extends Operation{
    }
 
    /**
-* Protege name: buffer_before_operation
-   */
-   private float buffer_before_operation;
-   public void setBuffer_before_operation(float value) { 
-    this.buffer_before_operation=value;
-   }
-   public float getBuffer_before_operation() {
-     return this.buffer_before_operation;
-   }
-
-   /**
 * Protege name: hasDetailedOperationDescription
    */
    private DetailedOperationDescription hasDetailedOperationDescription;
@@ -64,17 +53,6 @@ public class Transport_Operation extends Operation{
    }
    public Location getHasStartLocation() {
      return this.hasStartLocation;
-   }
-
-   /**
-* Protege name: buffer_after_operation
-   */
-   private float buffer_after_operation;
-   public void setBuffer_after_operation(float value) { 
-    this.buffer_after_operation=value;
-   }
-   public float getBuffer_after_operation() {
-     return this.buffer_after_operation;
    }
 
 }

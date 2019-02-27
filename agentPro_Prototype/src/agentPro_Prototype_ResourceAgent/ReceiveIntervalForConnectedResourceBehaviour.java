@@ -4,12 +4,7 @@ import java.util.Date;
 import java.util.Iterator;
 
 import agentPro.onto.AllocatedWorkingStep;
-import agentPro.onto.Location;
-import agentPro.onto.Operation;
-import agentPro.onto.Resource;
-import agentPro.onto.Transport_Operation;
 import agentPro.onto._SendInform_Scheduled;
-import agentPro_Prototype_Agents.InterfaceAgent;
 import agentPro_Prototype_Agents.ProductionResourceAgent;
 import jade.content.lang.Codec.CodecException;
 import jade.content.onto.OntologyException;
@@ -18,7 +13,6 @@ import jade.content.onto.basic.Action;
 import jade.core.behaviours.CyclicBehaviour;
 import jade.lang.acl.ACLMessage;
 import jade.lang.acl.MessageTemplate;
-import support_classes.Interval;
 
 public class ReceiveIntervalForConnectedResourceBehaviour extends CyclicBehaviour{
 	
@@ -54,7 +48,7 @@ public class ReceiveIntervalForConnectedResourceBehaviour extends CyclicBehaviou
 							Iterator<AllocatedWorkingStep> it = infSched.getHasInform_Scheduled().getConsistsOfAllocatedWorkingSteps().iterator();
 						    while(it.hasNext()) {
 						    	AllocatedWorkingStep allWS = it.next();
-						    	if(myAgent.getReceiveCFPBehav().bookIntoSchedule(allWS, 0)) {
+						    	if(myAgent.bookIntoSchedule(allWS, 0)) {
 						    		System.out.println("DEBUG  "+myAgent.getLocalName()+" busy interval added "+allWS.getHasTimeslot().getStartDate()+" "+allWS.getHasTimeslot().getEndDate());			
 						    	}else {
 						    		System.out.println("DEBUG  "+myAgent.getLocalName()+" busy interval coudl not be added");

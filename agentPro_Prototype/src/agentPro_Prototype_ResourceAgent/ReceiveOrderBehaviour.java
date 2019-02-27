@@ -4,14 +4,12 @@ package agentPro_Prototype_ResourceAgent;
 import java.util.Date;
 import java.util.Iterator;
 
-import org.jfree.ui.RefineryUtilities;
 
 import agentPro.onto.Accept_Proposal;
 import agentPro.onto.AllocatedWorkingStep;
 import agentPro.onto.Inform_Scheduled;
 import agentPro.onto.Proposal;
 import agentPro.onto.Reject_Proposal;
-import agentPro.onto.WorkPlan;
 import agentPro.onto._SendAccept_Proposal;
 import agentPro.onto._SendInform_Scheduled;
 import agentPro.onto._SendReject_Proposal;
@@ -25,8 +23,6 @@ import jade.core.AID;
 import jade.core.behaviours.Behaviour;
 import jade.lang.acl.ACLMessage;
 import jade.lang.acl.MessageTemplate;
-import support_classes.GanttDemo1;
-import support_classes.Gantt_Creation;
 
 /*
  * Listens for a specified time for orders on a specific PROPOSAL. If there is no offer within the time the behaviour
@@ -213,7 +209,7 @@ public class ReceiveOrderBehaviour extends Behaviour{
 			    		if(!myAgent.getLocalName().equals("Kranschiene")){
 			    			//System.out.println("DEBUG     "+myAgent.getLocalName()  +  "  book Into Schedule "+allocWorkingstep.getHasTimeslot().getStartDate()+ " "+allocWorkingstep.getHasTimeslot().getEndDate());			    			    		
 			    			//myAgent.printoutBusyIntervals();
-			    			Boolean bool = myAgent.getReceiveCFPBehav().bookIntoSchedule(allocWorkingstep, 0); //no time increment necessary
+			    			Boolean bool = myAgent.bookIntoSchedule(allocWorkingstep, 0); //no time increment necessary
 				    		if(!bool) {
 				    			System.out.println("ERROR_____________Receive Order "+myAgent.getLocalName()+"_____________step could not be added");
 				    		}

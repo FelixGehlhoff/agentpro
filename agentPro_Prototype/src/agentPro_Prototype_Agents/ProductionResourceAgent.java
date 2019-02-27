@@ -225,20 +225,21 @@ public Proposal checkScheduleDetermineTimeslotAndCreateProposal(CFP cfp) {
 			Operation operation = cfp.getHasOperation();
 			long startdate_cfp = Long.parseLong(cfp_timeslot.getStartDate());
 			long enddate_cfp = Long.parseLong(cfp_timeslot.getEndDate());
+			int quantity = cfp.getQuantity();
 			
 	long enddate_interval = 0;
 	//operation avg duration = 0 in case of buffer place
 	if(operation.getAvg_Duration() == 0) {
 		enddate_interval = enddate_cfp;
 	}else {
-		enddate_interval =  startdate_cfp+(long) (operation.getAvg_Duration()*60*1000);
+		enddate_interval =  startdate_cfp+(long) (operation.getAvg_Duration()*60*1000*quantity);
 
 		
-		duration_for_price = set_up_time + operation.getAvg_Duration();
+		duration_for_price = set_up_time + operation.getAvg_Duration()*quantity;
 	//this.getReceiveCFPBehav().duration_for_price = set_up_time + operation.getAvg_Duration(); //in min
 	}
 
-Interval timeslot_interval_to_be_booked_production = new Interval( startdate_cfp-(set_up_time+avg_pickUp)*60*1000, enddate_interval+avg_pickUp*60*1000, false);	//18.06. pick-up added
+Interval timeslot_interval_to_be_booked_production = new Interval( startdate_cfp-(Math.max(set_up_time, avg_pickUp))*60*1000, enddate_interval+avg_pickUp*60*1000, false);	//18.06. pick-up added
 //System.out.println("DEBUG_______productionResourceAgent  timeslot_interval_to_be_booked_production "+timeslot_interval_to_be_booked_production.getSize()/(60*1000));
 for(int i = 0;i<getFree_interval_array().size();i++) {	
 	if(getFree_interval_array().get(i).contains(timeslot_interval_to_be_booked_production)){
@@ -248,6 +249,9 @@ for(int i = 0;i<getFree_interval_array().size();i++) {
 		//determine how much time there is between this operation and the one before --> the workpiece can only arrive if the one before is already gone
 		//	put that time in the allocated working step as Buffer
 		this.getReceiveCFPBehav().buffer_time_that_production_can_start_earlier = timeslot_interval_to_be_booked_production.lowerBound()-getFree_interval_array().get(i).lowerBound(); 
+		//25.02.2019 Buffer after
+		this.getReceiveCFPBehav().buffer_time_that_production_can_start_later = getFree_interval_array().get(i).upperBound()-timeslot_interval_to_be_booked_production.upperBound();
+		
 		//System.out.println("DEBUG____CONTAINS   operation.getAvg_Duration()*60*1000 "+operation.getAvg_Duration()*60*1000+" estimated_start_date "+estimated_start_date+"  estimated_enddate  "+estimated_enddate+"     buffer_time_that_production_can_start_earlier    	"+this.getReceiveCFPBehav().buffer_time_that_production_can_start_earlier/60000);
 		break;
 	
@@ -259,10 +263,12 @@ for(int i = 0;i<getFree_interval_array().size();i++) {
 			if(getFree_interval_array().get(i).lowerBound() >= timeslot_interval_to_be_booked_production.lowerBound()) {	
 				
 				estimated_start_date = getFree_interval_array().get(i).lowerBound()+avg_pickUp*60*1000;
-				estimated_enddate =  estimated_start_date+(long) (operation.getAvg_Duration()*60*1000+set_up_time*60*1000);	//start at the lower bound with the set up + duration = enddate
+				estimated_enddate =  estimated_start_date+(long) (operation.getAvg_Duration()*60*1000*quantity+set_up_time*60*1000);	//start at the lower bound with the set up + duration = enddate
 				timeslot_interval_to_be_booked_production = new Interval(estimated_start_date - avg_pickUp*60*1000, estimated_enddate + avg_pickUp*60*1000);
 				
 				this.getReceiveCFPBehav().buffer_time_that_production_can_start_earlier = 0; //because the lowerBound of a free Interval is taken --> before that is a busy interval
+				this.getReceiveCFPBehav().buffer_time_that_production_can_start_later = getFree_interval_array().get(i).upperBound()-timeslot_interval_to_be_booked_production.upperBound();
+				
 				//System.out.println("DEBUG_______________i "+i+" getFree_interval_array().get(i).lowerBound()"+getFree_interval_array().get(i).lowerBound());
 				deadline_not_met = 1000;
 				break;
@@ -289,13 +295,15 @@ for(int i = 0;i<getFree_interval_array().size();i++) {
 	timeslot_for_proposal.setLength(estimated_enddate-estimated_start_date);
 	this.getReceiveCFPBehav().timeslot_for_schedule.setEndDate(Long.toString(timeslot_interval_to_be_booked_production.upperBound()));
 	this.getReceiveCFPBehav().timeslot_for_schedule.setStartDate(Long.toString(timeslot_interval_to_be_booked_production.lowerBound()));
+	this.getReceiveCFPBehav().timeslot_for_schedule.setLength(timeslot_interval_to_be_booked_production.getSize());
+	
 	
 	proposal = createProposal(price, operation, timeslot_for_proposal, cfp.getHasSender());
 	//System.out.println("DEBUG____"+getLocalName()+" getFree_interval_array().size() = "+getFree_interval_array().size());
 	if(timeslot_for_proposal.getLength() == 0) {
 	proposal = null;	
 	}
-	System.out.println("DEBUG_____operation.getAvg_Duration() "+operation.getAvg_Duration()+"______"+this.getLocalName()+" timeslot "+timeslot_for_proposal.getStartDate()+" "+timeslot_for_proposal.getEndDate()+" "+timeslot_for_proposal.getLength());
+	System.out.println("DEBUG_____operation.getAvg_Duration()*quantity "+operation.getAvg_Duration()*quantity+"______"+this.getLocalName()+" timeslot "+timeslot_for_proposal.getStartDate()+" "+timeslot_for_proposal.getEndDate()+" "+timeslot_for_proposal.getLength());
 	return proposal;
 }
 

@@ -11,6 +11,7 @@ import agentPro.onto.Inform_Scheduled;
 import agentPro.onto._SendInform_ArrivalAndDeparture;
 import agentPro.onto._SendInform_Scheduled;
 import agentPro_Prototype_Agents.ResourceAgent;
+import agentPro_Prototype_Agents._Agent_Template;
 import jade.content.lang.Codec.CodecException;
 import jade.content.onto.OntologyException;
 import jade.content.onto.UngroundedException;
@@ -89,7 +90,7 @@ public class ReceiveInformWorkpieceDepartureBehaviour extends CyclicBehaviour{
 			    		new_enddate = Long.parseLong(time_of_departure_process_started)+avg_pickUp*60*1000;
 			    		allocWS.getHasTimeslot().setEndDate(String.valueOf(new_enddate));	//d
 			    		//System.out.println("DEBUG ______time_of_departure_process_started___"+time_of_departure_process_started+"  avg_pickUp  "+avg_pickUp*60*1000+" old_enddate "+old_enddate);
-			    		if(myAgent.simulation_mode && (myAgent.getLocalName().equals("Skoda_1_2") || myAgent.getLocalName().equals("Skoda_2_2") || myAgent.getLocalName().equals("Skoda_3_2"))) {
+			    		if(_Agent_Template.simulation_mode && (myAgent.getLocalName().equals("Skoda_1_2") || myAgent.getLocalName().equals("Skoda_2_2") || myAgent.getLocalName().equals("Skoda_3_2"))) {
 					    	sendIntervalToOtherAgent(allocWS);
 					    }
 			    	
@@ -207,7 +208,9 @@ public class ReceiveInformWorkpieceDepartureBehaviour extends CyclicBehaviour{
 		    		new_startdate = Long.parseLong(time_of_pick_up_finished_and_Work_can_start) - avg_Pickup*60*1000;
 		    		allocWS.getHasTimeslot().setStartDate(String.valueOf(new_startdate));		//alloc as well
 		    		//14.06.2018 NEW (see below) 18.06. pick_up + working time + pick_up = blocked
-		    		new_enddate = Long.parseLong(time_of_pick_up_finished_and_Work_can_start)+ (long)(allocWS.getHasOperation().getAvg_Duration()*60*1000) + avg_Pickup*60*1000;
+		    		//new_enddate = Long.parseLong(time_of_pick_up_finished_and_Work_can_start)+ (long)(allocWS.getHasOperation().getAvg_Duration()*60*1000) + avg_Pickup*60*1000;
+		    		new_enddate = Long.parseLong(time_of_pick_up_finished_and_Work_can_start)+ (long)(allocWS.getHasTimeslot().getLength()) + avg_Pickup*60*1000;
+		    		System.out.println("DEBUG____________allocWS.getHasTimeslot().getLength()  "+allocWS.getHasTimeslot().getLength());
 		    		allocWS.getHasTimeslot().setEndDate(String.valueOf(new_enddate));
 		    		new_ALLWS = allocWS;
 		    		//System.out.println("DEBUG_____________RECEIVE INF Arrival -----> allocWS.getHasTimeslot().getStartDate()"+allocWS.getHasTimeslot().getStartDate()+" allocWS.getHasTimeslot().getEndDate()  "+allocWS.getHasTimeslot().getEndDate());

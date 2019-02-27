@@ -9,7 +9,7 @@ import jade.core.CaseInsensitiveString;
 
 /** file: AgentPro_ProductionOntology.java
  * @author ontology bean generator
- * @version 2019/02/25, 12:12:45
+ * @version 2019/02/26, 10:51:45
  */
 public class AgentPro_ProductionOntology extends jade.content.onto.Ontology  {
   //NAME
@@ -117,10 +117,8 @@ public class AgentPro_ProductionOntology extends jade.content.onto.Ontology  {
     public static final String MESSAGE="Message";
     public static final String SHARED_RESOURCE="Shared_Resource";
     public static final String WRONG_LOCATION="Wrong_Location";
-    public static final String TRANSPORT_OPERATION_BUFFER_AFTER_OPERATION="buffer_after_operation";
     public static final String TRANSPORT_OPERATION_HASSTARTLOCATION="hasStartLocation";
     public static final String TRANSPORT_OPERATION_HASDETAILEDOPERATIONDESCRIPTION="hasDetailedOperationDescription";
-    public static final String TRANSPORT_OPERATION_BUFFER_BEFORE_OPERATION="buffer_before_operation";
     public static final String TRANSPORT_OPERATION_AVG_PICKUPTIME="avg_PickupTime";
     public static final String TRANSPORT_OPERATION_HASENDLOCATION="hasEndLocation";
     public static final String TRANSPORT_OPERATION="Transport_Operation";
@@ -426,10 +424,8 @@ public class AgentPro_ProductionOntology extends jade.content.onto.Ontology  {
     request_DatabaseEntrySchema.add(REQUEST_DATABASEENTRY_CONSISTSOFALLOCATEDWORKINGSTEPS, allocatedWorkingStepSchema, 0, ObjectSchema.UNLIMITED);
     transport_OperationSchema.add(TRANSPORT_OPERATION_HASENDLOCATION, locationSchema, ObjectSchema.OPTIONAL);
     transport_OperationSchema.add(TRANSPORT_OPERATION_AVG_PICKUPTIME, (TermSchema)getSchema(BasicOntology.INTEGER), ObjectSchema.OPTIONAL);
-    transport_OperationSchema.add(TRANSPORT_OPERATION_BUFFER_BEFORE_OPERATION, (TermSchema)getSchema(BasicOntology.FLOAT), ObjectSchema.OPTIONAL);
     transport_OperationSchema.add(TRANSPORT_OPERATION_HASDETAILEDOPERATIONDESCRIPTION, detailedOperationDescriptionSchema, ObjectSchema.OPTIONAL);
     transport_OperationSchema.add(TRANSPORT_OPERATION_HASSTARTLOCATION, locationSchema, ObjectSchema.OPTIONAL);
-    transport_OperationSchema.add(TRANSPORT_OPERATION_BUFFER_AFTER_OPERATION, (TermSchema)getSchema(BasicOntology.FLOAT), ObjectSchema.OPTIONAL);
     messageSchema.add(MESSAGE_HASSENDER, (ConceptSchema)getSchema(BasicOntology.AID), ObjectSchema.OPTIONAL);
     locationSchema.add(LOCATION_COORDY, (TermSchema)getSchema(BasicOntology.FLOAT), ObjectSchema.OPTIONAL);
     locationSchema.add(LOCATION_COORDX, (TermSchema)getSchema(BasicOntology.FLOAT), ObjectSchema.OPTIONAL);

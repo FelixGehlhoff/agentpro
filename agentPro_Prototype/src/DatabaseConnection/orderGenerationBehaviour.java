@@ -61,13 +61,13 @@ public class orderGenerationBehaviour extends OneShotBehaviour{
 	private String columnNameOfOperation = "Operation";
 	private String columnNameOfFirstOperation = "FirstOperation";
 	private String columnNameOfLastOperation = "LastOperation";
-	private String nameOfProduction_Plan_Def_Table = "flexsimdata.production_plan_def";
+	private String nameOfProduction_Plan_Def_Table = myAgent.prefix_schema+".production_plan_def";
 	private String columnNameOfProductName = "ProductName";
 	private int numberOfProducts = 2;
 	
 	private String conversationID_forInterfaceAgent = "OrderAgent"; //for directly contacting the interface agent
 	private DFAgentDescription interface_agent;
-	private long initial_wait = 1500;
+	private long initial_wait = 3000;
 	private double wait_between_agent_creation = 2000;
 	private String columnNameOfFollowUpConstraint = "hasFollowUpOperationConstraint";
 	private String columnNameOfWithStep = "withStep";
@@ -163,7 +163,7 @@ public class orderGenerationBehaviour extends OneShotBehaviour{
 	    	    } catch (SQLException e ) {
 	    	    	e.printStackTrace();
 	    	    } 
-	    	    //System.out.println(print);
+	    	    System.out.println(print);
 	  
 	    
 		
@@ -191,8 +191,13 @@ public class orderGenerationBehaviour extends OneShotBehaviour{
 	        	//15.01.19 dates for backwards calculation etc.
 	        	orderPos.setDueDate(myAgent.SimpleDateFormat.format(rs.getTime(myAgent.columnNameOfDueDate)));
 	        	orderPos.setReleaseDate(myAgent.SimpleDateFormat.format(rs.getTime(myAgent.columnNameOfReleaseDate)));
-	        	orderPos.setStartDate(myAgent.SimpleDateFormat.format(rs.getTime(myAgent.columnNameOfPlanStart)));
-	        	orderPos.setEndDate_String(myAgent.SimpleDateFormat.format(rs.getTime(myAgent.columnNameOfPlanEnd)));
+	        	 if(_Agent_Template.simulation_mode) {
+    				 orderPos.setStartDate(String.valueOf(myAgent.start_simulation));
+    			 }else {
+    				 orderPos.setStartDate(myAgent.SimpleDateFormat.format(rs.getTimestamp(myAgent.columnNameOfPlanStart)));
+    			}
+	        
+	        	orderPos.setEndDate_String(myAgent.SimpleDateFormat.format(rs.getTimestamp(myAgent.columnNameOfPlanEnd)));
 	        	
 	        	String prod_name = rs.getString(myAgent.columnNameOfProduct);
 	        	Product product = new Product();
@@ -219,7 +224,8 @@ public class orderGenerationBehaviour extends OneShotBehaviour{
 					        	  }
 								 warehouse.setHasLocation(loc);
 	        			 orderPos.setHasTargetWarehouse(warehouse);    
-	        			 orderPos.setStartDate(String.valueOf(myAgent.start_simulation));
+	        			
+	        			 
 	        			 break;
 	        		}
 	        	}

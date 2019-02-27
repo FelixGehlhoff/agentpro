@@ -8,7 +8,7 @@ import jade.core.*;
 /**
 * Protege name: Resource
 * @author ontology bean generator
-* @version 2019/02/25, 12:12:45
+* @version 2019/02/26, 10:51:45
 */
 public class Resource implements Concept {
 

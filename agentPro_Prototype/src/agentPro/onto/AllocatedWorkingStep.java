@@ -13,7 +13,7 @@ import jade.core.*;
     </p>
 * Protege name: AllocatedWorkingStep
 * @author ontology bean generator
-* @version 2019/02/25, 12:12:45
+* @version 2019/02/26, 10:51:45
 */
 public class AllocatedWorkingStep implements Concept {
 

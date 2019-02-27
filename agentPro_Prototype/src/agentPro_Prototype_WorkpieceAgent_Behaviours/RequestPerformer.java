@@ -228,6 +228,8 @@ public class RequestPerformer extends Behaviour {
 					 cfp_onto.setHasTimeslot(cfp_timeslot);
 					cfp_onto.setHasOperation(requested_operation);
 					cfp_onto.setHasSender(myAgent.getAID());
+					//26.02.2019 add quantity
+					cfp_onto.setQuantity(myAgent.getOrderPos().getQuantity());
 				cfp_sent = cfp_onto;	
 				
 								
@@ -717,6 +719,7 @@ public class RequestPerformer extends Behaviour {
 					  //can the transport proposal fulfill the desired latest end to match the already scheduled next production step?
 						//if that is not the case --> schedule this transport step and reschedule the production step
 						//TBD if the best price is the right measurement 
+					  				    
 					    if(Long.parseLong(timeslot_proposal.getEndDate())>Long.parseLong(cfp_sent.getHasTimeslot().getEndDate())) {
 							
 							//int size = myAgent.getWorkplan().getConsistsOfAllocatedWorkingSteps().size();
@@ -733,26 +736,35 @@ public class RequestPerformer extends Behaviour {
 								  ///check whether the end of the transport operation (that is too late) is the same location as the current (production) resource TBD--> locations of transport resources in Workplan?
 								  Boolean doLocationsMatch = myAgent.doLocationsMatch(current_step.getHasResource().getHasLocation(), transp_op.getHasEndLocation());
 								  if(doLocationsMatch && current_step.getHasOperation().getType().equals("production")) {
-									step_to_be_cancelled = current_step;	
-									//remove that element from the list --> results in automatic new scheduling by the production manager
-									iter.remove();
-									break;
+									  long current_startdate_production = Long.parseLong(cfp_sent.getHasTimeslot().getEndDate());
+									  float buffer_to_start_later_production = ((Operation)current_step.getHasOperation()).getBuffer_after_operation();
+									  //check if the buffer is big enough to just adjust the operation
+									  if(Long.parseLong(timeslot_proposal.getEndDate())> (current_startdate_production+buffer_to_start_later_production)){
+										  System.out.println("DEBUG__________________PRODUCTION MUST BE RESCHEDULED");
+										  step_to_be_cancelled = current_step;	
+											//remove that element from the list --> results in automatic new scheduling by the production manager
+											iter.remove();
+											break;
+									  }else {
+										  step = 3;	//If there is no more message that can be retrieved --> go to step 3 and book offer
+											break;
+
+									  }
+									
 								}
 							}
-							
-							//cancel the last element in the last --> must be the production step before
-							  //	myAgent.getProductionManagerBehaviour().cancelAllocatedWorkingSteps(size-1);
+	
 							  if(step_to_be_cancelled != null) {
 								  myAgent.cancelAllocatedWorkingSteps(step_to_be_cancelled);
-								  System.out.println("TRANSPORT IS TOO LATE --> RESCHEDULE PRODUCTION ---- cancelled step "+step_to_be_cancelled.getHasOperation().getName()+ " id "+step_to_be_cancelled.getID_String());
-									
+								 //unteres verschoben von nach der Klammer nach hier	
+								  myAgent.getProductionManagerBehaviour().setBackwards_scheduling_activ(true);	
+									System.out.println("DEBUG____________BACKWARDS     SCHEDULING      ACTIVE !!!!!!!!!!!!!!!");
 							  }
 							
 							//remove that element from the list --> results in automatic new scheduling by the production manager
 							//myAgent.getWorkplan().getConsistsOfAllocatedWorkingSteps().remove(size-1); //TBD
 
-							myAgent.getProductionManagerBehaviour().setBackwards_scheduling_activ(true);	
-							System.out.println("DEBUG____________BACKWARDS     SCHEDULING      ACTIVE !!!!!!!!!!!!!!!");
+							
 							
 						}
 					}	

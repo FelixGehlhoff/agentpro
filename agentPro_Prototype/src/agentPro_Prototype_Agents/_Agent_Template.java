@@ -52,9 +52,9 @@ public abstract class _Agent_Template extends Agent{
 	protected Connection connection;			//Connection to database
 	//public final String dbaddress = "jdbc:ucanaccess://C:/Users/Mitarbeiter/Dropbox (HSU_Agent.Pro)/_AgentPro/Prototyp/Database.accdb";	//Address od database
 	//public final String dbaddress = "jdbc:mysql://localhost/feedback?"+"user=root&password=SQL_0518";	//Address od database
-	public String dbaddress_sim = "jdbc:mysql://localhost:3306/MySQL?"+"user=root&password=SQL_0518&useUnicode=true&useJDBCCompliantTimezoneShift=true&useLegacyDatetimeCode=false&serverTimezone=UTC";	//Address od database;
+	public String dbaddress_sim = "jdbc:mysql://localhost:3306/MySQL?"+"user=root&password=SQL_0518&useUnicode=true&useJDBCCompliantTimezoneShift=true&useLegacyDatetimeCode=false&serverTimezone=UTC&useSSL=false";	//Address od database;
 	
-	public String columnNameOfOperation = "Operation";
+	public String columnNameOfOperation = "Operation"; //Operation
 	public String columnNameOfResource = "Resource";
 	public String columnNameOfResource_ID = "Resource_ID";
 	public String columnNameOfSetupTime = "SetupTime";
@@ -68,7 +68,7 @@ public abstract class _Agent_Template extends Agent{
 	public String columnNameOfNumber = "number";
 	public String columnNameOfProduct = "product";
 	public String columnNameOfTargetWarehouse = "targetWarehouse";
-	public String columnNameAuftrags_ID = "Auftrags_ID";
+	public String columnNameAuftrags_ID = "Auftrags_ID"; //Auftrags_ID
 	public String columnNameOperation_Type = "Operation_Type";
 	public String columnNameOfStarted = "Started";
 	

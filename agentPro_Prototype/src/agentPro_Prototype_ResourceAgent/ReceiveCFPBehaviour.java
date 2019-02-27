@@ -50,6 +50,7 @@ public class ReceiveCFPBehaviour extends Behaviour{
 	private ResourceAgent myAgent;
 	public float buffer = 5*60*1000;	//5 minutes Buffer in ms
 	public long buffer_time_that_production_can_start_earlier = 0;
+	public long buffer_time_that_production_can_start_later = 0;
 	public float deadline_not_met = 0; //or 1000	TBD
 	public ArrayList<String> sender = new ArrayList<String>();
 	public Timeslot timeslot_for_schedule;
@@ -64,6 +65,7 @@ public class ReceiveCFPBehaviour extends Behaviour{
 	public float duration_setup;
 	public float time_increment_or_decrement_to_be_added_for_setup_of_next_task;
 	public CFP cfp;
+	
 
 	public ReceiveCFPBehaviour(ResourceAgent myAgent) {
 		super(myAgent);
@@ -201,7 +203,7 @@ public class ReceiveCFPBehaviour extends Behaviour{
 			
 			AllocatedWorkingStep for_schedule = (AllocatedWorkingStep) proposal.getConsistsOfAllocatedWorkingSteps().get(0);	
 			for_schedule.setHasTimeslot(timeslot_for_schedule);	
-			Boolean bool = 	bookIntoSchedule(for_schedule, time_increment_or_decrement_to_be_added_for_setup_of_next_task);
+			Boolean bool = 	myAgent.bookIntoSchedule(for_schedule, time_increment_or_decrement_to_be_added_for_setup_of_next_task);
 			if(!bool) {
 				System.out.println("ERROR______ReceiveCFP__"+myAgent.getLocalName()+"___STEP could not be added");
 			}
@@ -230,157 +232,8 @@ public class ReceiveCFPBehaviour extends Behaviour{
 		}
 	}
 	
-
-	public Boolean bookIntoSchedule(AllocatedWorkingStep allocWorkingstep, float time_increment_or_decrement_to_be_added_for_setup_of_next_task) {		
-		/*
-		 * add interval (busy) and new resulting free intervals
-		 * 
-		 * 
-		 */
-		Boolean booking_successful = false;
-		
-		long long_time_increment_or_decrement_to_be_added_for_setup_of_next_task = (long) (time_increment_or_decrement_to_be_added_for_setup_of_next_task*60*1000);
-		long startdate_busy_interval_new = Long.parseLong(allocWorkingstep.getHasTimeslot().getStartDate());
-		long enddate_busy_interval_new = Long.parseLong(allocWorkingstep.getHasTimeslot().getEndDate());
-		Location new_endLocation = null;
-		if(allocWorkingstep.getHasOperation().getType().equals("transport")) {
-			new_endLocation = ((Transport_Operation)allocWorkingstep.getHasOperation()).getHasEndLocation();				
-		}
-		
-		Interval timeslot_interval_busy = new Interval(startdate_busy_interval_new, enddate_busy_interval_new, false);
-		timeslot_interval_busy.setId(allocWorkingstep.getID_String());
-		//System.out.println("DEBUG_                  REceiveCFPBookintoSchedule  allocWorkingstep.getHasTimeslot().getStartDate() "+allocWorkingstep.getHasTimeslot().getStartDate()+" allocWorkingstep.getHasTimeslot().getEndDate() "+allocWorkingstep.getHasTimeslot().getEndDate()+" Long.parseLong(allocWorkingstep.getHasTimeslot().getStartDate()  "+Long.parseLong(allocWorkingstep.getHasTimeslot().getStartDate())+" Long.parseLong(allocWorkingstep.getHasTimeslot().getEndDate())  "+Long.parseLong(allocWorkingstep.getHasTimeslot().getEndDate())+" time_increment_or_decrement_to_be_added_for_setup_of_next_task*60*1000+ "+(long) time_increment_or_decrement_to_be_added_for_setup_of_next_task*60*1000+" timeslot_interval_busy "+timeslot_interval_busy.toString());
-		
-		for(int i = 0;i<myAgent.getFree_interval_array().size();i++) {		//check the free intervals and find the one that fits		
-			if(myAgent.getFree_interval_array().get(i).contains(timeslot_interval_busy)) {
-				booking_successful = true;
-				//eg from 0 - 10 contains 5-10
-				//store the free interval
-				Interval free_interval_that_existed_before = myAgent.getFree_interval_array().get(i);
-				
-				//remove the free interval that contains the new busy interval (new ones are created later)
-				myAgent.getFree_interval_array().remove(i);
-				//check which new intervals are needed
-					//long enddate_busy_interval_before = 0;
-					//long startdate_busy_interval_after = 0;
-					boolean busy_interval_before_contains_startdate = false;
-					boolean busy_interval_after_contains_enddate = false;
-					
-					//as there can be no (real) overlap between busy intervals --> contains means start & enddate match (or vice versa)		
-					if(myAgent.getBusyInterval_array().size()>0) {
-						//check for every interval in busy intervals
-						for(int j = 0;j < myAgent.getBusyInterval_array().size();j++) {
-							
-							//if this busy interval contains the start date of the new busy interval --> enddate before and start new are equal
-							if(myAgent.getBusyInterval_array().get(j).contains(startdate_busy_interval_new)) {	
-								busy_interval_before_contains_startdate = true;
-								//if there is a busy interval after
-								if(j+1<myAgent.getBusyInterval_array().size()) {
-									if(myAgent.getBusyInterval_array().get(j).contains(enddate_busy_interval_new)) {	//new 12.02.19
-										busy_interval_after_contains_enddate = true;
-									}
-									
-									long old_start = myAgent.getBusyInterval_array().get(j+1).lowerBound();
-									Interval new_busy_interval_AFTER = new Interval(old_start - long_time_increment_or_decrement_to_be_added_for_setup_of_next_task, myAgent.getBusyInterval_array().get(j+1).upperBound());
-									new_busy_interval_AFTER.setId(myAgent.getBusyInterval_array().get(j+1).getId());
-									myAgent.getBusyInterval_array().remove(j+1);
-									myAgent.getBusyInterval_array().add(j+1, new_busy_interval_AFTER);	
-									setStartOfAllocatedWorkingStepThatStartsAtTimeXToYandChangeStartLocation(old_start, old_start - long_time_increment_or_decrement_to_be_added_for_setup_of_next_task, new_endLocation);
-									
-								}						
-								break;
-							//if this busy interval contains the end date of the new busy interval --> startdate after and end new are equal
-							}else if(myAgent.getBusyInterval_array().get(j).contains(enddate_busy_interval_new)) {								
-								busy_interval_after_contains_enddate = true;
-							//startdate of the new free interval BEFORE must be the old start date of the free interval
-							//enddate of the new free interval BEFORE must be the start date of the new busy interval
-							//startdate of the new free interval AFTER must be the enddate of the new busy interval
-							//enddate of the new free interval AFTER must be the enddate of the old free intervall
-								//04.04.18 time increment has to be considered! The old busy interval AFTER must be increased (or decreased in time 
-								//(or vice versa)) because the setup now takes longer (or shorter)
-							long old_start = myAgent.getBusyInterval_array().get(j).lowerBound(); //new 12.02.19
-							Interval new_busy_interval_AFTER = new Interval(myAgent.getBusyInterval_array().get(j).lowerBound() - long_time_increment_or_decrement_to_be_added_for_setup_of_next_task, myAgent.getBusyInterval_array().get(j).upperBound());
-							new_busy_interval_AFTER.setId(myAgent.getBusyInterval_array().get(j).getId()); //new 12.02.19
-							myAgent.getBusyInterval_array().remove(j);
-							myAgent.getBusyInterval_array().add(j, new_busy_interval_AFTER);
-							setStartOfAllocatedWorkingStepThatStartsAtTimeXToYandChangeStartLocation(old_start, old_start - long_time_increment_or_decrement_to_be_added_for_setup_of_next_task, new_endLocation); //new 12.02.19
-							
-							break;
-							}
-						}					
-					}
-
-					
-					//if only the startdate is element of a busy interval
-					// --> one new free interval AFTER the new busy interval
-					if(busy_interval_before_contains_startdate && !busy_interval_after_contains_enddate) {
-						Interval new_free_intervall_after = new Interval(enddate_busy_interval_new, free_interval_that_existed_before.upperBound()- long_time_increment_or_decrement_to_be_added_for_setup_of_next_task, false);
-						myAgent.getFree_interval_array().add(i, new_free_intervall_after);
-					}
-					
-					//if the enddate is element of a busy interval
-					// --> one new free interval BEFORE the new busy interval
-					else if(!busy_interval_before_contains_startdate && busy_interval_after_contains_enddate) {
-						Interval new_free_intervall_before = new Interval(free_interval_that_existed_before.lowerBound(), startdate_busy_interval_new, false);
-						myAgent.getFree_interval_array().add(i, new_free_intervall_before);	
-						
-					}											
-					//if neither the startdate nor the enddate is element of any busy interval --> two new free intervals are needed
-					// --> two new free intervals are needed (BEFORE and AFTER)
-					else if(!busy_interval_before_contains_startdate && !busy_interval_after_contains_enddate) {
-						Interval new_free_intervall_before = new Interval(free_interval_that_existed_before.lowerBound(), startdate_busy_interval_new, false);
-						Interval new_free_intervall_after = new Interval(enddate_busy_interval_new, free_interval_that_existed_before.upperBound(), false);						
-						myAgent.getFree_interval_array().add(i, new_free_intervall_after);
-						myAgent.getFree_interval_array().add(i, new_free_intervall_before);
-						
-					}
-						//if both are elements of two different busy intervals
-						// --> no new free interval is needed because it is "replaced" by a busy interval	
-					else {
-						
-					}							
-			}
-			//break;
-			
-		}
-		if(booking_successful) {
-			myAgent.getBusyInterval_array().add(timeslot_interval_busy);	
-			myAgent.sortArrayListIntervalsEarliestFirst(myAgent.getBusyInterval_array(), "start");
-		    
-			myAgent.getWorkplan().addConsistsOfAllocatedWorkingSteps(allocWorkingstep);
-			
-			if(myAgent.getWorkplan().getConsistsOfAllocatedWorkingSteps().size()>1) {
-				myAgent.sortWorkplanChronologically();
-			}
-		}
-		
-		myAgent.printoutFreeIntervals();
-		myAgent.printoutBusyIntervals();
-		return booking_successful;		
-		//create GANTT chart
-		/*
-			 XYTaskDatasetDemo2 demo = new XYTaskDatasetDemo2(
-		                "JFreeChart : XYTaskDatasetDemo2.java", myAgent.getWorkplan(), myAgent.getLocalName());
-		        demo.pack();
-		        RefineryUtilities.centerFrameOnScreen(demo);
-		        demo.setVisible(false);	*/
-	}
 	
-	private void setStartOfAllocatedWorkingStepThatStartsAtTimeXToYandChangeStartLocation(long old_start_date, long new_start_date, Location new_endLocation) {
-		for(int i = 0; i<myAgent.getWorkplan().getConsistsOfAllocatedWorkingSteps().size();i++) {   	   	
-				AllocatedWorkingStep a = (AllocatedWorkingStep) myAgent.getWorkplan().getConsistsOfAllocatedWorkingSteps().get(i);				
-				if(Long.parseLong(a.getHasTimeslot().getStartDate()) == old_start_date) {	    		
-		    		a.getHasTimeslot().setStartDate(String.valueOf(new_start_date));	
-		    		if(new_endLocation != null) {
-		    			((Transport_Operation)a.getHasOperation()).setHasStartLocation(new_endLocation);
-		    		}
-		    		
-		    		
-		    		break;
-		    	}
-		    }
-		
-	}
+	
 
 	/*
 	public void sortWorkplanChronologically() {

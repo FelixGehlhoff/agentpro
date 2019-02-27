@@ -1,21 +1,17 @@
 package agentPro_Prototype_WorkpieceAgent_Behaviours;
 
 
+import java.text.ParseException;
 import java.util.Date;
 import java.util.Iterator;
 import agentPro.onto.AllocatedWorkingStep;
-import agentPro.onto.Cancellation;
 import agentPro.onto.Operation;
 import agentPro.onto.OrderedOperation;
 import agentPro.onto.Transport_Operation;
 import agentPro.onto.WorkPlan;
-import agentPro.onto._SendCancellation;
 import agentPro_Prototype_Agents.WorkpieceAgent;
+import agentPro_Prototype_Agents._Agent_Template;
 import agentPro_Prototype_ResourceAgent.RequestDatabaseEntryBehaviour;
-import jade.content.lang.Codec.CodecException;
-import jade.content.onto.OntologyException;
-import jade.content.onto.basic.Action;
-import jade.core.AID;
 import jade.core.behaviours.Behaviour;
 import jade.lang.acl.ACLMessage;
 import support_classes.GanttDemo1;
@@ -35,23 +31,7 @@ public class ProductionManagerBehaviour extends Behaviour{
 	
 	//private JSONObject workpiece;	
 	//private double average_speed = 1; //m/s
-	
-	//database
-	/*
-	private String nameOfMES_Data = "MES_Data";
-	private String columnNameOfOperation = "Operation";
-	private String columnNameOfResource = "Ressource";
-	private String columnNameOfResource_ID = "Ressource_ID";
-	private String columnNameOfPlanStart = "PlanStart";
-	private String columnNameOfPlanEnd = "PlanEnde";
-	private String columnNameAuftrags_ID = "Auftrags_ID";
-	private String columnNameOperation_Type = "Operation_Type";
-	private String columnNameOfStarted = "Started";
-	//private String columnNameFinished = "Finished";
-	//private String columnNameOfIstStart = "IstStart";
-	//private String columnNameOfIstEnde = "IstEnde";
-	 * 
-	 */
+
 	private boolean backwards_scheduling_activ = false;
 
 	
@@ -85,8 +65,20 @@ public class ProductionManagerBehaviour extends Behaviour{
 			requested_operation.setAppliedOn(myAgent.getRepresented_Workpiece());
 			//is it the last operation?
 			Boolean last_operation = determineLastOperation(position_next_step);
-
-			long startdate_for_this_task = Long.parseLong(myAgent.getOrderPos().getStartDate());
+			long startdate_for_this_task = 0;
+			Date d = new Date();
+			if(_Agent_Template.simulation_mode) {
+				startdate_for_this_task	= Long.parseLong(myAgent.getOrderPos().getStartDate());
+			}else {
+				
+				try {
+					d = myAgent.SimpleDateFormat.parse(myAgent.getOrderPos().getStartDate());
+				} catch (ParseException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+				startdate_for_this_task = d.getTime();
+			}
 			
 			//does this step have to consider a successor contraint?
 			String necessary_resource_agent_for_this_step = determineFollowUpOperationContraintOfLastProductionOperationScheduled(position_next_step);

@@ -93,7 +93,7 @@ public class DatabaseConnectorAgent extends _Agent_Template{
 		}
 		
 		
-		if(this.simulation_mode) {
+		if(_Agent_Template.simulation_mode) {
 			if(this.getConnection().isClosed()) {
 				activateConnection();
 			}
@@ -102,25 +102,8 @@ public class DatabaseConnectorAgent extends _Agent_Template{
 				
 				//String query = "Select * from "+this.nameOfProductionPlan+" where "+this.columnNameID+" = "+order_id;
 				//01.02.19 Orders sollen in der Reihenfolge eingetragen werden, wie sie kommen
-				String query = "Select * from "+this.tableNameProductionPlan+" where "+this.columnNameorderid+" = "+order_id;
-				ResultSet rs2 = stmt.executeQuery("select * from "+this.tableNameProductionPlan);
-				rs2.last();
-				int row_count = rs2.getRow();
+				addToFlexsimLayoutTable(stmt, order_id, workplan, this.tableNameProductionPlan+"_agentPro");
 				
-				ResultSet rs = stmt.executeQuery(query);
-	
-				System.out.println("DEBUG______________________________total query_"+row_count);
-				if(rs.isBeforeFirst()) {	//data returned
-					rs.next();
-					System.out.println("DEBUG_____2nd query row count "+rs.getRow());
-					createRowEntries(rs, workplan, order_id, 0);	//add 0 to row number
-					rs.updateRow();   //Einfügen der Zeile in die Datenbank
-				}else {
-					rs.moveToInsertRow();					
-					createRowEntries(rs, workplan, order_id, row_count+1);	//add 1 to row number	
-					rs.updateInt(1, row_count+1);
-					rs.insertRow();
-				}
 				//createRowEntries(rs, workplan, order_id);
 				//rs.updateRow();   //Einfügen der Zeile in die Datenbank
 		        // Close ResultSet and Statement
@@ -131,7 +114,7 @@ public class DatabaseConnectorAgent extends _Agent_Template{
 		}
 		//anders schema
 		
-		else {
+		//else {
 			String mes_table_to_be_used = "";
 			switch (agent_type) {
 			case "workpiece":
@@ -151,9 +134,11 @@ public class DatabaseConnectorAgent extends _Agent_Template{
 				e1.printStackTrace();
 			}*/
 			
+	    	
+	    	
 			try (Connection con = DriverManager.getConnection(dbaddress_sim); Statement stmt = con.createStatement(ResultSet.TYPE_SCROLL_SENSITIVE, ResultSet.CONCUR_UPDATABLE);
 					){
-					
+
 				@SuppressWarnings("unchecked")
 				Iterator<AllocatedWorkingStep> it = workplan.getConsistsOfAllocatedWorkingSteps().iterator();
 			    while(it.hasNext()) {
@@ -167,13 +152,13 @@ public class DatabaseConnectorAgent extends _Agent_Template{
 				    	//Statement stmt = con.createStatement(
 					     //       ResultSet.TYPE_SCROLL_SENSITIVE, // Vor- und Rücksprünge möglich
 					     //       ResultSet.CONCUR_UPDATABLE);     // Veränderbar
-				    	
-		
+
+			    	
 				    //12.02.2019 rs ERstellung ausgeschnitten
 				    	ResultSet rs2 = stmt.executeQuery(		
 				    			//"select * from "+nameOfMES_Data+" where "+columnNameOfOperation+" = '"+allWorkingStep.getHasOperation().getName()+"' and "+columnNameAuftrags_ID+" = '"+allWorkingStep.getHasOperation().getAppliedOn().getID_String()+"' and "+columnNameFinished+" = 'false'"); 
 				    			"select * from "+mes_table_to_be_used+" where "+columnNameOfOperation+" = '"+allWorkingStep.getHasOperation().getName()+"' and "+columnNameAuftrags_ID+" = '"+allWorkingStep.getHasOperation().getAppliedOn().getID_String()+"'"); 
-						       
+						// System.out.println("mes__table_to_be_used "+mes_table_to_be_used);      
 				    	if (rs2.isBeforeFirst() ) {  //the SQL query has returned data  
 				    		rs2.next(); 
 				        	//rs.moveToInsertRow();		  //Jetzt steht das RS in der "Insert" Zeile, diese ist quasi "separat" zum Rest der Tabelle  
@@ -242,11 +227,34 @@ public class DatabaseConnectorAgent extends _Agent_Template{
 		    } catch (SQLException e ) {
 		        e.printStackTrace();
 		    }	
-		}
+		//}
 		
 		       
 	}
 	
+	private void addToFlexsimLayoutTable(Statement stmt, int order_id, WorkPlan workplan, String tableNameProductionPlan) throws SQLException {
+		String query = "Select * from "+tableNameProductionPlan+" where "+this.columnNameorderid+" = "+order_id;
+		ResultSet rs2 = stmt.executeQuery("select * from "+tableNameProductionPlan);
+		rs2.last();
+		int row_count = rs2.getRow();
+		
+		ResultSet rs = stmt.executeQuery(query);
+
+		System.out.println("DEBUG______________________________total query_"+row_count);
+		if(rs.isBeforeFirst()) {	//data returned
+			rs.next();
+			System.out.println("DEBUG_____2nd query row count "+rs.getRow());
+			createRowEntries(rs, workplan, order_id, 0);	//add 0 to row number
+			rs.updateRow();   //Einfügen der Zeile in die Datenbank
+		}else {
+			rs.moveToInsertRow();					
+			createRowEntries(rs, workplan, order_id, row_count+1);	//add 1 to row number	
+			rs.updateInt(1, row_count+1);
+			rs.insertRow();
+		}
+		
+	}
+
 	private void createRowEntries(ResultSet rs2, WorkPlan workplan, int order_id, int row_count) throws SQLException {
     	int i2 = 1;
     
@@ -357,15 +365,21 @@ public class DatabaseConnectorAgent extends _Agent_Template{
 				){
 	        //Statement stmt = this.getConnection().createStatement();
 	        ResultSet rs = null;
-		String query_resource = "select "+columnNameResourceName_simulation+" , "+columNameColumnNameInProductionPlan+" , "+columnNameColumnInProductionPlan+" , "+columnNameResourceType+" , "+columnNameID+" , "+columnNameLocationX+" , "+columnNameLocationY+" from "+tableNameResource;
-		
+	      
+			String query_resource = "select * from "+tableNameResource;
+
+
+	        
 		rs = stmt.executeQuery(query_resource); 
 		
 		while(rs.next()) {
 			Resource_Extension res = new Resource_Extension();
 			res.setID_Number(rs.getInt(columnNameID));
 			res.setName(rs.getString(columnNameResourceName_simulation));
-			res.setColumninproductionplan(rs.getInt(columnNameColumnInProductionPlan));
+			if(_Agent_Template.simulation_mode) {
+				res.setColumninproductionplan(rs.getInt(columnNameColumnInProductionPlan));
+			}
+			
 			resource_hashmap.put(res.getID_Number(), res);
 		}
 			
