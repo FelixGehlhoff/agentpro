@@ -16,6 +16,7 @@ import java.util.Calendar;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
+import java.util.TimeZone;
 
 import DatabaseConnection.ReceiveDatabaseQueryRequestBehaviour;
 import agentPro.onto.AllocatedWorkingStep;
@@ -163,7 +164,9 @@ public class DatabaseConnectorAgent extends _Agent_Template{
 				    		rs2.next(); 
 				        	//rs.moveToInsertRow();		  //Jetzt steht das RS in der "Insert" Zeile, diese ist quasi "separat" zum Rest der Tabelle  
 				            //RS bzw. jede Spalte wird mit Werten gefüllt	  
-				    		Calendar cal = Calendar.getInstance();
+				    		
+				    		//Calendar cal = Calendar.getInstance();
+				    		Calendar cal = Calendar.getInstance(TimeZone.getTimeZone("Germany/Hamburg"));
 				    		cal.setTimeInMillis(Long.parseLong(allWorkingStep.getHasTimeslot().getStartDate()));
 				    		
 				    		//java.sql.Date sql_date = new java.sql.Date(Long.parseLong(allWorkingStep.getHasTimeslot().getStartDate()));

@@ -9,7 +9,7 @@ import jade.core.CaseInsensitiveString;
 
 /** file: AgentPro_ProductionOntology.java
  * @author ontology bean generator
- * @version 2019/02/26, 10:51:45
+ * @version 2019/03/4, 13:24:52
  */
 public class AgentPro_ProductionOntology extends jade.content.onto.Ontology  {
   //NAME
@@ -173,6 +173,7 @@ public class AgentPro_ProductionOntology extends jade.content.onto.Ontology  {
     public static final String RESOURCE_HASLOCATION="hasLocation";
     public static final String RESOURCE_DETAILED_TYPE="detailed_Type";
     public static final String RESOURCE="Resource";
+    public static final String WORKPIECE_BECOMES="becomes";
     public static final String WORKPIECE_HASLOCATION="hasLocation";
     public static final String WORKPIECE_ID_STRING="ID_String";
     public static final String WORKPIECE="Workpiece";
@@ -386,6 +387,7 @@ public class AgentPro_ProductionOntology extends jade.content.onto.Ontology  {
     capabilitySchema.add(CAPABILITY_ID_NUMBER, (TermSchema)getSchema(BasicOntology.INTEGER), ObjectSchema.OPTIONAL);
     workpieceSchema.add(WORKPIECE_ID_STRING, (TermSchema)getSchema(BasicOntology.STRING), ObjectSchema.OPTIONAL);
     workpieceSchema.add(WORKPIECE_HASLOCATION, locationSchema, ObjectSchema.OPTIONAL);
+    workpieceSchema.add(WORKPIECE_BECOMES, productSchema, ObjectSchema.OPTIONAL);
     resourceSchema.add(RESOURCE_DETAILED_TYPE, (TermSchema)getSchema(BasicOntology.STRING), ObjectSchema.OPTIONAL);
     resourceSchema.add(RESOURCE_HASLOCATION, locationSchema, ObjectSchema.OPTIONAL);
     resourceSchema.add(RESOURCE_HASCAPABILITY, capabilitySchema, ObjectSchema.OPTIONAL);

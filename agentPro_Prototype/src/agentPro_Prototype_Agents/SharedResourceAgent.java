@@ -76,7 +76,7 @@ public abstract class SharedResourceAgent extends ResourceAgent{
 	}
 
 	@Override
-	public boolean feasibilityCheck(Operation operation) {
+	public boolean feasibilityCheckAndDetermineDurationParameters(Operation operation) {
 		// TODO Auto-generated method stub
 		return true;
 	}

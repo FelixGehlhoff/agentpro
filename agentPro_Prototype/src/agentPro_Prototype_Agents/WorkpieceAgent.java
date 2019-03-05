@@ -80,7 +80,9 @@ public class WorkpieceAgent extends _Agent_Template{
 		orderNumber = (int) args[3];
 		
 		Workpiece rep_WP = new Workpiece();
-		rep_WP.setID_String("Workpiece_No_"+orderNumber+"."+this.getOrderPos().getSequence_Number());
+		//rep_WP.setID_String("Workpiece_No_"+orderNumber+"."+this.getOrderPos().getSequence_Number());
+		rep_WP.setID_String(orderPos.getContainsProduct().getName()+"_"+orderNumber+"."+this.getOrderPos().getSequence_Number());
+		//rep_WP.setBecomes(orderPos.getContainsProduct());
 		setRepresented_Workpiece(rep_WP);
 
 
@@ -269,6 +271,7 @@ public class WorkpieceAgent extends _Agent_Template{
 		    	System.out.println(printout);
 		    }else {
 		    	getWorkplan().addConsistsOfAllocatedWorkingSteps(allocWorkingstep_toBeAdded); 		//allocWorkingStep is added to workplan	
+		    	//System.out.println("DEBUG________________WP allocWorkingstep_toBeAdded.Timeslot.getStartdate() "+allocWorkingstep_toBeAdded.getHasTimeslot().getStartDate()+" allocWorkingstep_toBeAdded.Timeslot.getEnddate() "+allocWorkingstep_toBeAdded.getHasTimeslot().getEndDate());
 		    }
 		
 		return interval_already_in_list;

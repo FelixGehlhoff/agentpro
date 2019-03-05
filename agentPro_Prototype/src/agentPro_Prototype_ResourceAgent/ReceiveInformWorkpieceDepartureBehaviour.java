@@ -135,7 +135,7 @@ public class ReceiveInformWorkpieceDepartureBehaviour extends CyclicBehaviour{
 			    
 			    
 			     //create GANTT Chart
-			    System.out.println("DEBUG__ReceiveInformWPDeparture__"+myAgent.getLocalName()+id_workpiece);
+			    //System.out.println("DEBUG__ReceiveInformWPDeparture__"+myAgent.getLocalName()+id_workpiece);
 			    if(id_workpiece.equals("WorkpieceAgentNo_3")) {
 			    	 XYTaskDatasetDemo2 demo = new XYTaskDatasetDemo2(
 				                "JFreeChart : XYTaskDatasetDemo2.java", myAgent.getWorkplan(), myAgent.getLocalName());
@@ -202,6 +202,7 @@ public class ReceiveInformWorkpieceDepartureBehaviour extends CyclicBehaviour{
 			Iterator<AllocatedWorkingStep> it = myAgent.getWorkplan().getConsistsOfAllocatedWorkingSteps().iterator();
 		    while(it.hasNext()) {
 		    	AllocatedWorkingStep allocWS = it.next();
+		    	long lengthOfAllocWSBeforeChange = (long) allocWS.getHasTimeslot().getLength();
 		    	if(allocWS.getHasOperation().getAppliedOn().getID_String().equals(id_workpiece)) {
 		    		old_startdate = Long.parseLong(allocWS.getHasTimeslot().getStartDate()); //busy interval included 2x pick up
 		    		old_enddate = Long.parseLong(allocWS.getHasTimeslot().getEndDate());
@@ -209,7 +210,7 @@ public class ReceiveInformWorkpieceDepartureBehaviour extends CyclicBehaviour{
 		    		allocWS.getHasTimeslot().setStartDate(String.valueOf(new_startdate));		//alloc as well
 		    		//14.06.2018 NEW (see below) 18.06. pick_up + working time + pick_up = blocked
 		    		//new_enddate = Long.parseLong(time_of_pick_up_finished_and_Work_can_start)+ (long)(allocWS.getHasOperation().getAvg_Duration()*60*1000) + avg_Pickup*60*1000;
-		    		new_enddate = Long.parseLong(time_of_pick_up_finished_and_Work_can_start)+ (long)(allocWS.getHasTimeslot().getLength()) + avg_Pickup*60*1000;
+		    		new_enddate = Long.parseLong(time_of_pick_up_finished_and_Work_can_start)+ lengthOfAllocWSBeforeChange + avg_Pickup*60*1000;
 		    		System.out.println("DEBUG____________allocWS.getHasTimeslot().getLength()  "+allocWS.getHasTimeslot().getLength());
 		    		allocWS.getHasTimeslot().setEndDate(String.valueOf(new_enddate));
 		    		new_ALLWS = allocWS;

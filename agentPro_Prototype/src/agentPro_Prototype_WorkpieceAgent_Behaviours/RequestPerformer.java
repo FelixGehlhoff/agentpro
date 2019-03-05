@@ -592,8 +592,10 @@ public class RequestPerformer extends Behaviour {
 							myAgent.getProductionManagerBehaviour().sortWorkplanChronologically();
 							//set backwards scheduling active back to false
 							myAgent.getProductionManagerBehaviour().setBackwards_scheduling_activ(false);
+							
 							arrangeTransportToWarehouse();
 							step = 7;
+							
 							break;
 						}
 						
@@ -641,9 +643,7 @@ public class RequestPerformer extends Behaviour {
 						
 						//if this was the transport to the last production step (but not the transport to warehouse) --> arrange transport to warehouse after the production step
 						if(last_operation != null && last_operation && !myAgent.getProductionManagerBehaviour().isBackwards_scheduling_activ()) {	//last operation is given from the production step before	 
-								
-								arrangeTransportToWarehouse();
-
+								arrangeTransportToWarehouse();															
 								step = 7;
 								break;
 								
@@ -660,7 +660,7 @@ public class RequestPerformer extends Behaviour {
 						//for transport operations the startdate is usually null as it can be calculated from the workplan --> only in case of error step it is not null							
 						else if(last_operation == null && startdate_for_this_task == null) {	
 							//System.out.println("DEBUG_______________"+myAgent.SimpleDateFormat.format(new Date())+" "+myAgent.getLocalName()+logLinePrefix+" test 2");
-							
+							myAgent.printoutWorkPlan();
 							myAgent.getProductionManagerBehaviour().setStep(2);
 							myAgent.getProductionManagerBehaviour().restart();
 							step = 7;
@@ -784,6 +784,8 @@ public class RequestPerformer extends Behaviour {
 	}
 
 	private void arrangeTransportToWarehouse() {
+		
+		
 		Transport_Operation transport_operation = new Transport_Operation();									//
 		transport_operation.setType("transport");
 		transport_operation.setAppliedOn(myAgent.getRepresented_Workpiece());
@@ -801,13 +803,23 @@ public class RequestPerformer extends Behaviour {
 					
 				}
 			}
-		transport_operation.setHasStartLocation(startlocation);
-		transport_operation.setHasEndLocation(myAgent.getOrderPos().getHasTargetWarehouse().getHasLocation());
+			
+			if(myAgent.doLocationsMatch(startlocation, myAgent.getOrderPos().getHasTargetWarehouse().getHasLocation())) {
+				myAgent.printoutWorkPlan();
+				myAgent.getProductionManagerBehaviour().setStep(2);
+				myAgent.getProductionManagerBehaviour().restart();
+				step = 7;
+			}else {
+				transport_operation.setHasStartLocation(startlocation);
+				transport_operation.setHasEndLocation(myAgent.getOrderPos().getHasTargetWarehouse().getHasLocation());
+				
+				
+				//Name = Start_Ziel in format  X;Y_DestinationResource
+				transport_operation.setName(startlocation.getCoordX()+";"+startlocation.getCoordY()+"_"+myAgent.getOrderPos().getHasTargetWarehouse().getName());
+				transport_operation.setBuffer_before_operation(2*60*60*1000); //e.g. 2 hours --> does not matter				
+				myAgent.addBehaviour(new RequestPerformer(myAgent, transport_operation, null, null, false));
+			}
 		
-		//Name = Start_Ziel in format  X;Y_DestinationResource
-		transport_operation.setName(startlocation.getCoordX()+";"+startlocation.getCoordY()+"_"+myAgent.getOrderPos().getHasTargetWarehouse().getName());
-		transport_operation.setBuffer_before_operation(2*60*60*1000); //e.g. 2 hours --> does not matter				
-		myAgent.addBehaviour(new RequestPerformer(myAgent, transport_operation, null, null, false));
 		
 	}
 /*

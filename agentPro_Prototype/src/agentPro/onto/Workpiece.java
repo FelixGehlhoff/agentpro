@@ -8,7 +8,7 @@ import jade.core.*;
 /**
 * Protege name: Workpiece
 * @author ontology bean generator
-* @version 2019/02/26, 10:51:45
+* @version 2019/03/4, 13:24:52
 */
 public class Workpiece implements Concept {
 
@@ -32,6 +32,17 @@ public class Workpiece implements Concept {
    }
    public Location getHasLocation() {
      return this.hasLocation;
+   }
+
+   /**
+* Protege name: becomes
+   */
+   private Product becomes;
+   public void setBecomes(Product value) { 
+    this.becomes=value;
+   }
+   public Product getBecomes() {
+     return this.becomes;
    }
 
 }

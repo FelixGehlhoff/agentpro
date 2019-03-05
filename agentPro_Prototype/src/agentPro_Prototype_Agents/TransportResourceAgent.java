@@ -31,6 +31,8 @@ import support_classes.Interval;
 public class TransportResourceAgent extends ResourceAgent{
 
 	private static final long serialVersionUID = 1L;
+
+	private final int capacity = 10000;	//can be determined dynamically if needed
 	
 	private String dependency_crane_name_in_database = "Kran";
 	public float buffer = 0;	//5 minutes 
@@ -90,7 +92,8 @@ public class TransportResourceAgent extends ResourceAgent{
 	}
 
 	@Override
-	public boolean feasibilityCheck(Operation operation) {
+	public boolean feasibilityCheckAndDetermineDurationParameters(Operation operation) {		
+		
 		boolean return_value = true;
 		Transport_Operation transport_op = (Transport_Operation) operation;
 		Location start = transport_op.getHasStartLocation();
@@ -219,6 +222,7 @@ public class TransportResourceAgent extends ResourceAgent{
 		//extract CFP Timeslot
 		Timeslot cfp_timeslot = cfp.getHasTimeslot();	
 		Operation operation = cfp.getHasOperation();
+		int quantity = cfp.getQuantity();
 		long startdate_cfp = Long.parseLong(cfp_timeslot.getStartDate());
 		long enddate_cfp = Long.parseLong(cfp_timeslot.getEndDate());
 		
@@ -227,6 +231,8 @@ public class TransportResourceAgent extends ResourceAgent{
 		//long estimated_start_date = 0;
 		//long estimated_enddate = 0;
 		int deadline_not_met = 0;
+		
+		int number_of_tours_needed = (int) Math.ceil(quantity/capacity);		//TODO needs to be included
 		
 		float duration_total_for_schedule = 0;
 		float duration_for_answering_CFP_so_for_Workpiece_schedule = 0;

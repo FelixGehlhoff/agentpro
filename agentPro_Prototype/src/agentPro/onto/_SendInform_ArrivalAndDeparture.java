@@ -8,7 +8,7 @@ import jade.core.*;
 /**
 * Protege name: _SendInform_ArrivalAndDeparture
 * @author ontology bean generator
-* @version 2019/02/26, 10:51:45
+* @version 2019/03/4, 13:24:52
 */
 public class _SendInform_ArrivalAndDeparture implements AgentAction {
 

@@ -3,6 +3,7 @@ package agentPro_Prototype_Agents;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.util.ArrayList;
 import java.util.Iterator;
 
 import agentPro.onto.AllocatedWorkingStep;
@@ -45,7 +46,7 @@ public class ProductionResourceAgent extends ResourceAgent{
 	private int avg_pickUp = 5; 
 	private int avg_setUp = 0;
 	private String columnNameOfEnablesWPType = "enables_wp_type";
-	private String enabledWorkpiece = null;
+	private ArrayList<String> enabledWorkpieces = new ArrayList<>();
 	
 	protected void setup (){		
 		
@@ -127,15 +128,20 @@ public class ProductionResourceAgent extends ResourceAgent{
 	}
 
 	@Override
-	public boolean feasibilityCheck(Operation operation) {
+	public boolean feasibilityCheckAndDetermineDurationParameters(Operation operation) {
+		String wp_type = operation.getAppliedOn().getID_String().split("_")[0];
+		
+		Boolean type_enabled = findMatchStringInArrayList(wp_type, enabledWorkpieces);
+		//System.out.println("DEBUG_____wp_type"+wp_type+"_____TYPE ENABLED? "+type_enabled);
+		
 	    @SuppressWarnings("unchecked")
 		Iterator<Operation> it = representedResource.getHasCapability().getEnables().iterator();
 	    while(it.hasNext()) {
 	    	Operation possible_op = it.next();
-	    	if(possible_op.getName().equals(operation.getName())) {
-	    		if(operation.getAvg_Duration() > 0) {
-	    			
-	    		}else {
+	    	if(possible_op.getName().equals(operation.getName()) && type_enabled) {
+	    		if(operation.getAvg_Duration() > 0) {	//When does this happen??
+	    			System.out.println("DEBUG_________________"+this.getLocalName()+"____________________________WHY IS OPERATION DURATION NOT 0?");
+	    		}else {	    			
 	    			operation.setAvg_Duration(possible_op.getAvg_Duration());
 	    			System.out.println("DEBUG_____possible_op.getName() "+possible_op.getName()+possible_op.getAvg_Duration()+"___Duration set "+possible_op.getAvg_Duration());	
 	    		}
@@ -149,6 +155,8 @@ public class ProductionResourceAgent extends ResourceAgent{
 		return false;
 	}
 	
+
+
 public void receiveValuesFromDB(Resource r) {
 		
 	    Statement stmt = null;
@@ -198,7 +206,11 @@ public void receiveCapabilityOperationsValuesFromDB(Resource r) {
 	        		cap2.setID_Number(rs.getInt(columnNameOfID));
 	        		op.setAvg_Duration(rs.getInt(columnNameOfTimeConsumption));   	
 	        	cap2.addEnables(op);
-	        		enabledWorkpiece = rs.getString(columnNameOfEnablesWPType);
+	        		String enabledWorkpieces = rs.getString(columnNameOfEnablesWPType);
+	        		String [] split = enabledWorkpieces.split(",");
+	        		for(String part : split) {
+	        			this.enabledWorkpieces.add(part);
+	        		}
 	        }
 	     r.setHasCapability(cap2);
 	        
@@ -225,17 +237,18 @@ public Proposal checkScheduleDetermineTimeslotAndCreateProposal(CFP cfp) {
 			Operation operation = cfp.getHasOperation();
 			long startdate_cfp = Long.parseLong(cfp_timeslot.getStartDate());
 			long enddate_cfp = Long.parseLong(cfp_timeslot.getEndDate());
-			int quantity = cfp.getQuantity();
+			float duration_before = operation.getAvg_Duration();
+			operation.setAvg_Duration(duration_before*cfp.getQuantity());	//set duration to timePerPiece * quantity
 			
 	long enddate_interval = 0;
 	//operation avg duration = 0 in case of buffer place
 	if(operation.getAvg_Duration() == 0) {
 		enddate_interval = enddate_cfp;
 	}else {
-		enddate_interval =  startdate_cfp+(long) (operation.getAvg_Duration()*60*1000*quantity);
+		enddate_interval =  startdate_cfp+(long) (operation.getAvg_Duration()*60*1000);
 
 		
-		duration_for_price = set_up_time + operation.getAvg_Duration()*quantity;
+		duration_for_price = set_up_time + operation.getAvg_Duration();
 	//this.getReceiveCFPBehav().duration_for_price = set_up_time + operation.getAvg_Duration(); //in min
 	}
 
@@ -263,7 +276,7 @@ for(int i = 0;i<getFree_interval_array().size();i++) {
 			if(getFree_interval_array().get(i).lowerBound() >= timeslot_interval_to_be_booked_production.lowerBound()) {	
 				
 				estimated_start_date = getFree_interval_array().get(i).lowerBound()+avg_pickUp*60*1000;
-				estimated_enddate =  estimated_start_date+(long) (operation.getAvg_Duration()*60*1000*quantity+set_up_time*60*1000);	//start at the lower bound with the set up + duration = enddate
+				estimated_enddate =  estimated_start_date+(long) (operation.getAvg_Duration()*60*1000+set_up_time*60*1000);	//start at the lower bound with the set up + duration = enddate
 				timeslot_interval_to_be_booked_production = new Interval(estimated_start_date - avg_pickUp*60*1000, estimated_enddate + avg_pickUp*60*1000);
 				
 				this.getReceiveCFPBehav().buffer_time_that_production_can_start_earlier = 0; //because the lowerBound of a free Interval is taken --> before that is a busy interval
@@ -303,7 +316,7 @@ for(int i = 0;i<getFree_interval_array().size();i++) {
 	if(timeslot_for_proposal.getLength() == 0) {
 	proposal = null;	
 	}
-	System.out.println("DEBUG_____operation.getAvg_Duration()*quantity "+operation.getAvg_Duration()*quantity+"______"+this.getLocalName()+" timeslot "+timeslot_for_proposal.getStartDate()+" "+timeslot_for_proposal.getEndDate()+" "+timeslot_for_proposal.getLength());
+	System.out.println("DEBUG_____operation.getAvg_Duration()*quantity "+operation.getAvg_Duration()+"______"+this.getLocalName()+" timeslot "+timeslot_for_proposal.getStartDate()+" "+timeslot_for_proposal.getEndDate()+" "+timeslot_for_proposal.getLength());
 	return proposal;
 }
 

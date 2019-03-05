@@ -6,11 +6,14 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.sql.Time;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Set;
+import java.util.TimeZone;
 
 import org.jfree.ui.RefineryUtilities;
 
@@ -73,6 +76,8 @@ public class Testing_mySQL_Dates {
 	public static String columNameColumnNameInProductionPlan = "columnnameinproductionplan";
 	public static String columnNameOfDueDate = "dueDate";
 	public static String columnNameOfReleaseDate = "releaseDate";
+	private static String DateFormat = "yyyy-MM-dd HH:mm:ss";
+	public static SimpleDateFormat SimpleDateFormat = new SimpleDateFormat(DateFormat);
 	
 	public final static String dbaddress = "jdbc:ucanaccess://C:/Users/Mitarbeiter/Dropbox (HSU_Agent.Pro)/_AgentPro/Prototyp/Database.accdb";	//Address od database
 	private static String dbaddress_sim = "jdbc:mysql://localhost:3306/MySQL?"+"user=root&password=SQL_0518&useUnicode=true&useJDBCCompliantTimezoneShift=true&useLegacyDatetimeCode=false&serverTimezone=UTC";	//Address od database;
@@ -83,6 +88,53 @@ public class Testing_mySQL_Dates {
 	private static HashMap<Integer, Resource_Extension> resource_hashmap = new HashMap();
 
 	public static void main(String[] args) {
+		
+		final Calendar calendar = Calendar.getInstance(TimeZone.getTimeZone("Germany/Hamburg"));
+        calendar.setTimeInMillis(1551400337821L);
+        final Date result = calendar.getTime();
+        System.out.println(result.getTime()+" "+SimpleDateFormat.format(result.getTime()));
+		
+		try {
+			Connection con = DriverManager.getConnection(dbaddress_sim);
+			connection = con;	
+		} catch (SQLException e1) {
+			// TODO Auto-generated catch block
+			e1.printStackTrace();
+		}	// Verbindung zur DB mit ucanaccess	
+		 
+		try {
+		        Statement stmt = connection.createStatement(ResultSet.TYPE_SCROLL_SENSITIVE, ResultSet.CONCUR_UPDATABLE);
+		      
+		        ResultSet rs = null;
+		        ResultSet rs2 = null;
+	
+		        String query = "select * from agentpro.test"; 
+
+	rs = stmt.executeQuery(query); 	//result set should contain StartIst1 = 123 .... StartIst7 = 789 <-- error resource
+	//int index = 0;
+	if(rs.isBeforeFirst()) {
+		rs.next();
+		
+	}
+		rs.moveToInsertRow();
+		
+		java.sql.Timestamp sql_timestamp = new java.sql.Timestamp(result.getTime());
+		
+			rs.updateTimestamp(1,  sql_timestamp);
+			  rs.insertRow();   //Einfügen der Zeile in die Datenbank
+	            rs.close();
+	
+		
+				
+			
+		}catch (SQLException e ) {
+	    	e.printStackTrace();
+	    } 
+		/*
+		
+		
+		
+		
 		if(_Agent_Template.simulation_mode) {
 			
 			try {
@@ -149,7 +201,7 @@ public class Testing_mySQL_Dates {
 			
 			
 		}
-		
+		*/
 		
 	}
 	

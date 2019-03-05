@@ -276,7 +276,7 @@ public abstract class ResourceAgent extends _Agent_Template{
 	public void setOfferNumber(int offerNumber) {
 		this.offerNumber = offerNumber;
 	}
-	public abstract boolean feasibilityCheck(Operation operation);
+	public abstract boolean feasibilityCheckAndDetermineDurationParameters(Operation operation);
 	
 	//public abstract Proposal checkScheduleDetermineTimeslotAndCreateProposal(long startdate_cfp, long enddate_cfp, Operation operation);
 	public abstract Proposal checkScheduleDetermineTimeslotAndCreateProposal(CFP cfp);

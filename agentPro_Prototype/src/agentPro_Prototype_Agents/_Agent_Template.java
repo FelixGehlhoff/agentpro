@@ -52,7 +52,7 @@ public abstract class _Agent_Template extends Agent{
 	protected Connection connection;			//Connection to database
 	//public final String dbaddress = "jdbc:ucanaccess://C:/Users/Mitarbeiter/Dropbox (HSU_Agent.Pro)/_AgentPro/Prototyp/Database.accdb";	//Address od database
 	//public final String dbaddress = "jdbc:mysql://localhost/feedback?"+"user=root&password=SQL_0518";	//Address od database
-	public String dbaddress_sim = "jdbc:mysql://localhost:3306/MySQL?"+"user=root&password=SQL_0518&useUnicode=true&useJDBCCompliantTimezoneShift=true&useLegacyDatetimeCode=false&serverTimezone=UTC&useSSL=false";	//Address od database;
+	public String dbaddress_sim = "jdbc:mysql://localhost:3306/MySQL?"+"user=root&password=SQL_0518&useUnicode=true&useJDBCCompliantTimezoneShift=true&useLegacyDatetimeCode=false&serverTimezone=UTC&useSSL=false";	//Address od database   serverTimezone=UTC
 	
 	public String columnNameOfOperation = "Operation"; //Operation
 	public String columnNameOfResource = "Resource";
@@ -183,6 +183,16 @@ public abstract class _Agent_Template extends Agent{
 			resourceAgents.add(result);
 		}
 		
+	}
+	
+	protected Boolean findMatchStringInArrayList(String wp_type, ArrayList<String> enabledWorkpieces2) {
+		for(String enabled : enabledWorkpieces2) {
+			System.out.println(this.getLocalName()+" "+enabled+" equals? "+wp_type);
+			if(wp_type.equals(enabled)) {
+				return true;
+			}
+		}
+		return false;
 	}
 	
 	public ArrayList<DFAgentDescription> getResourceAgents() {

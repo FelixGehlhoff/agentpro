@@ -52,6 +52,7 @@ import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.Iterator;
+import java.util.TimeZone;
 
 import org.jfree.chart.ChartFactory;
 import org.jfree.chart.ChartPanel;
@@ -287,8 +288,7 @@ public class GanttDemo1 extends ApplicationFrame {
     
     private static Date date2(String date) {
     	
-    	
-        final Calendar calendar = Calendar.getInstance();
+        final Calendar calendar = Calendar.getInstance(TimeZone.getTimeZone("Germany/Hamburg"));
         calendar.setTimeInMillis(Long.parseLong(date));
         final Date result = calendar.getTime();
         //System.out.println("____________________________________________DEBUG_____2_______"+result);

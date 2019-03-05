@@ -97,10 +97,10 @@ public class ReceiveCFPBehaviour extends Behaviour{
 					_SendCFP sendcfp_onto = (_SendCFP) act.getAction();
 					cfp = sendcfp_onto.getHasCFP();
 					Operation operation = cfp.getHasOperation();
-					requested_operation = operation;
+					requested_operation = operation;				
 						
 						//check if operation can be fulfilled and add avg duration to the operation
-						Boolean feasable = myAgent.feasibilityCheck(operation);
+						Boolean feasable = myAgent.feasibilityCheckAndDetermineDurationParameters(operation);
 						if(feasable) {
 							
 							//extract CFP Timeslot
