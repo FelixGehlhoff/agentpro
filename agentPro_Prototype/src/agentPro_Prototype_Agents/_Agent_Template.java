@@ -102,12 +102,14 @@ public abstract class _Agent_Template extends Agent{
 	public String columnNameEndeSoll = "EndeSoll";
 	public String tableNameResource = prefix_schema+".resources";
 	public String tableNameProductionPlan = prefix_schema+".productionplan";
+	public String tableNameResourceSetupMatrix = prefix_schema+".resources_setupmatrix";
 	public String columnNameColumnInProductionPlan = "columninproductionplan";
 	public String columnNameLocationX = "locationX";
 	public String columnNameLocationY = "locationY";
 	public String columNameColumnNameInProductionPlan = "columnnameinproductionplan";
 	public String columnNameorderid = "orderid";
 	
+	public String columnNameOfChangeover = "prod_changeover";
 	
 	
 	protected void setup (){

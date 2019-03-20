@@ -1,4 +1,4 @@
-package agentPro_Prototype_Agents;
+package testing;
 
 import java.sql.Connection;
 import java.sql.DriverManager;
@@ -27,6 +27,7 @@ import agentPro.onto.Resource;
 import agentPro.onto.Timeslot;
 import agentPro.onto.WorkPlan;
 import agentPro.onto.Workpiece;
+import agentPro_Prototype_Agents._Agent_Template;
 import support_classes.Geometry;
 import support_classes.LineSegment;
 import support_classes.Point;

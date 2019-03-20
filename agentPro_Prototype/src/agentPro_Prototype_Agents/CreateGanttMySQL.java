@@ -78,7 +78,19 @@ public class CreateGanttMySQL {
 	private static ArrayList<String>operation_names = new ArrayList();
 	private static ArrayList<String>resources = new ArrayList();
 	private static HashMap<Integer, Resource_Extension> resource_hashmap = new HashMap();
+	public static String columnNameOfChangeover = "prod_changeover";
+	public static String tableNameResourceSetupMatrix = "agentpro.resources_setupmatrix";
+	
+private static HashMap<String, Double> setup_matrix = new HashMap();
+	
+	public HashMap<String, Double> getSetup_matrix() {
+		return setup_matrix;
+	}
 
+	public static void setSetup_matrix( HashMap<String, Double> hashmap) {
+		setup_matrix = hashmap;
+	}
+	
 	public static void main(String[] args) {
 		/*
 		Delay delay = new Delay();
@@ -92,7 +104,7 @@ public class CreateGanttMySQL {
 				Boolean c = (eine_null != 0);
 		System.out.println("wert b "+b+" wert c "+c);
 		*/
-		
+		/*
 		operation_names.add("Wickeln_1");
 		operation_names.add("Entfernen_Wickelspiess");
 		operation_names.add("Besaeumen_1.1");
@@ -113,6 +125,7 @@ public class CreateGanttMySQL {
 
 		createResourceHashMap();
 		
+		
 		WorkPlan wp = new WorkPlan();
 		receiveValuesFromDB(wp);
 		WorkPlan sorted_workplan = sortWorkplanChronologically(wp);
@@ -123,7 +136,8 @@ public class CreateGanttMySQL {
 	        demo.pack();
 	        RefineryUtilities.centerFrameOnScreen(demo);
 	        demo.setVisible(false);	
-		
+		*/
+		createSetupMatrix();
 /*
  * 
 		int size = 2;
@@ -218,6 +232,30 @@ public class CreateGanttMySQL {
 		*/
 	}
 	
+	private static void createSetupMatrix() {
+	    String query2 = "";
+
+    	query2 = "select "+columnNameOfChangeover+" , `Zuschnitt` from "+tableNameResourceSetupMatrix; 
+   
+    try {
+    	Connection con = DriverManager.getConnection(dbaddress_sim);
+    	Statement stmt = con.createStatement();
+        ResultSet rs2 = stmt.executeQuery(query2);
+        HashMap<String, Double> matrix = new  HashMap<String, Double>();
+        while (rs2.next()) {
+        	matrix.put(rs2.getString(columnNameOfChangeover), rs2.getDouble("Zuschnitt"));
+        }
+        setSetup_matrix(matrix);
+       
+        
+    } catch (SQLException e ) {
+    	e.printStackTrace();
+    }
+    
+    System.out.println(setup_matrix.get("A_B")+" "+setup_matrix.size());
+		
+	}
+
 	private static void createResourceHashMap() {
 		try {
 			Connection con = DriverManager.getConnection(dbaddress_sim);

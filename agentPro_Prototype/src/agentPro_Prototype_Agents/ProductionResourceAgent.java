@@ -1,10 +1,15 @@
 package agentPro_Prototype_Agents;
 
+import java.sql.Connection;
+import java.sql.DriverManager;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Iterator;
+
+import javax.swing.JTable;
 
 import agentPro.onto.AllocatedWorkingStep;
 import agentPro.onto.CFP;
@@ -16,6 +21,7 @@ import agentPro.onto.Proposal;
 import agentPro.onto.Resource;
 import agentPro.onto.Timeslot;
 import agentPro.onto.TransportResource;
+import agentPro.onto.Transport_Operation;
 import agentPro_Prototype_ResourceAgent.ReceiveInformWorkpieceDepartureBehaviour;
 import agentPro_Prototype_ResourceAgent.ReceiveIntervalForConnectedResourceBehaviour;
 import jade.domain.DFService;
@@ -23,6 +29,7 @@ import jade.domain.FIPAException;
 import jade.domain.FIPAAgentManagement.DFAgentDescription;
 import jade.domain.FIPAAgentManagement.ServiceDescription;
 import support_classes.Interval;
+import support_classes.Resource_Extension;
 
 /* 
  * Models a production resource. It has capabilites (at the moment 16.05. only one) which it registers at the DF.
@@ -47,7 +54,16 @@ public class ProductionResourceAgent extends ResourceAgent{
 	private int avg_setUp = 0;
 	private String columnNameOfEnablesWPType = "enables_wp_type";
 	private ArrayList<String> enabledWorkpieces = new ArrayList<>();
+	private HashMap<String, Double> setup_matrix = new HashMap();
 	
+	public HashMap<String, Double> getSetup_matrix() {
+		return setup_matrix;
+	}
+
+	public void setSetup_matrix( HashMap<String, Double> hashmap) {
+		this.setup_matrix = hashmap;
+	}
+
 	protected void setup (){		
 		
 		super.setup();
@@ -184,7 +200,27 @@ public void receiveValuesFromDB(Resource r) {
 	        
 	    } catch (SQLException e ) {
 	    	e.printStackTrace();
-	    }		
+	    }
+	    
+	    //create setup matrix
+	    String query2 = "";
+
+    	query2 = "select "+columnNameOfChangeover+" , `"+this.getRepresentedResource().getName()+"` from "+tableNameResourceSetupMatrix; 
+   
+    try {
+    	
+        ResultSet rs2 = stmt.executeQuery(query2);
+        HashMap<String, Double> matrix = new  HashMap<String, Double>();
+        while (rs2.next()) {
+        	matrix.put(rs2.getString(columnNameOfChangeover), rs2.getDouble(this.getRepresentedResource().getName()));
+        }
+        setSetup_matrix(matrix);
+       
+        
+    } catch (SQLException e ) {
+    	e.printStackTrace();
+    }
+	    
 	}
 
 public void receiveCapabilityOperationsValuesFromDB(Resource r) {	
@@ -255,6 +291,11 @@ public Proposal checkScheduleDetermineTimeslotAndCreateProposal(CFP cfp) {
 Interval timeslot_interval_to_be_booked_production = new Interval( startdate_cfp-(Math.max(set_up_time, avg_pickUp))*60*1000, enddate_interval+avg_pickUp*60*1000, false);	//18.06. pick-up added
 //System.out.println("DEBUG_______productionResourceAgent  timeslot_interval_to_be_booked_production "+timeslot_interval_to_be_booked_production.getSize()/(60*1000));
 for(int i = 0;i<getFree_interval_array().size();i++) {	
+	//dependent parameters
+	double duration_setup = calculateDurationSetup(getFree_interval_array().get(i), operation.getAppliedOn().getID_String());	// in min
+	//time_increment_or_decrement_to_be_added_for_setup_of_next_task = calculateTimeIncrement(transport_op_to_destination, avg_speed, i, operation_description); // in min
+	
+	
 	if(getFree_interval_array().get(i).contains(timeslot_interval_to_be_booked_production)){
 		//desired slot can be fulfilled
 		estimated_start_date = startdate_cfp;
@@ -318,6 +359,41 @@ for(int i = 0;i<getFree_interval_array().size();i++) {
 	}
 	System.out.println("DEBUG_____operation.getAvg_Duration()*quantity "+operation.getAvg_Duration()+"______"+this.getLocalName()+" timeslot "+timeslot_for_proposal.getStartDate()+" "+timeslot_for_proposal.getEndDate()+" "+timeslot_for_proposal.getLength());
 	return proposal;
+}
+
+private double calculateDurationSetup(Interval free_interval, String id_String_workpiece) {
+	String wp_type = id_String_workpiece.split("_")[0];
+	String wp_state_nextStep = getStateAtTime(free_interval.lowerBound());
+	
+	//this.getSetup_matrix().get(key);
+	
+	return 0;
+}
+
+private String getStateAtTime(long lowerBound) {
+
+	String wp_state = "";
+	Boolean allocatedWorkingStepWithGreaterTimeFound = false;
+	if(getWorkplan().getConsistsOfAllocatedWorkingSteps().size()>0) {		
+		@SuppressWarnings("unchecked")		
+		Iterator<AllocatedWorkingStep> i = getWorkplan().getConsistsOfAllocatedWorkingSteps().iterator();	  
+	    while(i.hasNext()) {		//checks for every allWS in Workplan
+	    	AllocatedWorkingStep a = i.next();	  
+	    	if(Long.parseLong(a.getHasTimeslot().getStartDate()) > lowerBound) {
+	    		wp_state = a.getHasOperation().getAppliedOn().getID_String().split("_")[0]; //gets WP Type
+	    		allocatedWorkingStepWithGreaterTimeFound = true;
+	    		break;
+	    	}
+	    }
+	    if(!allocatedWorkingStepWithGreaterTimeFound) {	//the time is after the last allocated step
+	    	//take the end state of the last allocated step
+	    	wp_state = ((AllocatedWorkingStep) getWorkplan().getConsistsOfAllocatedWorkingSteps().get(getWorkplan().getConsistsOfAllocatedWorkingSteps().size()-1)).getHasOperation().getAppliedOn().getID_String().split("_")[0];
+	    }
+	}else { //first step
+		wp_state = "A"; //TODO: TBD must actually be initial state
+	}
+	
+	return null;
 }
 
 @Override

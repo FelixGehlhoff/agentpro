@@ -40,6 +40,7 @@ public class DatabaseConnectorAgent extends _Agent_Template{
 
 	private HashMap<Integer, Resource_Extension> resource_hashmap = new HashMap();
 	
+	
 	protected void setup (){
 		super.setup();
 		logLinePrefix = " DatabaseConnectorAgent ";
@@ -407,4 +408,6 @@ public class DatabaseConnectorAgent extends _Agent_Template{
 
 		return counter;
 	}
+
+
 }

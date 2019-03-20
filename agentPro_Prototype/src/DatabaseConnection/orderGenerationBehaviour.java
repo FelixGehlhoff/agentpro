@@ -57,6 +57,7 @@ public class orderGenerationBehaviour extends OneShotBehaviour{
 	
 	private ArrayList<Order> orders = new ArrayList<Order>();
 	private ArrayList<ProductionPlan> productionPlans = new ArrayList<ProductionPlan>();
+	
 	private String columnNameOfStep = "Step";
 	private String columnNameOfOperation = "Operation";
 	private String columnNameOfFirstOperation = "FirstOperation";

@@ -239,11 +239,9 @@ public class TransportResourceAgent extends ResourceAgent{
 		float duration_to_get_to_workpiece = 0;
 		float avg_speed = 0;
 		//float set_up_time = 0;
-		float traveling_time = 0;
 		//float avg_Pickup_time = 0;
 		float time_increment_or_decrement_to_be_added_for_setup_of_next_task = 0;
 		Location start_old_idle = new Location();
-		Location start_new = new Location();
 		
 		TransportResource tR = (TransportResource) getRepresentedResource();
 		float avg_Pickup_time = tR.getAvg_PickupTime();	//stored in min 
@@ -257,23 +255,23 @@ public class TransportResourceAgent extends ResourceAgent{
 		long buffer_after_operation = 0;
 		long buffer_before_operation = 0;
 		long earliest_finish_date_from_arrive_at_resource = enddate_cfp;
-		float duration_eff;
+
 		 ArrayList<Interval> listOfIntervals = new ArrayList<Interval>();
+		
+		 //independent parameters
+		 float distance_Workpiece_to_ProductionResource = calcDistance(transport_op_to_destination.getHasStartLocation(), transport_op_to_destination.getHasEndLocation());	//in m
+		 float traveling_time  = (distance_Workpiece_to_ProductionResource/avg_speed)/60; // in min
+		 Location start_new = transport_op_to_destination.getHasStartLocation();
+		 float duration_eff = traveling_time + 2*avg_Pickup_time;
+		 
 	for(int i = 0;i<getFree_interval_array().size();i++) {	
 		
-			operation_description.clearAllHasRequest_Points();
+			operation_description.clearAllHasRequest_Points();	
 			
-			start_old_idle = getLocationAtTime(getFree_interval_array().get(i).lowerBound());			
-			start_new = transport_op_to_destination.getHasStartLocation();
+			//dependent parameters
+			start_old_idle = getLocationAtTime(getFree_interval_array().get(i).lowerBound());					
 			float distance_TransportResource_to_Workpiece = calcDistance(start_old_idle, start_new);			
 			duration_to_get_to_workpiece = (distance_TransportResource_to_Workpiece/avg_speed) / 60 ;	// in min
-	
-					
-			float distance_Workpiece_to_ProductionResource = calcDistance(transport_op_to_destination.getHasStartLocation(), transport_op_to_destination.getHasEndLocation());	//in m
-		
-			traveling_time = (distance_Workpiece_to_ProductionResource/avg_speed)/60; // in min
-			duration_eff = traveling_time + 2*avg_Pickup_time;
-			
 			time_increment_or_decrement_to_be_added_for_setup_of_next_task = calculateTimeIncrement(transport_op_to_destination, avg_speed, i, operation_description); // in min
 				this.getReceiveCFPBehav().time_increment_or_decrement_to_be_added_for_setup_of_next_task = time_increment_or_decrement_to_be_added_for_setup_of_next_task;
 				
@@ -515,7 +513,7 @@ public class TransportResourceAgent extends ResourceAgent{
 		    	location = trans_op.getHasEndLocation();
 		    }
 		}else { //first step
-			location = getRepresentedResource().getHasLocation(); //TBD: must actually be initial location
+			location = getRepresentedResource().getHasLocation(); //TODO: TBD must actually be initial location
 		}
 		return location;
 	}
