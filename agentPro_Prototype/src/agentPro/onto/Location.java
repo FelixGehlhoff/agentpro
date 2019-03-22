@@ -1,6 +1,5 @@
 package agentPro.onto;
 
-
 import jade.content.*;
 import jade.util.leap.*;
 import jade.core.*;
@@ -8,9 +7,9 @@ import jade.core.*;
 /**
 * Protege name: Location
 * @author ontology bean generator
-* @version 2019/03/4, 13:24:52
+* @version 2019/03/20, 15:44:38
 */
-public class Location implements Concept {
+public class Location extends State{ 
 
    /**
 * Protege name: coordY

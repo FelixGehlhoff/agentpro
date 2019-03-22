@@ -7,30 +7,19 @@ import jade.core.*;
 /**
 * Protege name: Disturbance
 * @author ontology bean generator
-* @version 2019/03/4, 13:24:52
+* @version 2019/03/20, 15:44:38
 */
 public class Disturbance extends Event{ 
 
    /**
-* Protege name: localizationDelta
+* Protege name: processDelta
    */
-   private float localizationDelta;
-   public void setLocalizationDelta(float value) { 
-    this.localizationDelta=value;
+   private float processDelta;
+   public void setProcessDelta(float value) { 
+    this.processDelta=value;
    }
-   public float getLocalizationDelta() {
-     return this.localizationDelta;
-   }
-
-   /**
-* Protege name: detectedBy
-   */
-   private Person detectedBy;
-   public void setDetectedBy(Person value) { 
-    this.detectedBy=value;
-   }
-   public Person getDetectedBy() {
-     return this.detectedBy;
+   public float getProcessDelta() {
+     return this.processDelta;
    }
 
    /**
@@ -42,6 +31,17 @@ public class Disturbance extends Event{
    }
    public Resource getOccuresAt() {
      return this.occuresAt;
+   }
+
+   /**
+* Protege name: detectedBy
+   */
+   private Person detectedBy;
+   public void setDetectedBy(Person value) { 
+    this.detectedBy=value;
+   }
+   public Person getDetectedBy() {
+     return this.detectedBy;
    }
 
    /**
@@ -67,6 +67,17 @@ public class Disturbance extends Event{
    }
 
    /**
+* Protege name: localizationDelta
+   */
+   private float localizationDelta;
+   public void setLocalizationDelta(float value) { 
+    this.localizationDelta=value;
+   }
+   public float getLocalizationDelta() {
+     return this.localizationDelta;
+   }
+
+   /**
 * Protege name: hasDisturbanceType
    */
    private DisturbanceType hasDisturbanceType;
@@ -75,17 +86,6 @@ public class Disturbance extends Event{
    }
    public DisturbanceType getHasDisturbanceType() {
      return this.hasDisturbanceType;
-   }
-
-   /**
-* Protege name: processDelta
-   */
-   private float processDelta;
-   public void setProcessDelta(float value) { 
-    this.processDelta=value;
-   }
-   public float getProcessDelta() {
-     return this.processDelta;
    }
 
    /**

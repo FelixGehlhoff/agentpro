@@ -8,9 +8,20 @@ import jade.core.*;
 /**
 * Protege name: Resource
 * @author ontology bean generator
-* @version 2019/03/4, 13:24:52
+* @version 2019/03/20, 15:44:38
 */
 public class Resource implements Concept {
+
+   /**
+* Protege name: type
+   */
+   private String type;
+   public void setType(String value) { 
+    this.type=value;
+   }
+   public String getType() {
+     return this.type;
+   }
 
    /**
 * Protege name: detailed_Type
@@ -21,28 +32,6 @@ public class Resource implements Concept {
    }
    public String getDetailed_Type() {
      return this.detailed_Type;
-   }
-
-   /**
-* Protege name: hasLocation
-   */
-   private Location hasLocation;
-   public void setHasLocation(Location value) { 
-    this.hasLocation=value;
-   }
-   public Location getHasLocation() {
-     return this.hasLocation;
-   }
-
-   /**
-* Protege name: hasCapability
-   */
-   private Capability hasCapability;
-   public void setHasCapability(Capability value) { 
-    this.hasCapability=value;
-   }
-   public Capability getHasCapability() {
-     return this.hasCapability;
    }
 
    /**
@@ -57,14 +46,14 @@ public class Resource implements Concept {
    }
 
    /**
-* Protege name: hasDisturbance
+* Protege name: hasLocation
    */
-   private Disturbance hasDisturbance;
-   public void setHasDisturbance(Disturbance value) { 
-    this.hasDisturbance=value;
+   private Location hasLocation;
+   public void setHasLocation(Location value) { 
+    this.hasLocation=value;
    }
-   public Disturbance getHasDisturbance() {
-     return this.hasDisturbance;
+   public Location getHasLocation() {
+     return this.hasLocation;
    }
 
    /**
@@ -79,14 +68,47 @@ public class Resource implements Concept {
    }
 
    /**
-* Protege name: type
+* Protege name: startState
    */
-   private String type;
-   public void setType(String value) { 
-    this.type=value;
+   private State startState;
+   public void setStartState(State value) { 
+    this.startState=value;
    }
-   public String getType() {
-     return this.type;
+   public State getStartState() {
+     return this.startState;
+   }
+
+   /**
+* Protege name: hasCapability
+   */
+   private Capability hasCapability;
+   public void setHasCapability(Capability value) { 
+    this.hasCapability=value;
+   }
+   public Capability getHasCapability() {
+     return this.hasCapability;
+   }
+
+   /**
+* Protege name: hasDisturbance
+   */
+   private Disturbance hasDisturbance;
+   public void setHasDisturbance(Disturbance value) { 
+    this.hasDisturbance=value;
+   }
+   public Disturbance getHasDisturbance() {
+     return this.hasDisturbance;
+   }
+
+   /**
+* Protege name: currentState
+   */
+   private State currentState;
+   public void setCurrentState(State value) { 
+    this.currentState=value;
+   }
+   public State getCurrentState() {
+     return this.currentState;
    }
 
 }

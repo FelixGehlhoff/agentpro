@@ -7,9 +7,20 @@ import jade.core.*;
 /**
 * Protege name: Machine_Error
 * @author ontology bean generator
-* @version 2019/03/4, 13:24:52
+* @version 2019/03/20, 15:44:38
 */
 public class Machine_Error extends DisturbanceType{ 
+
+   /**
+* Protege name: expected_date_of_repair_Start
+   */
+   private float expected_date_of_repair_Start;
+   public void setExpected_date_of_repair_Start(float value) { 
+    this.expected_date_of_repair_Start=value;
+   }
+   public float getExpected_date_of_repair_Start() {
+     return this.expected_date_of_repair_Start;
+   }
 
    /**
 * Protege name: expected_Duration_Of_Repair
@@ -31,17 +42,6 @@ public class Machine_Error extends DisturbanceType{
    }
    public int getError_type() {
      return this.error_type;
-   }
-
-   /**
-* Protege name: expected_date_of_repair_Start
-   */
-   private float expected_date_of_repair_Start;
-   public void setExpected_date_of_repair_Start(float value) { 
-    this.expected_date_of_repair_Start=value;
-   }
-   public float getExpected_date_of_repair_Start() {
-     return this.expected_date_of_repair_Start;
    }
 
 }

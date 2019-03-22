@@ -12,10 +12,13 @@ import java.util.Iterator;
 
 import agentPro.onto.AllocatedWorkingStep;
 import agentPro.onto.CFP;
+import agentPro.onto.DetailedOperationDescription;
 import agentPro.onto.Location;
 import agentPro.onto.Operation;
 import agentPro.onto.Proposal;
 import agentPro.onto.Resource;
+import agentPro.onto.Setup_state;
+import agentPro.onto.State;
 import agentPro.onto.Timeslot;
 import agentPro.onto.Transport_Operation;
 import agentPro.onto.WorkPlan;
@@ -101,6 +104,7 @@ public abstract class ResourceAgent extends _Agent_Template{
 		
 		
 		logLinePrefix = getLocalName();
+		setStartState();
 		// / INITIALISATION
 		// /////////////////////////////////////////////////////////	
 		
@@ -117,6 +121,9 @@ public abstract class ResourceAgent extends _Agent_Template{
 	}
 
 
+	protected abstract void setStartState();
+
+
 	public Boolean bookIntoSchedule(AllocatedWorkingStep allocWorkingstep, float time_increment_or_decrement_to_be_added_for_setup_of_next_task) {		
 		/*
 		 * add interval (busy) and new resulting free intervals
@@ -130,7 +137,7 @@ public abstract class ResourceAgent extends _Agent_Template{
 		long enddate_busy_interval_new = Long.parseLong(allocWorkingstep.getHasTimeslot().getEndDate());
 		Location new_endLocation = null;
 		if(allocWorkingstep.getHasOperation().getType().equals("transport")) {
-			new_endLocation = ((Transport_Operation)allocWorkingstep.getHasOperation()).getHasEndLocation();				
+			new_endLocation = (Location) ((Transport_Operation)allocWorkingstep.getHasOperation()).getEndState();				
 		}
 		
 		Interval timeslot_interval_busy = new Interval(startdate_busy_interval_new, enddate_busy_interval_new, false);
@@ -258,7 +265,7 @@ public abstract class ResourceAgent extends _Agent_Template{
 				if(Long.parseLong(a.getHasTimeslot().getStartDate()) == old_start_date) {	    		
 		    		a.getHasTimeslot().setStartDate(String.valueOf(new_start_date));	
 		    		if(new_endLocation != null) {
-		    			((Transport_Operation)a.getHasOperation()).setHasStartLocation(new_endLocation);
+		    			((Transport_Operation)a.getHasOperation()).setStartState(new_endLocation);
 		    		}
 		    		
 		    		
@@ -278,8 +285,115 @@ public abstract class ResourceAgent extends _Agent_Template{
 	}
 	public abstract boolean feasibilityCheckAndDetermineDurationParameters(Operation operation);
 	
+	
+	protected float calculateTimeIncrement(Operation op, int counter_free_interval_i, DetailedOperationDescription operation_description) {
+		float time_increment_or_decrement_to_be_added = 0;
+		
+		//check if there is a task that starts at the end of the free interval
+		if(getWorkplan().getConsistsOfAllocatedWorkingSteps().size()>0) {		
+			@SuppressWarnings("unchecked")		
+			Iterator<AllocatedWorkingStep> it = getWorkplan().getConsistsOfAllocatedWorkingSteps().iterator();	  
+		    while(it.hasNext()) {		//checks for every allWS in Workplan
+		    	AllocatedWorkingStep a = it.next();	  
+		    	if(Long.parseLong(a.getHasTimeslot().getStartDate()) == getFree_interval_array().get(counter_free_interval_i).upperBound()) {
+		    		//if yes
+		    		
+		    		State start_next_task = a.getHasOperation().getStartState();	    		
+		    		//Location start_next_task = (Location) ((Transport_Operation)a.getHasOperation()).getStartState();
+		    		
+		    		State end_new = op.getEndState();
+		    		//Location end_new = (Location) transport_op_to_destination.getEndState();
+		    		
+		    		time_increment_or_decrement_to_be_added = calculateTimeBetweenStates(start_next_task, end_new, counter_free_interval_i);
+		    				    		
+		    		if(time_increment_or_decrement_to_be_added != 0) {
+		    			//addPointToList(operation_description, end_new.getCoordX(), getFree_interval_array().get(i).upperBound()-(long)(time_increment_or_decrement_to_be_added*60*1000), "Start:set_up");		    			    					    		
+		    		}
+		    		break;
+		    	}
+		    }	  
+		}		
+		return time_increment_or_decrement_to_be_added;
+	}
+
+	
+	public float calculateTimeBetweenStates(State start_next_task, State end_new, int busy_interval_i) {
+		return 0;		
+	}
+
+	protected float getDurationOfNextSetupStartingAt(long upperBound) {
+		float duration_setup = 0;	
+			@SuppressWarnings("unchecked")		
+			Iterator<AllocatedWorkingStep> i = getWorkplan().getConsistsOfAllocatedWorkingSteps().iterator();  
+		    while(i.hasNext()) {		//checks for every allWS in Workplan
+		    	AllocatedWorkingStep a = i.next();	  
+		    	if(Long.parseLong(a.getHasTimeslot().getStartDate()) == upperBound) {
+		    		duration_setup = a.getHasOperation().getSet_up_time();
+		    		//System.out.println("DEBUG__________QQQQQQQQQQQQQQQQQQQ          a.getHasOperation().name "+a.getHasOperation().getName()+"_____________duration step up = "+duration_setup);
+		    		break;
+		    	}
+	
+		    }	    
+		return duration_setup;
+	}
+	
+	//checks the state of the following allocated working step
+	public State getStateAtTime(long lowerBound_freeInterval) {
+		State state = new State();
+		Boolean allocatedWorkingStepWithGreaterTimeFound = false;
+		if(getWorkplan().getConsistsOfAllocatedWorkingSteps().size()>0) {		
+			@SuppressWarnings("unchecked")		
+			Iterator<AllocatedWorkingStep> i = getWorkplan().getConsistsOfAllocatedWorkingSteps().iterator();	  
+		    while(i.hasNext()) {		//checks for every allWS in Workplan
+		    	AllocatedWorkingStep a = i.next();	  
+		    	if(Long.parseLong(a.getHasTimeslot().getStartDate()) > lowerBound_freeInterval) {
+		    		state = a.getHasOperation().getStartState();
+		    		allocatedWorkingStepWithGreaterTimeFound = true;
+		    		break;
+		    	}
+		    }
+		   
+		    if(!allocatedWorkingStepWithGreaterTimeFound) {	//the time is after the last allocated step
+		    	//take the end location of the last allocated step
+		    	Operation op = ((AllocatedWorkingStep) getWorkplan().getConsistsOfAllocatedWorkingSteps().get(getWorkplan().getConsistsOfAllocatedWorkingSteps().size()-1)).getHasOperation();
+		    	state = op.getEndState();
+		    	 System.out.println("DEBUG_______________________"+((Setup_state)op.getEndState()).getID_String());
+		    }
+		}else { //first step
+			state = getRepresentedResource().getStartState(); 
+		}
+		return state;
+	
+	}
+	
 	//public abstract Proposal checkScheduleDetermineTimeslotAndCreateProposal(long startdate_cfp, long enddate_cfp, Operation operation);
 	public abstract Proposal checkScheduleDetermineTimeslotAndCreateProposal(CFP cfp);
+	
+	//refers to the actual process (without setup)
+	public ArrayList<Interval> calculateIntervals(long startdate_cfp, long enddate_cfp, long duration_setup, long duration_eff, long time_increment_or_decrement_to_be_added_for_setup_of_next_task, long buffer_time_that_production_can_start_earlier, int i) {	//for feasibility checking the arrival dates AT THE RESSOURCES are important
+		ArrayList<Interval> array = new ArrayList<>();
+		long effr = enddate_cfp - buffer_time_that_production_can_start_earlier;
+		Interval end_at_effr = new Interval((long) (effr-duration_eff), effr, false);
+		Interval start_at_CFP_start_minus_d2WP = new Interval(startdate_cfp, (long) (startdate_cfp+duration_eff), false);
+		Interval start_at_CFP_start = new Interval ((long)(startdate_cfp+duration_setup), (long) (startdate_cfp+duration_setup+duration_eff), false); // should not be needed!
+		Interval end_at_latest_end = new Interval((long) (enddate_cfp-duration_eff), enddate_cfp);
+		Interval start_at_lowerbound = new Interval((long) (getFree_interval_array().get(i).lowerBound()+duration_setup), (long) (getFree_interval_array().get(i).lowerBound()+duration_setup+duration_eff), false);
+		Interval end_at_upperbound = new Interval((long) (getFree_interval_array().get(i).upperBound()-duration_eff-time_increment_or_decrement_to_be_added_for_setup_of_next_task), (long) (getFree_interval_array().get(i).upperBound()-time_increment_or_decrement_to_be_added_for_setup_of_next_task), false);
+		array.add(end_at_effr);
+		array.get(0).setId("end_at_effr");
+		array.add(start_at_CFP_start_minus_d2WP);
+		array.get(1).setId("start_at_CFP_start_minus_d2WP");
+		array.add(start_at_CFP_start);
+		array.get(2).setId("start_at_CFP_start");
+		array.add(end_at_latest_end);
+		array.get(3).setId("end_at_latest_end");
+		array.add(start_at_lowerbound);
+		array.get(4).setId("start_at_lowerbound");
+		array.add(end_at_upperbound);
+		array.get(5).setId("end_at_upperbound");
+			
+		return array;
+	}
 	
 	public Proposal createProposal(float price, Operation operation, Timeslot timeslot_for_proposal, AID sender) {
 		Proposal proposal = new Proposal();

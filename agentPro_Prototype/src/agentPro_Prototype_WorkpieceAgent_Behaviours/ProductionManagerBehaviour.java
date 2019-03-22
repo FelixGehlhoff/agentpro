@@ -9,6 +9,7 @@ import agentPro.onto.Operation;
 import agentPro.onto.OrderedOperation;
 import agentPro.onto.Transport_Operation;
 import agentPro.onto.WorkPlan;
+import agentPro.onto.Location;
 import agentPro_Prototype_Agents.WorkpieceAgent;
 import agentPro_Prototype_Agents._Agent_Template;
 import agentPro_Prototype_ResourceAgent.RequestDatabaseEntryBehaviour;
@@ -98,7 +99,7 @@ public class ProductionManagerBehaviour extends Behaviour{
 		case 1:
 			if(myAgent.getWorkplan().getConsistsOfAllocatedWorkingSteps().size()>1 && ((AllocatedWorkingStep) myAgent.getWorkplan().getConsistsOfAllocatedWorkingSteps().get(myAgent.getWorkplan().getConsistsOfAllocatedWorkingSteps().size()-1)).getHasOperation().getType().equals("transport")) {
 				AllocatedWorkingStep allWS = (AllocatedWorkingStep) myAgent.getWorkplan().getConsistsOfAllocatedWorkingSteps().get(myAgent.getWorkplan().getConsistsOfAllocatedWorkingSteps().size()-1);
-				if(((Transport_Operation) allWS.getHasOperation()).getHasEndLocation().getCoordX() == 100 && ((Transport_Operation) allWS.getHasOperation()).getHasEndLocation().getCoordY() == 100) {
+				if( ( (Location) allWS.getHasOperation().getEndState()).getCoordX() == 100 && ( (Location) allWS.getHasOperation().getEndState()).getCoordY() == 100) {
 					step = 2;
 					System.out.println("_________________________________________DEBUG____________________WHY NEEDED?");
 				}else {

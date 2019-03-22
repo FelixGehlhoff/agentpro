@@ -7,9 +7,20 @@ import jade.core.*;
 /**
 * Protege name: Proposal
 * @author ontology bean generator
-* @version 2019/03/4, 13:24:52
+* @version 2019/03/20, 15:44:38
 */
 public class Proposal extends Message{ 
+
+   /**
+* Protege name: iD_Number
+   */
+   private int iD_Number;
+   public void setID_Number(int value) { 
+    this.iD_Number=value;
+   }
+   public int getID_Number() {
+     return this.iD_Number;
+   }
 
    /**
 * Protege name: price
@@ -42,16 +53,5 @@ public class Proposal extends Message{
    public Iterator getAllConsistsOfAllocatedWorkingSteps() {return consistsOfAllocatedWorkingSteps.iterator(); }
    public List getConsistsOfAllocatedWorkingSteps() {return consistsOfAllocatedWorkingSteps; }
    public void setConsistsOfAllocatedWorkingSteps(List l) {consistsOfAllocatedWorkingSteps = l; }
-
-   /**
-* Protege name: iD_Number
-   */
-   private int iD_Number;
-   public void setID_Number(int value) { 
-    this.iD_Number=value;
-   }
-   public int getID_Number() {
-     return this.iD_Number;
-   }
 
 }

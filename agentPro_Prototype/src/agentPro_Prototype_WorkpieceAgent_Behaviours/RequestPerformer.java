@@ -529,7 +529,7 @@ public class RequestPerformer extends Behaviour {
 					    			step_to_give_to_Inform_DepartureAndArrival = allocWorkingstep_fromInformScheduled;
 					    			//new 15.06.2018 adjust production step if earlier
 					    			transport_operation = (Transport_Operation) operation;
-					    			Location endlocation = transport_operation.getHasEndLocation();
+					    			Location endlocation = (Location) operation.getEndState();
 					    			String time_of_arrival_so_production_can_start = allocWorkingstep_fromInformScheduled.getHasTimeslot().getEndDate();
 					    			System.out.println("DEBUG request performer Test 1 time_of_arrival "+time_of_arrival_so_production_can_start);
 					    			//adjust the production step
@@ -617,8 +617,8 @@ public class RequestPerformer extends Behaviour {
 						
 						Location location = determineStartLocationForTransportOperation();
 						
-						transport_operation_local.setHasStartLocation(location);
-						transport_operation_local.setHasEndLocation(res.getHasLocation());
+						transport_operation_local.setStartState(location);
+						transport_operation_local.setEndState(res.getHasLocation());
 						
 						//Name = Start_Ziel in format  X;Y_DestinationResource
 						transport_operation_local.setName(location.getCoordX()+";"+location.getCoordY()+"_"+res.getName());
@@ -734,7 +734,7 @@ public class RequestPerformer extends Behaviour {
 								  Transport_Operation transp_op =  (Transport_Operation) requested_operation;
 
 								  ///check whether the end of the transport operation (that is too late) is the same location as the current (production) resource TBD--> locations of transport resources in Workplan?
-								  Boolean doLocationsMatch = myAgent.doLocationsMatch(current_step.getHasResource().getHasLocation(), transp_op.getHasEndLocation());
+								  Boolean doLocationsMatch = myAgent.doLocationsMatch(current_step.getHasResource().getHasLocation(), (Location) transp_op.getEndState());
 								  if(doLocationsMatch && current_step.getHasOperation().getType().equals("production")) {
 									  long current_startdate_production = Long.parseLong(cfp_sent.getHasTimeslot().getEndDate());
 									  float buffer_to_start_later_production = ((Operation)current_step.getHasOperation()).getBuffer_after_operation();
@@ -810,8 +810,8 @@ public class RequestPerformer extends Behaviour {
 				myAgent.getProductionManagerBehaviour().restart();
 				step = 7;
 			}else {
-				transport_operation.setHasStartLocation(startlocation);
-				transport_operation.setHasEndLocation(myAgent.getOrderPos().getHasTargetWarehouse().getHasLocation());
+				transport_operation.setStartState(startlocation);
+				transport_operation.setEndState(myAgent.getOrderPos().getHasTargetWarehouse().getHasLocation());
 				
 				
 				//Name = Start_Ziel in format  X;Y_DestinationResource

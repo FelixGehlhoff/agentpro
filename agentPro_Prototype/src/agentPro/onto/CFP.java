@@ -7,20 +7,9 @@ import jade.core.*;
 /**
 * Protege name: CFP
 * @author ontology bean generator
-* @version 2019/03/4, 13:24:52
+* @version 2019/03/20, 15:44:38
 */
 public class CFP extends Message{ 
-
-   /**
-* Protege name: hasOperation
-   */
-   private Operation hasOperation;
-   public void setHasOperation(Operation value) { 
-    this.hasOperation=value;
-   }
-   public Operation getHasOperation() {
-     return this.hasOperation;
-   }
 
    /**
 * Protege name: hasTimeslot
@@ -42,6 +31,17 @@ public class CFP extends Message{
    }
    public int getQuantity() {
      return this.quantity;
+   }
+
+   /**
+* Protege name: hasOperation
+   */
+   private Operation hasOperation;
+   public void setHasOperation(Operation value) { 
+    this.hasOperation=value;
+   }
+   public Operation getHasOperation() {
+     return this.hasOperation;
    }
 
 }

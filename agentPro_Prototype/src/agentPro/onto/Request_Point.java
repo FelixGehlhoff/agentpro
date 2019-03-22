@@ -8,19 +8,19 @@ import jade.core.*;
 /**
 * Protege name: Request_Point
 * @author ontology bean generator
-* @version 2019/03/4, 13:24:52
+* @version 2019/03/20, 15:44:38
 */
 public class Request_Point implements Concept {
 
    /**
-* Protege name: time
+* Protege name: type
    */
-   private String time;
-   public void setTime(String value) { 
-    this.time=value;
+   private String type;
+   public void setType(String value) { 
+    this.type=value;
    }
-   public String getTime() {
-     return this.time;
+   public String getType() {
+     return this.type;
    }
 
    /**
@@ -35,14 +35,14 @@ public class Request_Point implements Concept {
    }
 
    /**
-* Protege name: type
+* Protege name: time
    */
-   private String type;
-   public void setType(String value) { 
-    this.type=value;
+   private String time;
+   public void setTime(String value) { 
+    this.time=value;
    }
-   public String getType() {
-     return this.type;
+   public String getTime() {
+     return this.time;
    }
 
 }

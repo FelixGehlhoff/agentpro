@@ -7,20 +7,9 @@ import jade.core.*;
 /**
 * Protege name: Transport_Operation
 * @author ontology bean generator
-* @version 2019/03/4, 13:24:52
+* @version 2019/03/20, 15:44:38
 */
 public class Transport_Operation extends Operation{ 
-
-   /**
-* Protege name: hasEndLocation
-   */
-   private Location hasEndLocation;
-   public void setHasEndLocation(Location value) { 
-    this.hasEndLocation=value;
-   }
-   public Location getHasEndLocation() {
-     return this.hasEndLocation;
-   }
 
    /**
 * Protege name: avg_PickupTime
@@ -42,17 +31,6 @@ public class Transport_Operation extends Operation{
    }
    public DetailedOperationDescription getHasDetailedOperationDescription() {
      return this.hasDetailedOperationDescription;
-   }
-
-   /**
-* Protege name: hasStartLocation
-   */
-   private Location hasStartLocation;
-   public void setHasStartLocation(Location value) { 
-    this.hasStartLocation=value;
-   }
-   public Location getHasStartLocation() {
-     return this.hasStartLocation;
    }
 
 }

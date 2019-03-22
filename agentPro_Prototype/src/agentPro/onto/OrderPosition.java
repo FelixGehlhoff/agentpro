@@ -8,19 +8,19 @@ import jade.core.*;
 /**
 * Protege name: OrderPosition
 * @author ontology bean generator
-* @version 2019/03/4, 13:24:52
+* @version 2019/03/20, 15:44:38
 */
 public class OrderPosition implements Concept {
 
    /**
-* Protege name: dueDate
+* Protege name: containsProduct
    */
-   private String dueDate;
-   public void setDueDate(String value) { 
-    this.dueDate=value;
+   private Product containsProduct;
+   public void setContainsProduct(Product value) { 
+    this.containsProduct=value;
    }
-   public String getDueDate() {
-     return this.dueDate;
+   public Product getContainsProduct() {
+     return this.containsProduct;
    }
 
    /**
@@ -46,28 +46,6 @@ public class OrderPosition implements Concept {
    }
 
    /**
-* Protege name: quantity
-   */
-   private int quantity;
-   public void setQuantity(int value) { 
-    this.quantity=value;
-   }
-   public int getQuantity() {
-     return this.quantity;
-   }
-
-   /**
-* Protege name: containsProduct
-   */
-   private Product containsProduct;
-   public void setContainsProduct(Product value) { 
-    this.containsProduct=value;
-   }
-   public Product getContainsProduct() {
-     return this.containsProduct;
-   }
-
-   /**
 * Protege name: releaseDate
    */
    private String releaseDate;
@@ -79,14 +57,14 @@ public class OrderPosition implements Concept {
    }
 
    /**
-* Protege name: endDate_String
+* Protege name: quantity
    */
-   private String endDate_String;
-   public void setEndDate_String(String value) { 
-    this.endDate_String=value;
+   private int quantity;
+   public void setQuantity(int value) { 
+    this.quantity=value;
    }
-   public String getEndDate_String() {
-     return this.endDate_String;
+   public int getQuantity() {
+     return this.quantity;
    }
 
    /**
@@ -98,6 +76,28 @@ public class OrderPosition implements Concept {
    }
    public String getStartDate() {
      return this.startDate;
+   }
+
+   /**
+* Protege name: dueDate
+   */
+   private String dueDate;
+   public void setDueDate(String value) { 
+    this.dueDate=value;
+   }
+   public String getDueDate() {
+     return this.dueDate;
+   }
+
+   /**
+* Protege name: endDate_String
+   */
+   private String endDate_String;
+   public void setEndDate_String(String value) { 
+    this.endDate_String=value;
+   }
+   public String getEndDate_String() {
+     return this.endDate_String;
    }
 
 }

@@ -39,8 +39,8 @@ public class InformWorkpieceArrivalAndDeparture extends OneShotBehaviour {
 		 */
 		AllocatedWorkingStep allocWS_start = null;
 		AllocatedWorkingStep allocWS_end = null;
-		Location startlocation = requested_operation.getHasStartLocation();
-		Location endlocation = requested_operation.getHasEndLocation();
+		Location startlocation = (Location) requested_operation.getStartState();
+		Location endlocation = (Location) requested_operation.getEndState();
 		Boolean findWarehouseOutbound = myAgent.doLocationsMatch(myAgent.getOrderPos().getHasTargetWarehouse().getHasLocation(),endlocation);
 		Boolean findWarehouseInbound = myAgent.doLocationsMatch(myAgent.getLocationOfStartingWarehouse(),startlocation);
 		

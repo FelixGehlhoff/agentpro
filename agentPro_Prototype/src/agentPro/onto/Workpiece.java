@@ -8,20 +8,9 @@ import jade.core.*;
 /**
 * Protege name: Workpiece
 * @author ontology bean generator
-* @version 2019/03/4, 13:24:52
+* @version 2019/03/20, 15:44:38
 */
 public class Workpiece implements Concept {
-
-   /**
-* Protege name: ID_String
-   */
-   private String iD_String;
-   public void setID_String(String value) { 
-    this.iD_String=value;
-   }
-   public String getID_String() {
-     return this.iD_String;
-   }
 
    /**
 * Protege name: hasLocation
@@ -43,6 +32,17 @@ public class Workpiece implements Concept {
    }
    public Product getBecomes() {
      return this.becomes;
+   }
+
+   /**
+* Protege name: ID_String
+   */
+   private String iD_String;
+   public void setID_String(String value) { 
+    this.iD_String=value;
+   }
+   public String getID_String() {
+     return this.iD_String;
    }
 
 }

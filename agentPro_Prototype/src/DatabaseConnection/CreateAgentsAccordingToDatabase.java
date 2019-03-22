@@ -38,8 +38,9 @@ public class CreateAgentsAccordingToDatabase extends OneShotBehaviour{
 	        //stmt = myAgent.getConnection().createStatement();
 	        stmt = myAgent.getConnection().createStatement(ResultSet.TYPE_SCROLL_SENSITIVE, ResultSet.CONCUR_UPDATABLE);
 	        ResultSet rs = stmt.executeQuery(query);
-	     
+	        
 	        while (rs.next()) {
+	        	Boolean createAgent = true;
 	        	String name = rs.getString(myAgent.columnNameResourceName_simulation);
 	        	//int id = rs.getInt(columnNameID);
 	        	String res_type = rs.getString(myAgent.columnNameResourceType);
@@ -53,21 +54,27 @@ public class CreateAgentsAccordingToDatabase extends OneShotBehaviour{
 	        		path_for_agent_class = path_for_agent_class + "ProductionResourceAgent";
 	        	}else if(res_type.equals("Shared_Resource") && res_detailed_type.equals("Operator")) {
 	        		path_for_agent_class = path_for_agent_class + "OperatorAgent";
+	        	}else if(res_type.equals("other")) {
+	        		createAgent = false;
 	        	}
 	        	else {
 	        		path_for_agent_class = path_for_agent_class + "Crane_RailAgent";
 	        	}
 	        	
-	        	ContainerController cc = myAgent.getContainerController();
-				AgentController ac;
+	        	if(createAgent) {
+	        		ContainerController cc = myAgent.getContainerController();
+					AgentController ac;
+	        		try {
+						ac = cc.createNewAgent(name, path_for_agent_class, null);
+						ac.start();
+					} catch (StaleProxyException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					}
+	        	}
+	        	
 
-				try {
-					ac = cc.createNewAgent(name, path_for_agent_class, null);
-					ac.start();
-				} catch (StaleProxyException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				}
+				
 	        }
 	      
 

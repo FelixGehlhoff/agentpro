@@ -8,7 +8,7 @@ import jade.core.*;
 /**
 * Protege name: Product
 * @author ontology bean generator
-* @version 2019/03/4, 13:24:52
+* @version 2019/03/20, 15:44:38
 */
 public class Product implements Concept {
 
@@ -21,17 +21,6 @@ public class Product implements Concept {
    }
    public ProductionPlan getHasProductionPlan() {
      return this.hasProductionPlan;
-   }
-
-   /**
-* Protege name: isDefinedByProductionPlan
-   */
-   private ProductionPlan isDefinedByProductionPlan;
-   public void setIsDefinedByProductionPlan(ProductionPlan value) { 
-    this.isDefinedByProductionPlan=value;
-   }
-   public ProductionPlan getIsDefinedByProductionPlan() {
-     return this.isDefinedByProductionPlan;
    }
 
    /**
@@ -54,6 +43,17 @@ public class Product implements Concept {
    }
    public int getID_Number() {
      return this.iD_Number;
+   }
+
+   /**
+* Protege name: isDefinedByProductionPlan
+   */
+   private ProductionPlan isDefinedByProductionPlan;
+   public void setIsDefinedByProductionPlan(ProductionPlan value) { 
+    this.isDefinedByProductionPlan=value;
+   }
+   public ProductionPlan getIsDefinedByProductionPlan() {
+     return this.isDefinedByProductionPlan;
    }
 
 }

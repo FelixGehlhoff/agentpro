@@ -257,7 +257,7 @@ public class orderGenerationBehaviour extends OneShotBehaviour{
 	 				
 	 				try {
 	 					//ac = cc.createNewAgent("WorkpieceAgentNo_"+orderPos.getSequence_Number(), "agentPro_Prototype_Agents.WorkpieceAgent", args_WorkpieceAgent);
-	 					ac = cc.createNewAgent(orderPos.getContainsProduct().getName()+"_"+orderPos.getSequence_Number(), "agentPro_Prototype_Agents.WorkpieceAgent", args_WorkpieceAgent);
+	 					ac = cc.createNewAgent(orderPos.getContainsProduct().getName()+"_"+orderPos.getSequence_Number()+"_Order", "agentPro_Prototype_Agents.WorkpieceAgent", args_WorkpieceAgent);
 	 					
 	 					ac.start();
 	 				} catch (StaleProxyException e) {

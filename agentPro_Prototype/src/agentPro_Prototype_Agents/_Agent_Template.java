@@ -27,6 +27,7 @@ import jade.domain.DFService;
 import jade.domain.FIPAException;
 import jade.domain.FIPAAgentManagement.DFAgentDescription;
 import jade.lang.acl.ACLMessage;
+import support_classes.Interval;
 
 /*
  * Serves as a template for other agents and provides take down procedure and some other variables
@@ -43,6 +44,7 @@ public abstract class _Agent_Template extends Agent{
 	public Boolean showMessageContent = true;
 	private WorkPlan workplan;
 	public long time_until_end = (long) 1000*60*60*30*31;// 25 pieces (24+6 buffer) * 31 h 1000*60*60*24; //24 h
+	
 	
 	//Ontology
 	private Ontology ontology = AgentPro_ProductionOntology.getInstance();
@@ -189,7 +191,7 @@ public abstract class _Agent_Template extends Agent{
 	
 	protected Boolean findMatchStringInArrayList(String wp_type, ArrayList<String> enabledWorkpieces2) {
 		for(String enabled : enabledWorkpieces2) {
-			System.out.println(this.getLocalName()+" "+enabled+" equals? "+wp_type);
+			//System.out.println(this.getLocalName()+" "+enabled+" equals? "+wp_type);
 			if(wp_type.equals(enabled)) {
 				return true;
 			}
@@ -350,5 +352,15 @@ public abstract class _Agent_Template extends Agent{
 	}
 	public Connection getConnection() {
 		return connection;
+	}
+	public String printoutArraylistIntervals (ArrayList<Interval> list) {
+		String printout = "";
+		int counter = 1;
+		for(Interval i : list) {
+			printout += counter+" "+i.toString();
+			counter++;
+		}
+		return printout;
+		
 	}
 }

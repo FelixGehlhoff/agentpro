@@ -8,30 +8,9 @@ import jade.core.*;
 /**
 * Protege name: Capability
 * @author ontology bean generator
-* @version 2019/03/4, 13:24:52
+* @version 2019/03/20, 15:44:38
 */
 public class Capability implements Concept {
-
-   /**
-* Protege name: enables
-   */
-   private List enables = new ArrayList();
-   public void addEnables(Operation elem) { 
-     List oldList = this.enables;
-     enables.add(elem);
-   }
-   public boolean removeEnables(Operation elem) {
-     List oldList = this.enables;
-     boolean result = enables.remove(elem);
-     return result;
-   }
-   public void clearAllEnables() {
-     List oldList = this.enables;
-     enables.clear();
-   }
-   public Iterator getAllEnables() {return enables.iterator(); }
-   public List getEnables() {return enables; }
-   public void setEnables(List l) {enables = l; }
 
    /**
 * Protege name: name
@@ -54,5 +33,26 @@ public class Capability implements Concept {
    public int getID_Number() {
      return this.iD_Number;
    }
+
+   /**
+* Protege name: enables
+   */
+   private List enables = new ArrayList();
+   public void addEnables(Operation elem) { 
+     List oldList = this.enables;
+     enables.add(elem);
+   }
+   public boolean removeEnables(Operation elem) {
+     List oldList = this.enables;
+     boolean result = enables.remove(elem);
+     return result;
+   }
+   public void clearAllEnables() {
+     List oldList = this.enables;
+     enables.clear();
+   }
+   public Iterator getAllEnables() {return enables.iterator(); }
+   public List getEnables() {return enables; }
+   public void setEnables(List l) {enables = l; }
 
 }

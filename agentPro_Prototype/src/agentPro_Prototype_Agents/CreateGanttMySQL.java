@@ -21,6 +21,8 @@ import agentPro.onto.Delay;
 import agentPro.onto.Machine_Error;
 import agentPro.onto.Operation;
 import agentPro.onto.Resource;
+import agentPro.onto.Setup_state;
+import agentPro.onto.State;
 import agentPro.onto.Timeslot;
 import agentPro.onto.WorkPlan;
 import agentPro.onto.Workpiece;
@@ -83,7 +85,7 @@ public class CreateGanttMySQL {
 	
 private static HashMap<String, Double> setup_matrix = new HashMap();
 	
-	public HashMap<String, Double> getSetup_matrix() {
+	public static HashMap<String, Double> getSetup_matrix() {
 		return setup_matrix;
 	}
 
@@ -138,6 +140,14 @@ private static HashMap<String, Double> setup_matrix = new HashMap();
 	        demo.setVisible(false);	
 		*/
 		createSetupMatrix();
+		
+		Setup_state start_next_task = new Setup_state ();
+		start_next_task.setID_String("A");
+		Setup_state end_new = new Setup_state ();
+		end_new.setID_String("B");
+		
+		float diff = calculateTimeBetweenStates(start_next_task, end_new , 1);
+		System.out.println("diff "+diff);
 /*
  * 
 		int size = 2;
@@ -230,6 +240,25 @@ private static HashMap<String, Double> setup_matrix = new HashMap();
 	    }
 	    System.out.println(printout);
 		*/
+	}
+	
+	public static float calculateTimeBetweenStates(State start_next_task_generic, State end_new_generic, int counter_free_interval_i) {
+		Setup_state start_next_task = (Setup_state) start_next_task_generic;
+		Setup_state end_new = (Setup_state) end_new_generic;
+		
+		String combination = end_new.getID_String()+"_"+start_next_task.getID_String();
+		float duration_of_reaching_next_start_state_new = 0;
+		if(start_next_task.getID_String().equals(end_new.getID_String())) {
+			return 0;
+		}else {
+			double d = getSetup_matrix().get(combination);
+			duration_of_reaching_next_start_state_new = (float) d;
+		}
+		float duration_of_reaching_next_start_state_current = 10F; // in min		
+		float difference = duration_of_reaching_next_start_state_new - duration_of_reaching_next_start_state_current;
+		//System.out.println("DEBUG___"+logLinePrefix+" time_increment_or_decrement_to_be_added = "+difference+" __START NEXT TASK___location found: "+start_next_task.getCoordX()+";"+start_next_task.getCoordY()+" location end new "+end_new.getCoordX()+";"+end_new.getCoordY()+"  distance   = "+distance_TransportResource_fromResourceAtDestination_toStart_next_Job+" duration_of_reaching_next_target_new "+duration_of_reaching_next_target_new+" duration_of_reaching_next_target_current "+duration_of_reaching_next_target_current);
+		
+		return difference;
 	}
 	
 	private static void createSetupMatrix() {

@@ -8,20 +8,9 @@ import jade.core.*;
 /**
 * Protege name: OrderedOperation
 * @author ontology bean generator
-* @version 2019/03/4, 13:24:52
+* @version 2019/03/20, 15:44:38
 */
 public class OrderedOperation implements Concept {
-
-   /**
-* Protege name: hasOperation
-   */
-   private Operation hasOperation;
-   public void setHasOperation(Operation value) { 
-    this.hasOperation=value;
-   }
-   public Operation getHasOperation() {
-     return this.hasOperation;
-   }
 
    /**
 * Protege name: hasFollowUpOperation
@@ -32,6 +21,17 @@ public class OrderedOperation implements Concept {
    }
    public boolean getHasFollowUpOperation() {
      return this.hasFollowUpOperation;
+   }
+
+   /**
+* Protege name: sequence_Number
+   */
+   private int sequence_Number;
+   public void setSequence_Number(int value) { 
+    this.sequence_Number=value;
+   }
+   public int getSequence_Number() {
+     return this.sequence_Number;
    }
 
    /**
@@ -57,17 +57,6 @@ public class OrderedOperation implements Concept {
    }
 
    /**
-* Protege name: sequence_Number
-   */
-   private int sequence_Number;
-   public void setSequence_Number(int value) { 
-    this.sequence_Number=value;
-   }
-   public int getSequence_Number() {
-     return this.sequence_Number;
-   }
-
-   /**
 * Protege name: withOperationInStep
    */
    private int withOperationInStep;
@@ -76,6 +65,17 @@ public class OrderedOperation implements Concept {
    }
    public int getWithOperationInStep() {
      return this.withOperationInStep;
+   }
+
+   /**
+* Protege name: hasOperation
+   */
+   private Operation hasOperation;
+   public void setHasOperation(Operation value) { 
+    this.hasOperation=value;
+   }
+   public Operation getHasOperation() {
+     return this.hasOperation;
    }
 
 }

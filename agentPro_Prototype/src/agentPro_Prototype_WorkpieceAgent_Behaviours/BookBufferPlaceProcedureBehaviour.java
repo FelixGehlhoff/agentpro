@@ -9,6 +9,7 @@ import agentPro.onto.Operation;
 import agentPro.onto.Timeslot;
 import agentPro.onto.Transport_Operation;
 import agentPro_Prototype_Agents.WorkpieceAgent;
+import agentPro_Prototype_Agents._Agent_Template;
 import jade.core.behaviours.Behaviour;
 import support_classes.Interval;
 
@@ -193,8 +194,8 @@ public class BookBufferPlaceProcedureBehaviour extends Behaviour{
 				Location location_buffer_place = buffer_place.getHasResource().getHasLocation();
 				Location location_current = myAgent.getLocation();
 				
-				transport_operation.setHasStartLocation(location_current);
-				transport_operation.setHasEndLocation(location_buffer_place);
+				transport_operation.setStartState(location_current);
+				transport_operation.setEndState(location_buffer_place);
 				
 				//Name = Start_Ziel in format  X;Y_DestinationResource
 				transport_operation.setName(location_current.getCoordX()+";"+location_current.getCoordY()+"_"+buffer_place.getHasResource().getName());
@@ -221,10 +222,10 @@ public class BookBufferPlaceProcedureBehaviour extends Behaviour{
 	    			AllocatedWorkingStep allWS_transport_to_buffer = (AllocatedWorkingStep) myAgent.getWorkplan().getConsistsOfAllocatedWorkingSteps().get(i);
 	    			Boolean doLocationsmatch_startTransporttoProduction_LocationOfOldProductionStep = false;
 	    			if(allWS_transport_to_buffer.getHasOperation().getType().equals("transport")) {
-	    				if(myAgent.simulation_mode) {
-	    					doLocationsmatch_startTransporttoProduction_LocationOfOldProductionStep = myAgent.doLocationsMatch(((Transport_Operation)allWS_transport_to_buffer.getHasOperation()).getHasStartLocation(), failure_step.getHasResource().getHasLocation());    		     				  	    			
+	    				if(_Agent_Template.simulation_mode) {
+	    					doLocationsmatch_startTransporttoProduction_LocationOfOldProductionStep = myAgent.doLocationsMatch(((Location)allWS_transport_to_buffer.getHasOperation().getStartState()), failure_step.getHasResource().getHasLocation());    		     				  	    			
 	    				}else {
-	    					doLocationsmatch_startTransporttoProduction_LocationOfOldProductionStep = myAgent.doLocationsMatch(((Transport_Operation)allWS_transport_to_buffer.getHasOperation()).getHasStartLocation(), relevant_AllWS.getHasResource().getHasLocation());    		     				    			
+	    					doLocationsmatch_startTransporttoProduction_LocationOfOldProductionStep = myAgent.doLocationsMatch(((Location)allWS_transport_to_buffer.getHasOperation().getStartState()), relevant_AllWS.getHasResource().getHasLocation());    		     				    			
 	    				}
 	    			}
 	    			//System.out.println("DEBUG______QQQQQQQQQ___________allWS: "+allWS_transport_to_buffer.getID_String()+" "+allWS_transport_to_buffer.getHasOperation().getName()+" do locations match? "+doLocationsmatch_startTransporttoProduction_LocationOfOldProductionStep+" myAgent.getProductionManagerBehaviour().isBackwards_scheduling_activ()  "+myAgent.getProductionManagerBehaviour().isBackwards_scheduling_activ());
@@ -265,7 +266,7 @@ public class BookBufferPlaceProcedureBehaviour extends Behaviour{
 	    					if(buffer_place.getHasOperation().getName().contains("Puffer") || buffer_place.getHasOperation().getName().contains("Nachbearbeitung")) {
 	        		    		//AllocatedWorkingStep next_production_step = myAgent.get_BEFORE_LastProductionStepAllocated();
 	    						allWS_buffer_place = myAgent.getLastProductionStepAllocated();	    								
-	        					Location location_buffer_place = ((Transport_Operation)allWS_transport_to_buffer.getHasOperation()).getHasEndLocation();
+	        					Location location_buffer_place = (Location)allWS_transport_to_buffer.getHasOperation().getEndState();
 	        					this.location_buffer_place = location_buffer_place;
 	        					
 	        		    		//long startdate_for_this_task_2 = Long.parseLong(relevant_AllWS.getHasTimeslot().getStartDate()) - myAgent.getTransport_estimation();
@@ -277,8 +278,8 @@ public class BookBufferPlaceProcedureBehaviour extends Behaviour{
 	        					//Location location_buffer_place = buffer_place.getHasResource().getHasLocation();
 	        					Location location_next_production_step = relevant_AllWS.getHasResource().getHasLocation();
 	        					
-	        					transport_operation2.setHasStartLocation(location_buffer_place);
-	        					transport_operation2.setHasEndLocation(location_next_production_step);
+	        					transport_operation2.setStartState(location_buffer_place);
+	        					transport_operation2.setEndState(location_next_production_step);
 	        					
 	        					//Name = Start_Ziel in format  X;Y_DestinationResource
 	        					transport_operation2.setName(location_buffer_place.getCoordX()+";"+location_buffer_place.getCoordY()+"_"+relevant_AllWS.getHasResource().getName());
@@ -336,8 +337,8 @@ public class BookBufferPlaceProcedureBehaviour extends Behaviour{
     			Boolean doLocationsmatch_start = false;
     			if(allWS.getHasOperation().getType().equals("transport")) {
     				
-    				doLocationsmatch_end = myAgent.doLocationsMatch(((Transport_Operation)allWS.getHasOperation()).getHasEndLocation(), relevant_AllWS.getHasResource().getHasLocation());    		     			
-    				doLocationsmatch_start = myAgent.doLocationsMatch(((Transport_Operation)allWS.getHasOperation()).getHasStartLocation(), location_buffer_place);
+    				doLocationsmatch_end = myAgent.doLocationsMatch((Location)allWS.getHasOperation().getEndState(), relevant_AllWS.getHasResource().getHasLocation());    		     			
+    				doLocationsmatch_start = myAgent.doLocationsMatch((Location)allWS.getHasOperation().getStartState(), location_buffer_place);
     			}
     			if(doLocationsmatch_start && doLocationsmatch_end) {	//correct step found
 	    			

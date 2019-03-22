@@ -13,19 +13,52 @@ import jade.core.*;
     </p>
 * Protege name: AllocatedWorkingStep
 * @author ontology bean generator
-* @version 2019/03/4, 13:24:52
+* @version 2019/03/20, 15:44:38
 */
 public class AllocatedWorkingStep implements Concept {
 
    /**
-* Protege name: hasOperation
+* Protege name: isErrorStep
    */
-   private Operation hasOperation;
-   public void setHasOperation(Operation value) { 
-    this.hasOperation=value;
+   private boolean isErrorStep;
+   public void setIsErrorStep(boolean value) { 
+    this.isErrorStep=value;
    }
-   public Operation getHasOperation() {
-     return this.hasOperation;
+   public boolean getIsErrorStep() {
+     return this.isErrorStep;
+   }
+
+   /**
+* Protege name: hasResource
+   */
+   private Resource hasResource;
+   public void setHasResource(Resource value) { 
+    this.hasResource=value;
+   }
+   public Resource getHasResource() {
+     return this.hasResource;
+   }
+
+   /**
+* Protege name: startdate
+   */
+   private float startdate;
+   public void setStartdate(float value) { 
+    this.startdate=value;
+   }
+   public float getStartdate() {
+     return this.startdate;
+   }
+
+   /**
+* Protege name: isFinished
+   */
+   private boolean isFinished;
+   public void setIsFinished(boolean value) { 
+    this.isFinished=value;
+   }
+   public boolean getIsFinished() {
+     return this.isFinished;
    }
 
    /**
@@ -51,14 +84,14 @@ public class AllocatedWorkingStep implements Concept {
    }
 
    /**
-* Protege name: isFinished
+* Protege name: isStarted
    */
-   private boolean isFinished;
-   public void setIsFinished(boolean value) { 
-    this.isFinished=value;
+   private boolean isStarted;
+   public void setIsStarted(boolean value) { 
+    this.isStarted=value;
    }
-   public boolean getIsFinished() {
-     return this.isFinished;
+   public boolean getIsStarted() {
+     return this.isStarted;
    }
 
    /**
@@ -73,47 +106,14 @@ public class AllocatedWorkingStep implements Concept {
    }
 
    /**
-* Protege name: isStarted
+* Protege name: hasOperation
    */
-   private boolean isStarted;
-   public void setIsStarted(boolean value) { 
-    this.isStarted=value;
+   private Operation hasOperation;
+   public void setHasOperation(Operation value) { 
+    this.hasOperation=value;
    }
-   public boolean getIsStarted() {
-     return this.isStarted;
-   }
-
-   /**
-* Protege name: hasResource
-   */
-   private Resource hasResource;
-   public void setHasResource(Resource value) { 
-    this.hasResource=value;
-   }
-   public Resource getHasResource() {
-     return this.hasResource;
-   }
-
-   /**
-* Protege name: isErrorStep
-   */
-   private boolean isErrorStep;
-   public void setIsErrorStep(boolean value) { 
-    this.isErrorStep=value;
-   }
-   public boolean getIsErrorStep() {
-     return this.isErrorStep;
-   }
-
-   /**
-* Protege name: startdate
-   */
-   private float startdate;
-   public void setStartdate(float value) { 
-    this.startdate=value;
-   }
-   public float getStartdate() {
-     return this.startdate;
+   public Operation getHasOperation() {
+     return this.hasOperation;
    }
 
 }

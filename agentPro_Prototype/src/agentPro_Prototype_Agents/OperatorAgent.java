@@ -122,6 +122,12 @@ public class OperatorAgent extends SharedResourceAgent{
 		return proposal;
 	}
 
+	@Override
+	protected void setStartState() {
+		// TODO Auto-generated method stub
+		
+	}
+
 
 } 
 

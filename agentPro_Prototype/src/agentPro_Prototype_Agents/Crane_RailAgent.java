@@ -119,6 +119,13 @@ public class Crane_RailAgent extends SharedResourceAgent{
 	}
 
 
+	@Override
+	protected void setStartState() {
+		// TODO Auto-generated method stub
+		
+	}
+
+
 
 } 
 

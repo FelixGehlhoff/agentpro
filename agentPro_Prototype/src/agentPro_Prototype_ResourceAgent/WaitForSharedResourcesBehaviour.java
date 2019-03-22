@@ -302,15 +302,15 @@ public class WaitForSharedResourcesBehaviour extends Behaviour{
 		long buffer_before_operation = 0;
 	for(int i = 0;i<myAgent.getFree_interval_array().size();i++) {	
 		
-				start_old_idle = myAgent.getLocationAtTime(myAgent.getFree_interval_array().get(i).lowerBound());			
-				start_new = transport_op_to_destination.getHasStartLocation();
+				start_old_idle = (Location) myAgent.getStateAtTime(myAgent.getFree_interval_array().get(i).lowerBound());			
+				start_new = (Location) transport_op_to_destination.getStartState();
 			float distance_TransportResource_to_Workpiece = myAgent.calcDistance(start_old_idle, start_new);			
 		duration_to_get_to_workpiece = (distance_TransportResource_to_Workpiece/avg_speed) / 60 ;	// in min
 		//System.out.println("DEBUG_________________________________duration_to_get_to_workpiece_=  distance_TransportResource_to_Workpiece "+distance_TransportResource_to_Workpiece+"/ avg_speed "+avg_speed);
 			
 		//set_up_time = distance_TransportResource_to_Workpiece/avg_speed;
 					
-			float distance_Workpiece_to_ProductionResource = myAgent.calcDistance(transport_op_to_destination.getHasStartLocation(), transport_op_to_destination.getHasEndLocation());	//in m
+			float distance_Workpiece_to_ProductionResource = myAgent.calcDistance((Location)transport_op_to_destination.getStartState(), (Location)transport_op_to_destination.getEndState());	//in m
 		
 		traveling_time = (distance_Workpiece_to_ProductionResource/avg_speed)/60; // in min
 				//time_increment_or_decrement_to_be_added_for_setup_of_next_task = calculateTimeIncrement(transport_op_to_destination, avg_speed, i, operation_description); // in min

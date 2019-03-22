@@ -58,7 +58,7 @@ public class ReceiveDatabaseQueryRequestBehaviour extends CyclicBehaviour{
 		
 		if (request != null) {
 		String sender = request.getSender().getLocalName();
-			if(request.getSender().getLocalName().contains("Workpiece")) {
+			if(request.getSender().getLocalName().contains("Workpiece") || request.getSender().getLocalName().contains("Order")) {
 				agent_type = "workpiece";
 				
 			}else {

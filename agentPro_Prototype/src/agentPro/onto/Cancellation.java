@@ -7,7 +7,7 @@ import jade.core.*;
 /**
 * Protege name: Cancellation
 * @author ontology bean generator
-* @version 2019/03/4, 13:24:52
+* @version 2019/03/20, 15:44:38
 */
 public class Cancellation extends Message{ 
 

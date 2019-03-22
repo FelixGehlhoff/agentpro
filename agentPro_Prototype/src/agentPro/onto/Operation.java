@@ -8,9 +8,31 @@ import jade.core.*;
 /**
 * Protege name: Operation
 * @author ontology bean generator
-* @version 2019/03/4, 13:24:52
+* @version 2019/03/20, 15:44:38
 */
 public class Operation implements Concept {
+
+   /**
+* Protege name: type
+   */
+   private String type;
+   public void setType(String value) { 
+    this.type=value;
+   }
+   public String getType() {
+     return this.type;
+   }
+
+   /**
+* Protege name: endState
+   */
+   private State endState;
+   public void setEndState(State value) { 
+    this.endState=value;
+   }
+   public State getEndState() {
+     return this.endState;
+   }
 
    /**
 * Protege name: set_up_time
@@ -21,6 +43,28 @@ public class Operation implements Concept {
    }
    public float getSet_up_time() {
      return this.set_up_time;
+   }
+
+   /**
+* Protege name: name
+   */
+   private String name;
+   public void setName(String value) { 
+    this.name=value;
+   }
+   public String getName() {
+     return this.name;
+   }
+
+   /**
+* Protege name: appliedOn
+   */
+   private Workpiece appliedOn;
+   public void setAppliedOn(Workpiece value) { 
+    this.appliedOn=value;
+   }
+   public Workpiece getAppliedOn() {
+     return this.appliedOn;
    }
 
    /**
@@ -67,25 +111,14 @@ public class Operation implements Concept {
    public void setIsEnabledBy(List l) {isEnabledBy = l; }
 
    /**
-* Protege name: appliedOn
+* Protege name: startState
    */
-   private Workpiece appliedOn;
-   public void setAppliedOn(Workpiece value) { 
-    this.appliedOn=value;
+   private State startState;
+   public void setStartState(State value) { 
+    this.startState=value;
    }
-   public Workpiece getAppliedOn() {
-     return this.appliedOn;
-   }
-
-   /**
-* Protege name: name
-   */
-   private String name;
-   public void setName(String value) { 
-    this.name=value;
-   }
-   public String getName() {
-     return this.name;
+   public State getStartState() {
+     return this.startState;
    }
 
    /**
@@ -97,17 +130,6 @@ public class Operation implements Concept {
    }
    public float getBuffer_after_operation() {
      return this.buffer_after_operation;
-   }
-
-   /**
-* Protege name: type
-   */
-   private String type;
-   public void setType(String value) { 
-    this.type=value;
-   }
-   public String getType() {
-     return this.type;
    }
 
 }
