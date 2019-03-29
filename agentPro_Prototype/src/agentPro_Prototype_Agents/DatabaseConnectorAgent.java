@@ -21,6 +21,7 @@ import java.util.TimeZone;
 import DatabaseConnection.ReceiveDatabaseQueryRequestBehaviour;
 import agentPro.onto.AllocatedWorkingStep;
 import agentPro.onto.WorkPlan;
+import support_classes.GeneralFunctions;
 
 
 public class DatabaseConnectorAgent extends _Agent_Template{
@@ -104,7 +105,7 @@ public class DatabaseConnectorAgent extends _Agent_Template{
 				
 				//String query = "Select * from "+this.nameOfProductionPlan+" where "+this.columnNameID+" = "+order_id;
 				//01.02.19 Orders sollen in der Reihenfolge eingetragen werden, wie sie kommen
-				addToFlexsimLayoutTable(stmt, order_id, workplan, this.tableNameProductionPlan+"_agentPro");
+				addToFlexsimLayoutTable(stmt, order_id, workplan, this.tableNameProductionPlan);
 				
 				//createRowEntries(rs, workplan, order_id);
 				//rs.updateRow();   //Einfügen der Zeile in die Datenbank
@@ -174,6 +175,7 @@ public class DatabaseConnectorAgent extends _Agent_Template{
 				    		java.sql.Timestamp sql_timestamp = new java.sql.Timestamp(Long.parseLong(allWorkingStep.getHasTimeslot().getStartDate()));
 				    		//rs2.updateDate(columnNameOfPlanStart, sql_date);		
 				    		//rs2.updateTime(columnNameOfPlanStart, sql_date.getTime());
+				    		
 				    		rs2.updateTimestamp(columnNameOfPlanStart, new java.sql.Timestamp(Long.parseLong(allWorkingStep.getHasTimeslot().getStartDate())));
 				    		//rs2.updateInt(columnNameOfPlanStart_zahl, );
 				    	    //java.sql.Date sqlDate = new java.sql.Date(Long.parseLong(allWorkingStep.getHasTimeslot().getStartDate()));
@@ -237,7 +239,7 @@ public class DatabaseConnectorAgent extends _Agent_Template{
 	}
 	
 	private void addToFlexsimLayoutTable(Statement stmt, int order_id, WorkPlan workplan, String tableNameProductionPlan) throws SQLException {
-		String query = "Select * from "+tableNameProductionPlan+" where "+this.columnNameorderid+" = "+order_id;
+		String query = "Select * from "+tableNameProductionPlan+" where "+this.columnNameID+" = "+order_id;
 		ResultSet rs2 = stmt.executeQuery("select * from "+tableNameProductionPlan);
 		rs2.last();
 		int row_count = rs2.getRow();
@@ -271,13 +273,15 @@ public class DatabaseConnectorAgent extends _Agent_Template{
 				String c_EndeSoll = this.columnNameEndeSoll + i2;
 			//falsch	String c_Bezeichnung = allWorkingStep.getHasResource().getName();
 	    		double hours_sim_time_start_soll = (double) (Long.parseLong(allWorkingStep.getHasTimeslot().getStartDate()) - this.start_simulation) / (1000*60*60);
-	    		System.out.println("DEBUG_____DATABASECONNECTOR______ start date ms "+allWorkingStep.getHasTimeslot().getStartDate() + " minus start sim "+this.start_simulation+" div by 1000*60*60 = "+hours_sim_time_start_soll);
+	    		double hours_sim_time_start_soll_rounded = GeneralFunctions.round(hours_sim_time_start_soll,4);
+	    		System.out.println("DEBUG_____DATABASECONNECTOR______ start date ms "+allWorkingStep.getHasTimeslot().getStartDate() + " minus start sim "+this.start_simulation+" div by 1000*60*60 = "+hours_sim_time_start_soll+" rounded 	"+hours_sim_time_start_soll_rounded);
 	    		double hours_sim_time_end_soll = (double) (Long.parseLong(allWorkingStep.getHasTimeslot().getEndDate()) - this.start_simulation) / (1000*60*60);							    		
+	    		double hours_sim_time_end_soll_rounded = GeneralFunctions.round(hours_sim_time_end_soll,4);
 	    		//int res_id = rs2.getInt(c_Bezeichnung);
 	    		int number_of_column_for_production_step = 2+7*(i2-1);
 	    		System.out.println("DEBUG__c_StartSoll = "+c_StartSoll+"__ and from AS = "+allWorkingStep.getHasResource().getID_Number()+" number_of_column_for_production_step "+number_of_column_for_production_step);
-	    		rs2.updateDouble(c_StartSoll, hours_sim_time_start_soll);	
-	    		rs2.updateDouble(c_EndeSoll, hours_sim_time_end_soll);		
+	    		rs2.updateDouble(c_StartSoll, hours_sim_time_start_soll_rounded);	
+	    		rs2.updateDouble(c_EndeSoll, hours_sim_time_end_soll_rounded);		
 	    		rs2.updateInt(number_of_column_for_production_step, allWorkingStep.getHasResource().getID_Number());
 	    		//01.02.2019	variable Odernummer
 	    		//System.out.println("DEBUG_____________________________________________________________order_id  "+order_id);
@@ -287,15 +291,17 @@ public class DatabaseConnectorAgent extends _Agent_Template{
 	            i2++;
 	    	}else if (allWorkingStep.getIsErrorStep()){
 	    		double hours_sim_time_start_soll = (double) (Long.parseLong(allWorkingStep.getHasTimeslot().getStartDate()) - this.start_simulation) / (1000*60*60);
+	    		double hours_sim_time_start_soll_rounded = GeneralFunctions.round(hours_sim_time_start_soll,4);
 	    		System.out.println("DEBUG_____DATABASECONNECTOR______ start date ms "+allWorkingStep.getHasTimeslot().getStartDate() + " minus start sim "+this.start_simulation+" div by 1000*60*60 = "+hours_sim_time_start_soll);
 	    		double hours_sim_time_end_soll = (double) (Long.parseLong(allWorkingStep.getHasTimeslot().getEndDate()) - this.start_simulation) / (1000*60*60);							    		
+	    		double hours_sim_time_end_soll_rounded = GeneralFunctions.round(hours_sim_time_end_soll,4);
 	    		//int res_id = rs2.getInt(c_Bezeichnung);
 	    		int number_of_column_for_production_step = 2+7*(10-1);	//=65
 	    		
 	    		String c_StartSoll = this.columnNameStartSoll + "10";
 				String c_EndeSoll = this.columnNameEndeSoll + "10";
-	    		rs2.updateDouble(c_StartSoll, hours_sim_time_start_soll);	
-	    		rs2.updateDouble(c_EndeSoll, hours_sim_time_end_soll);		
+	    		rs2.updateDouble(c_StartSoll, hours_sim_time_start_soll_rounded);	
+	    		rs2.updateDouble(c_EndeSoll, hours_sim_time_end_soll_rounded);		
 	    		rs2.updateInt(number_of_column_for_production_step, allWorkingStep.getHasResource().getID_Number());
 	    		//i2++;
 	    	}else {
@@ -305,13 +311,15 @@ public class DatabaseConnectorAgent extends _Agent_Template{
 					String c_EndeSoll = this.columnNameEndeSoll + i2;
 				//falsch	String c_Bezeichnung = allWorkingStep.getHasResource().getName();
 		    		double hours_sim_time_start_soll = (double) (Long.parseLong(allWorkingStep.getHasTimeslot().getStartDate()) - this.start_simulation) / (1000*60*60);
+		    		double hours_sim_time_start_soll_rounded = GeneralFunctions.round(hours_sim_time_start_soll,4);
 		    		System.out.println("DEBUG_____DATABASECONNECTOR___LASTTRANSPORT___ start date ms "+allWorkingStep.getHasTimeslot().getStartDate() + " minus start sim "+this.start_simulation+" div by 1000*60*60 = "+hours_sim_time_start_soll);
 		    		double hours_sim_time_end_soll = (double) (Long.parseLong(allWorkingStep.getHasTimeslot().getEndDate()) - this.start_simulation) / (1000*60*60);							    		
+		    		double hours_sim_time_end_soll_rounded = GeneralFunctions.round(hours_sim_time_end_soll,4);
 		    		//int res_id = rs2.getInt(c_Bezeichnung);
 		    		int number_of_column_for_production_step = 2+7*(i2-1);
 		    		System.out.println("DEBUG__c_StartSoll = "+c_StartSoll+"__ and from AS = "+allWorkingStep.getHasResource().getID_Number()+" number_of_column_for_production_step "+number_of_column_for_production_step);
-		    		rs2.updateDouble(c_StartSoll, hours_sim_time_start_soll);	
-		    		rs2.updateDouble(c_EndeSoll, hours_sim_time_end_soll);		
+		    		rs2.updateDouble(c_StartSoll, hours_sim_time_start_soll_rounded);	
+		    		rs2.updateDouble(c_EndeSoll, hours_sim_time_end_soll_rounded);		
 		    		int resource_id_of_exit = getResourceID(allWorkingStep.getHasOperation().getName().split("_")[1]); //name of exit as input
 		    		rs2.updateInt(number_of_column_for_production_step, resource_id_of_exit);
 		    		

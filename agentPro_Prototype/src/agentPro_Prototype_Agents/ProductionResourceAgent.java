@@ -69,7 +69,7 @@ public class ProductionResourceAgent extends ResourceAgent{
 	}
 
 	protected void setup (){		
-		
+			
 		super.setup();
 		
 		// / INITIALISATION
@@ -81,9 +81,11 @@ public class ProductionResourceAgent extends ResourceAgent{
 			
 		 // Register the service in the yellow pages
 		//registerAtDF();
-		//representedResource = new ProductionResource();
+		representedResource = new ProductionResource();
 		representedResource.setName(this.getLocalName());
 		receiveValuesFromDB(representedResource);
+		setStartState();
+
 		
 		receiveCapabilityOperationsValuesFromDB(representedResource);
 		
@@ -182,7 +184,7 @@ public class ProductionResourceAgent extends ResourceAgent{
 	}
 	
 
-
+@Override
 public void receiveValuesFromDB(Resource r) {
 		
 	    Statement stmt = null;
@@ -217,19 +219,20 @@ public void receiveValuesFromDB(Resource r) {
 
     	query2 = "select "+columnNameOfChangeover+" , `"+this.getRepresentedResource().getName()+"` from "+tableNameResourceSetupMatrix; 
    
-    try {
+    
     	
-        ResultSet rs2 = stmt.executeQuery(query2);
-        HashMap<String, Double> matrix = new  HashMap<String, Double>();
-        while (rs2.next()) {
-        	matrix.put(rs2.getString(columnNameOfChangeover), rs2.getDouble(this.getRepresentedResource().getName()));
-        }
-        setSetup_matrix(matrix);
-       
-        
-    } catch (SQLException e ) {
-    	e.printStackTrace();
-    }
+    	if(!_Agent_Template.prefix_schema.equals("flexsimdata")){
+    		try {
+    		ResultSet rs2 = stmt.executeQuery(query2);
+            HashMap<String, Double> matrix = new  HashMap<String, Double>();
+            while (rs2.next()) {
+            	matrix.put(rs2.getString(columnNameOfChangeover), rs2.getDouble(this.getRepresentedResource().getName()));
+            }
+            setSetup_matrix(matrix);
+    	    } catch (SQLException e ) {
+    	    	e.printStackTrace();
+    	    }
+    	}
 	    
 	}
 
@@ -531,7 +534,12 @@ private double calculateDurationSetup(Interval free_interval, Operation operatio
 		return 0;
 	}else {
 		System.out.println("duration setup "+this.getSetup_matrix().get(wp_startstate_nextStep+"_"+wp_type));
-		return this.getSetup_matrix().get(wp_startstate_nextStep+"_"+wp_type);	
+		if(this.getSetup_matrix().get(wp_startstate_nextStep+"_"+wp_type)!=null) {
+			return this.getSetup_matrix().get(wp_startstate_nextStep+"_"+wp_type);
+		}else {
+			return 0;
+		}
+			
 	}
 }
 
@@ -545,8 +553,13 @@ public float calculateTimeBetweenStates(State start_next_task_generic, State end
 	if(start_next_task.getID_String().equals(end_new.getID_String())) {
 		return 0;
 	}else {
-		double d = this.getSetup_matrix().get(combination);
-		duration_of_reaching_next_start_state_new = (float) d;
+		if(this.getSetup_matrix().get(combination)!= null) {
+			double d = this.getSetup_matrix().get(combination);
+			duration_of_reaching_next_start_state_new = (float) d;
+		}else {
+			duration_of_reaching_next_start_state_new = 0;
+		}
+		
 	}
 	float duration_of_reaching_next_start_state_current = getDurationOfNextSetupStartingAt(getFree_interval_array().get(counter_free_interval_i).upperBound()); // in min		
 	float difference = duration_of_reaching_next_start_state_new - duration_of_reaching_next_start_state_current;

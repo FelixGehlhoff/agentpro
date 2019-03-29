@@ -34,7 +34,7 @@ public class TransportResourceAgent extends ResourceAgent{
 
 	private static final long serialVersionUID = 1L;
 
-	private final int capacity = 10000;	//can be determined dynamically if needed
+	private final int capacity = 100;	//can be determined dynamically if needed
 	
 	private String dependency_crane_name_in_database = "Kran";
 	public float buffer = 0;	//5 minutes 
@@ -44,15 +44,17 @@ public class TransportResourceAgent extends ResourceAgent{
 	private String enabled_operation = "";
 	
 	protected void setup (){
+		
+		
 		super.setup();
 		
 		logLinePrefix = logLinePrefix+".TransportRessourceAgent.";
 		
-		
-		//representedResource = new TransportResource();
-			representedResource.setName(this.getLocalName());
-			receiveValuesFromDB(representedResource);
-		
+		representedResource = new TransportResource();
+		representedResource.setName(this.getLocalName());
+		receiveValuesFromDB(representedResource);
+		setStartState();
+			
 		registerAtDF();
 		
 		// / ADD BEHAVIOURS
@@ -107,7 +109,7 @@ public class TransportResourceAgent extends ResourceAgent{
 	
 		return return_value;
 	}
-	
+	@Override
 	public void receiveValuesFromDB(Resource r) {
 		TransportResource tr = (TransportResource) r;
 		 Statement stmt = null;
@@ -228,7 +230,7 @@ public class TransportResourceAgent extends ResourceAgent{
 		Timeslot timeslot_for_proposal = new Timeslot();
 	
 		int deadline_not_met = 0;		
-		int number_of_tours_needed = (int) Math.ceil(quantity/capacity);		
+		int number_of_tours_needed = quantity / capacity + ((quantity % capacity == 0) ? 0 : 1); 	
 		
 		float duration_total_for_schedule = 0;
 		float duration_for_answering_CFP_so_for_Workpiece_schedule = 0;
@@ -365,6 +367,11 @@ public class TransportResourceAgent extends ResourceAgent{
 
 	private float calculateDurationSetup(Interval interval, Operation operation) {
 		Location start_old_idle = (Location) this.getStateAtTime(interval.lowerBound());	
+		System.out.println("DEBUG_______start_old_idle 1 "+start_old_idle.toString());
+		System.out.println("DEBUG_______start_old_idle 2 "+start_old_idle.getCoordX());
+		System.out.println("DEBUG_______start_old_idle 3 "+start_old_idle.getCoordY());
+		
+		
 		Location start_new = (Location) operation.getStartState();
 		float distance_TransportResource_to_Workpiece = calcDistance(start_old_idle, start_new);			
 		float duration_to_get_to_workpiece = (distance_TransportResource_to_Workpiece/this.getRepresentedResource().getAvg_Speed()) / 60 ;	// in min

@@ -182,7 +182,7 @@ public class orderGenerationBehaviour extends OneShotBehaviour{
 	        stmt2 = myAgent.getConnection().createStatement(ResultSet.TYPE_SCROLL_SENSITIVE, ResultSet.CONCUR_UPDATABLE);
 	        ResultSet rs = stmt.executeQuery(query);
 	       
-	       // int i = 1;
+	        int i = 1;
 	        while (rs.next()) {
 	        	String query2 = "select "+columnNameLocationX+" , "+myAgent.columnNameID+" , "+columnNameLocationY+" from "+myAgent.tableNameResource+" where "+myAgent.columnNameResourceName_simulation+" = ";
 	        		        	
@@ -208,7 +208,12 @@ public class orderGenerationBehaviour extends OneShotBehaviour{
 	        		//System.out.println("DEBUG____"+prod_name+" pP.getDefinesProduct().getName() "+pP.getDefinesProduct().getName());
 	        		if(pP.getDefinesProduct().getName().equals(prod_name)) {
 	        			 orderPos.getContainsProduct().setHasProductionPlan(pP);
-	        			 orderPos.setSequence_Number(rs.getInt(myAgent.columnNameID));
+	        			 if(_Agent_Template.simulation_mode) {
+	        				 orderPos.setSequence_Number(i);
+	        			 }else {
+	        				 orderPos.setSequence_Number(rs.getInt(myAgent.columnNameID)); 
+	        			 }
+	        			
 	        				Warehouse_Resource warehouse = new Warehouse_Resource();
 							Location loc = new Location();
 							//loc.setCoordX(100);
@@ -279,7 +284,7 @@ public class orderGenerationBehaviour extends OneShotBehaviour{
 	 					// TODO Auto-generated catch block
 	 					e.printStackTrace();
 	 				}
-	 				//i++;
+	 				i++;
 	        }
 	       
 	        

@@ -170,7 +170,7 @@ public class ReceiveCFPBehaviour extends Behaviour{
 
 						}
 						else {
-							System.out.println(myAgent.SimpleDateFormat.format(new Date())+" " +myAgent.getLocalName()+logLinePrefix+" no proposal can be made.");
+							System.out.println(myAgent.SimpleDateFormat.format(new Date())+" " +myAgent.getLocalName()+logLinePrefix+" no proposal can be made. Product type "+operation.getAppliedOn().getID_String()+" not enabled or coordinates not reachable.");
 							myAgent.sendRefusal(msg);
 							sender.clear(); //clears the arraylist of senders for the next message
 							break;

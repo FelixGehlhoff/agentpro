@@ -75,15 +75,15 @@ public abstract class _Agent_Template extends Agent{
 	public String columnNameOfStarted = "Started";
 	
 	public String nameOfMES_Data_Resource = prefix_schema+".total_operations";
-	public String nameOfMES_Data = prefix_schema+".productionplan";
-	public String nameOfOrderbook = prefix_schema+".orderbook2";
+	public String nameOfMES_Data = prefix_schema+".productionplan_new";
+	public String nameOfOrderbook = prefix_schema+".orderbook";
 	//private String columnNameFinished = "Finished";
 	//private String columnNameOfIstStart = "IstStart";
 	//private String columnNameOfIstEnde = "IstEnde";
 	
-	public static Boolean simulation_mode = false;
-	//public static String prefix_schema = "flexsimdata";
-	public static String prefix_schema = "agentpro";
+	public static Boolean simulation_mode = true;
+	public static String prefix_schema = "flexsimdata";
+	//public static String prefix_schema = "agentpro";
 	
 	public int duration_repair_workpiece = 20;
 	public int duration_light_disturbance = 2;

@@ -61,7 +61,7 @@ public abstract class ResourceAgent extends _Agent_Template{
 	public long reply_by_time = 350; //ms KRAN_WS
 	public long reply_by_time_shared_resources = 150;
 	public int numberOfResourcesPossibleForCalculationOfSharedResourceProposal = 0;
-	
+	protected Resource representedResource;
 	//Datenbankverbindung
 		
 		protected String nameOfResource_Definitions_Table = "Resource_Definitions";
@@ -104,7 +104,7 @@ public abstract class ResourceAgent extends _Agent_Template{
 		
 		
 		logLinePrefix = getLocalName();
-		setStartState();
+		//setStartState();
 		// / INITIALISATION
 		// /////////////////////////////////////////////////////////	
 		
@@ -122,7 +122,7 @@ public abstract class ResourceAgent extends _Agent_Template{
 
 
 	protected abstract void setStartState();
-
+	protected abstract void receiveValuesFromDB(Resource r);
 
 	public Boolean bookIntoSchedule(AllocatedWorkingStep allocWorkingstep, float time_increment_or_decrement_to_be_added_for_setup_of_next_task) {		
 		/*
@@ -357,10 +357,11 @@ public abstract class ResourceAgent extends _Agent_Template{
 		    	//take the end location of the last allocated step
 		    	Operation op = ((AllocatedWorkingStep) getWorkplan().getConsistsOfAllocatedWorkingSteps().get(getWorkplan().getConsistsOfAllocatedWorkingSteps().size()-1)).getHasOperation();
 		    	state = op.getEndState();
-		    	 System.out.println("DEBUG_______________________"+((Setup_state)op.getEndState()).getID_String());
+		    	 System.out.println("DEBUG_________________"+this.getLocalName()+"______"+op.getEndState().getClass().getSimpleName());
 		    }
 		}else { //first step
 			state = getRepresentedResource().getStartState(); 
+			System.out.println("DEBUG___________First step____________"+state.toString());
 		}
 		return state;
 	
