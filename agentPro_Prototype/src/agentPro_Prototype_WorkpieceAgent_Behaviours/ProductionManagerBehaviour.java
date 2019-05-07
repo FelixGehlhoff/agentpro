@@ -49,7 +49,7 @@ public class ProductionManagerBehaviour extends Behaviour{
 		switch(step){
 		
 		case 0:
-		
+			System.out.println("DEBUG____________prod Manager at step = 0");
 			int position_next_step = 0;
 			
 			//check which step is needed
@@ -58,7 +58,12 @@ public class ProductionManagerBehaviour extends Behaviour{
 			int number_of_planned_production_steps = determine_number_of_planned_production_steps();		//allocated but not finished
 			
 			position_next_step = number_of_finished_production_steps+number_of_planned_production_steps;	// e.g. one finished step and 1 planned step --> size = 2, position in workplan array = 2 (3rd position)
-													
+			String name_of_last_operation = ((OrderedOperation)myAgent.getProdPlan().getConsistsOfOrderedOperations().get(myAgent.getProdPlan().getConsistsOfOrderedOperations().size()-1)).getHasOperation().getName();
+			if(myAgent.getLastProductionStepAllocated() != null && myAgent.getLastProductionStepAllocated().getHasOperation().getName().contentEquals(name_of_last_operation)) {
+				arrangeTransportToWarehouse();
+				step = 2;
+				break;
+			}
 			
 			//determine needed operation
 			Operation requested_operation = determineRequestedOperation(position_next_step);
@@ -73,7 +78,7 @@ public class ProductionManagerBehaviour extends Behaviour{
 			}else {
 				
 				try {
-					d = myAgent.SimpleDateFormat.parse(myAgent.getOrderPos().getStartDate());
+					d = _Agent_Template.SimpleDateFormat.parse(myAgent.getOrderPos().getStartDate());
 				} catch (ParseException e) {
 					// TODO Auto-generated catch block
 					e.printStackTrace();
@@ -81,12 +86,12 @@ public class ProductionManagerBehaviour extends Behaviour{
 				startdate_for_this_task = d.getTime();
 			}
 			
-			//does this step have to consider a successor contraint?
+			//does this step have to consider a successor constraint?
 			String necessary_resource_agent_for_this_step = determineFollowUpOperationContraintOfLastProductionOperationScheduled(position_next_step);
 			if(necessary_resource_agent_for_this_step != null) {
-				 myAgent.addBehaviour(new RequestPerformer(myAgent, requested_operation, startdate_for_this_task, last_operation, false, necessary_resource_agent_for_this_step));
+				 myAgent.addBehaviour(new RequestPerformer(myAgent, requested_operation, startdate_for_this_task, last_operation, necessary_resource_agent_for_this_step));
 			}else {
-				 myAgent.addBehaviour(new RequestPerformer(myAgent, requested_operation, startdate_for_this_task, last_operation, false));
+				 myAgent.addBehaviour(new RequestPerformer(myAgent, requested_operation, startdate_for_this_task, last_operation));
 			}
 
 
@@ -125,6 +130,7 @@ public class ProductionManagerBehaviour extends Behaviour{
 				sortWorkplanChronologically();
 				//TBD what needs to be done when finished
 				 myAgent.addBehaviour(new RequestDatabaseEntryBehaviour(myAgent));   
+				 System.out.println(_Agent_Template.printoutWorkPlan(myAgent.getWorkplan(), "WP1"));
 				 /*
 				try {
 					myAgent.addDataToDatabase("workpiece", myAgent.getWorkplan());
@@ -132,7 +138,7 @@ public class ProductionManagerBehaviour extends Behaviour{
 					// TODO Auto-generated catch block
 					e.printStackTrace();
 				}*/
-				System.out.println(myAgent.SimpleDateFormat.format(new Date())+" "+logLinePrefix+" order for Workpiece "+myAgent.getLocalName()+" finished");
+				System.out.println(_Agent_Template.SimpleDateFormat.format(new Date())+" "+logLinePrefix+" order for Workpiece "+myAgent.getLocalName()+" finished");
 				
 				//send inform_done message to order Agent
 				
@@ -145,7 +151,7 @@ public class ProductionManagerBehaviour extends Behaviour{
 					//AllocatedWorkingStep allWS2 = (AllocatedWorkingStep) myAgent.getWorkplan().getConsistsOfAllocatedWorkingSteps().get(myAgent.getWorkplan().getConsistsOfAllocatedWorkingSteps().size()-2);
 					
 					//System.out.println("DEBUG____________Last element_"+allWS1.getHasOperation().getName()+ " before last element "+allWS2.getHasOperation().getName());
-					myAgent.printoutWorkPlan();
+					_Agent_Template.printoutWorkPlan(myAgent.getWorkplan(), myAgent.getLocalName());
 			       final GanttDemo1 demo = new GanttDemo1("Workplan_"+myAgent.getLocalName(), myAgent.getWorkplan());
 			        demo.pack();
 			        RefineryUtilities.centerFrameOnScreen(demo);
@@ -299,58 +305,50 @@ public class ProductionManagerBehaviour extends Behaviour{
 	public void setStep(int step) {
 		this.step = step;
 	}
-	
+private void arrangeTransportToWarehouse() {
+		
+		
+		Transport_Operation transport_operation = new Transport_Operation();									//
+		transport_operation.setType("transport");
+		transport_operation.setAppliedOn(myAgent.getRepresented_Workpiece());
+		Location startlocation = new Location();
+		
+		//startlocation now needs to be the last element
+			int sizeOfAllWSs = myAgent.getWorkplan().getConsistsOfAllocatedWorkingSteps().size();
+			//AllocatedWorkingStep LAST_alWS_Production = null;
+			for(int i = sizeOfAllWSs; i>0 ; i--) {
+				AllocatedWorkingStep alWS = (AllocatedWorkingStep) myAgent.getWorkplan().getConsistsOfAllocatedWorkingSteps().get(i-1);
+				if(alWS.getHasOperation().getType().equals("production")) {
+					startlocation = alWS.getHasResource().getHasLocation();
+										
+					break;
+					
+				}
+			}
+			
+			if(_Agent_Template.doLocationsMatch(startlocation, myAgent.getOrderPos().getHasTargetWarehouse().getHasLocation())) {
+				_Agent_Template.printoutWorkPlan(myAgent.getWorkplan(), myAgent.getLocalName());
+				myAgent.getProductionManagerBehaviour().setStep(2);
+				myAgent.getProductionManagerBehaviour().restart();
+			}else {
+				transport_operation.setStartState(startlocation);
+				transport_operation.setEndState(myAgent.getOrderPos().getHasTargetWarehouse().getHasLocation());
+				
+				
+				//Name = Start_Ziel in format  X;Y_DestinationResource
+				transport_operation.setName(startlocation.getCoordX()+";"+startlocation.getCoordY()+"_"+myAgent.getOrderPos().getHasTargetWarehouse().getName());
+				transport_operation.setBuffer_before_operation(2*60*60*1000); //e.g. 2 hours --> does not matter				
+				myAgent.addBehaviour(new RequestPerformer_transport(myAgent, transport_operation, (long) 0, null, false));
+			}
+		
+		
+	}
 	@Override
 	public boolean done() {
 		// TODO Auto-generated method stub
 		return step == 4;
 	}
-
-	/*
-	public void cancelAllocatedWorkingSteps(AllocatedWorkingStep allWorkingStep) {
-    		//create ontology content
-			_SendCancellation sendCancellation = new _SendCancellation();
-			Cancellation cancellation = new Cancellation();
-			cancellation.addConsistsOfAllocatedWorkingSteps(allWorkingStep);
-			sendCancellation.setHasCancellation(cancellation);			
-			Action content = new Action(myAgent.getAID(),sendCancellation);
-			
-			//create ACL Message				
-			ACLMessage cancel_acl = new ACLMessage(ACLMessage.CANCEL);
-			cancel_acl.setLanguage(myAgent.getCodec().getName());
-			cancel_acl.setOntology(myAgent.getOntology().getName());	
-			AID receiver = new AID();
-			if(allWorkingStep.getHasResource()!= null) {
-				receiver.setLocalName(allWorkingStep.getHasResource().getName());
-				cancel_acl.addReceiver(receiver);
-				
-				//ontology --> fill content
-				try {
-					myAgent.getContentManager().fillContent(cancel_acl, content);
-				} catch (CodecException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				} catch (OntologyException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				}
-				myAgent.send(cancel_acl);
-				System.out.println(myAgent.SimpleDateFormat.format(new Date())+" "+myAgent.getLocalName()+logLinePrefix+" cancellation for step "+allWorkingStep.getHasOperation().getName()+" sent to receiver "+receiver.getLocalName()+" with content "+cancel_acl.getContent());
-				
-			}else {
-				System.out.println(myAgent.SimpleDateFormat.format(new Date())+" "+myAgent.getLocalName()+logLinePrefix+" no resource found for receiving cancellation for step "+allWorkingStep.getHasOperation().getName());
-				
-			}
-			
-			
-    		//myAgent.getWorkplan().getConsistsOfAllocatedWorkingSteps().remove(i);
-			
-			//operations_to_be_removed.add(allWorkingStep.getHasOperation().getName());
-    		//i++;
-			
-			//delete step in the database not necessary --> can be updated	
-	}
-	*/
+/*
 	public boolean isBackwards_scheduling_activ() {
 		return backwards_scheduling_activ;
 	}
@@ -359,5 +357,5 @@ public class ProductionManagerBehaviour extends Behaviour{
 		this.backwards_scheduling_activ = backwards_scheduling_activ;
 		System.out.println("DEBUG____________________________________________WWWWWWWWWWWEEEEEEEEEE@@@@@@@@@@@@@@@@@@@@@@@@@ set to "+backwards_scheduling_activ);
 	}
-
+*/
 }

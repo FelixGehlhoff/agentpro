@@ -10,6 +10,7 @@ import agentPro.onto.Operation;
 import agentPro.onto.Transport_Operation;
 import agentPro.onto._SendInform_ArrivalAndDeparture;
 import agentPro_Prototype_Agents.WorkpieceAgent;
+import agentPro_Prototype_Agents._Agent_Template;
 import jade.content.lang.Codec.CodecException;
 import jade.content.onto.OntologyException;
 import jade.content.onto.basic.Action;
@@ -41,8 +42,8 @@ public class InformWorkpieceArrivalAndDeparture extends OneShotBehaviour {
 		AllocatedWorkingStep allocWS_end = null;
 		Location startlocation = (Location) requested_operation.getStartState();
 		Location endlocation = (Location) requested_operation.getEndState();
-		Boolean findWarehouseOutbound = myAgent.doLocationsMatch(myAgent.getOrderPos().getHasTargetWarehouse().getHasLocation(),endlocation);
-		Boolean findWarehouseInbound = myAgent.doLocationsMatch(myAgent.getLocationOfStartingWarehouse(),startlocation);
+		Boolean findWarehouseOutbound = _Agent_Template.doLocationsMatch(myAgent.getOrderPos().getHasTargetWarehouse().getHasLocation(),endlocation);
+		Boolean findWarehouseInbound = _Agent_Template.doLocationsMatch(myAgent.getLocationOfStartingWarehouse(),startlocation);
 		
 
 		 @SuppressWarnings("unchecked")
@@ -50,8 +51,8 @@ public class InformWorkpieceArrivalAndDeparture extends OneShotBehaviour {
 		    while(it.hasNext()) {
 		    	AllocatedWorkingStep this_step_in_allocated_working_steps = it.next();
 		    	Location location_of_this_res = this_step_in_allocated_working_steps.getHasResource().getHasLocation();
-		    	Boolean doLocationsMatch_startlocation = myAgent.doLocationsMatch(location_of_this_res, startlocation);
-		    	Boolean doLocationsMatch_endloaction = myAgent.doLocationsMatch(location_of_this_res, endlocation);
+		    	Boolean doLocationsMatch_startlocation = _Agent_Template.doLocationsMatch(location_of_this_res, startlocation);
+		    	Boolean doLocationsMatch_endloaction = _Agent_Template.doLocationsMatch(location_of_this_res, endlocation);
 		    	
 		    	if(this_step_in_allocated_working_steps.getHasResource().getType().equals("production") && doLocationsMatch_startlocation) {
 		    		allocWS_start = this_step_in_allocated_working_steps;
@@ -88,7 +89,7 @@ public class InformWorkpieceArrivalAndDeparture extends OneShotBehaviour {
 					receiver.setLocalName(allocWS_start.getHasResource().getName());
 					inform_acl.setConversationId("Inform_Departure");
 					action = "departure";
-				}else if(allocWS_end != null) { //will be null in case of last production step (after that only the warehouse is left)
+				}/*else if(allocWS_end != null) { //will be null in case of last production step (after that only the warehouse is left)
 					inform_arrivalAndDeparture.setArrivalTime(String.valueOf(Long.parseLong(allocatedWorkingStep_transport.getHasTimeslot().getEndDate())));
 					inform_arrivalAndDeparture.setAvg_PickupTime(requested_operation.getAvg_PickupTime());
 					receiver.setLocalName(allocWS_end.getHasResource().getName());
@@ -96,7 +97,7 @@ public class InformWorkpieceArrivalAndDeparture extends OneShotBehaviour {
 					action = "arrival";
 					//System.out.println("DEBUG_______21231241___");
 			    	
-				}else {
+				}*/else {
 					break; //leave the for loop and dont send another message (if there is no one left to get the message)
 				}
 				

@@ -7,9 +7,21 @@ import jade.core.*;
 /**
 * Protege name: Location
 * @author ontology bean generator
-* @version 2019/03/20, 15:44:38
+* @version 2019/04/24, 14:43:54
 */
 public class Location extends State{ 
+////////////////////////////User code
+@Override     public String toString() {return "["+coordX+";"+coordY+"]";}
+   /**
+* Protege name: coordX
+   */
+   private float coordX;
+   public void setCoordX(float value) { 
+    this.coordX=value;
+   }
+   public float getCoordX() {
+     return this.coordX;
+   }
 
    /**
 * Protege name: coordY
@@ -20,17 +32,6 @@ public class Location extends State{
    }
    public float getCoordY() {
      return this.coordY;
-   }
-
-   /**
-* Protege name: coordX
-   */
-   private float coordX;
-   public void setCoordX(float value) { 
-    this.coordX=value;
-   }
-   public float getCoordX() {
-     return this.coordX;
    }
 
 }

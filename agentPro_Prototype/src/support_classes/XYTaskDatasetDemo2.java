@@ -74,7 +74,7 @@ public class XYTaskDatasetDemo2 extends ApplicationFrame {
 	static SimpleDateFormat SimpleDateFormat = new SimpleDateFormat(DateFormat);
 	//static XYTaskDatasetDemo2 instance;
 	static String agentName;
-	static storage_element [] storage_array;
+	static Storage_element [] storage_array;
 	
     public XYTaskDatasetDemo2(String title, WorkPlan workplan, String agent_name) {
         super(title);
@@ -125,7 +125,7 @@ public class XYTaskDatasetDemo2 extends ApplicationFrame {
         DateAxis xAxis = new DateAxis("Date/Time");
     	
         int counter = 0;
-        for(storage_element element : storage_array) {
+        for(Storage_element element : storage_array) {
 	    	
 	    	if(element != null) {
 	    		counter++;
@@ -240,7 +240,7 @@ public class XYTaskDatasetDemo2 extends ApplicationFrame {
         
         int size_allWS = workplan.getConsistsOfAllocatedWorkingSteps().size();
         
-        storage_element []	array = new storage_element[ size_allWS ] ;			//captures elements of storage (that contain id (string) and timeslots as a list)
+        Storage_element []	array = new Storage_element[ size_allWS ] ;			//captures elements of storage (that contain id (string) and timeslots as a list)
         
         //ArrayList <Timeslot> array_list = new ArrayList <>();
         
@@ -266,7 +266,7 @@ public class XYTaskDatasetDemo2 extends ApplicationFrame {
 		    	for(int i = 0;i<size_allWS;i++) {	
 		    		
 		    		if(array[i] == null) {		
-		    			array [i] = new storage_element(workpiece_ID);
+		    			array [i] = new Storage_element(workpiece_ID);
 		    			array[i].addHasSlots(allWorkingStep.getHasTimeslot());    			//falls es für dieses workpiece schon timeslots gibt --> hinzufügen
 		    			//System.out.println("DEBUG_NEEEEEEEEEEEEW element in array["+i+"] slot "+allWorkingStep.getHasTimeslot().getStartDate()+ "added for "+workpiece_ID);
 		    			break;
@@ -283,7 +283,7 @@ public class XYTaskDatasetDemo2 extends ApplicationFrame {
 	     */
 	    
 	   //int counter = 1;
-	    for(storage_element element : array) {
+	    for(Storage_element element : array) {
 	    	
 	    	if(element != null) {
 		    	TaskSeries s = new TaskSeries(element.getID());

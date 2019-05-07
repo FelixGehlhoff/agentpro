@@ -19,6 +19,7 @@ import agentPro.onto.Timeslot;
 import agentPro.onto.WorkPlan;
 import agentPro.onto.Workpiece;
 import agentPro_Prototype_Agents.InterfaceAgent;
+import agentPro_Prototype_Agents._Agent_Template;
 import jade.core.behaviours.CyclicBehaviour;
 import jade.lang.acl.ACLMessage;
 import jade.lang.acl.MessageTemplate;
@@ -70,9 +71,9 @@ public class ReceiveInformOrderCompletionBehaviour extends CyclicBehaviour{
         
 		ACLMessage inform = myAgent.receive(mt_total);
 		if (inform != null) {
-			System.out.println(myAgent.SimpleDateFormat.format(new java.util.Date())+" "+myAgent.getLocalName()+logLinePrefix+" Order: "+inform.getContent()+" complete "+inform.getContent());
+			System.out.println(myAgent.SimpleDateFormat.format(new java.util.Date())+" "+myAgent.getLocalName()+logLinePrefix+inform.getContent());
 			
-			if(myAgent.simulation_mode) {
+			if(_Agent_Template.simulation_mode) {
 				
 			}else {
 				//wait for last entry in DB (transport process to warehouse outbound
@@ -84,15 +85,16 @@ public class ReceiveInformOrderCompletionBehaviour extends CyclicBehaviour{
 				}
 				
 				//create Workplan
-				WorkPlan workplan = new WorkPlan();
-				receiveValuesFromDB(workplan);
+				WorkPlan workplan = _Agent_Template.createWorkplanFromDatabase("A_1.1");
 				
-				WorkPlan sorted_workplan = sortWorkplanChronologically(workplan);
+				//receiveValuesFromDB(workplan);
+				
+				//WorkPlan sorted_workplan = sortWorkplanChronologically(workplan);
 				//printoutWorkPlan(sorted_workplan);
 				
 				//create GANTT Chart
 				
-				 XYTaskDataset_Total demo = new XYTaskDataset_Total("JFreeChart : XYTaskDataset_Total.java", sorted_workplan);
+				 XYTaskDataset_Total demo = new XYTaskDataset_Total("JFreeChart : XYTaskDataset_Total.java", workplan);
 			        demo.pack();
 			        RefineryUtilities.centerFrameOnScreen(demo);
 			        demo.setVisible(false);	

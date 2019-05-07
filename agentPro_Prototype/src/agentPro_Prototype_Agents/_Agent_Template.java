@@ -2,18 +2,29 @@ package agentPro_Prototype_Agents;
 
 import java.sql.Connection;
 import java.sql.DriverManager;
+import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.Statement;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.Date;
+import java.util.HashSet;
 import java.util.Iterator;
+import java.util.Set;
+import java.util.stream.Stream;
 
 import agentPro.onto.AgentPro_ProductionOntology;
 import agentPro.onto.AllocatedWorkingStep;
 import agentPro.onto.Cancellation;
+import agentPro.onto.Location;
+import agentPro.onto.Operation;
+import agentPro.onto.Proposal;
 import agentPro.onto.Resource;
+import agentPro.onto.Timeslot;
 import agentPro.onto.WorkPlan;
+import agentPro.onto.Workpiece;
 import agentPro.onto._SendCancellation;
 import jade.content.lang.Codec;
 import jade.content.lang.Codec.CodecException;
@@ -28,6 +39,7 @@ import jade.domain.FIPAException;
 import jade.domain.FIPAAgentManagement.DFAgentDescription;
 import jade.lang.acl.ACLMessage;
 import support_classes.Interval;
+import support_classes.OperationCombination;
 
 /*
  * Serves as a template for other agents and provides take down procedure and some other variables
@@ -36,8 +48,8 @@ import support_classes.Interval;
 public abstract class _Agent_Template extends Agent{
 	
 	private static final long serialVersionUID = 1L;
-	private String DateFormat = "yyyy-MM-dd HH:mm:ss";
-	public SimpleDateFormat SimpleDateFormat = new SimpleDateFormat(DateFormat);
+	private static String DateFormat = "yyyy-MM-dd HH:mm:ss";
+	public static SimpleDateFormat SimpleDateFormat = new SimpleDateFormat(DateFormat);
 	public String logLinePrefix;
 	public String ability;
 	public ArrayList <DFAgentDescription> resourceAgents = new ArrayList<DFAgentDescription>();
@@ -54,14 +66,16 @@ public abstract class _Agent_Template extends Agent{
 	protected Connection connection;			//Connection to database
 	//public final String dbaddress = "jdbc:ucanaccess://C:/Users/Mitarbeiter/Dropbox (HSU_Agent.Pro)/_AgentPro/Prototyp/Database.accdb";	//Address od database
 	//public final String dbaddress = "jdbc:mysql://localhost/feedback?"+"user=root&password=SQL_0518";	//Address od database
-	public String dbaddress_sim = "jdbc:mysql://localhost:3306/MySQL?"+"user=root&password=SQL_0518&useUnicode=true&useJDBCCompliantTimezoneShift=true&useLegacyDatetimeCode=false&serverTimezone=UTC&useSSL=false";	//Address od database   serverTimezone=UTC
+	public static String dbaddress_sim = "jdbc:mysql://localhost:3306/MySQL?"+"user=root&password=SQL_0518&useUnicode=true&useJDBCCompliantTimezoneShift=true&useLegacyDatetimeCode=false&serverTimezone=UTC&useSSL=false";	//Address od database   serverTimezone=UTC
 	
-	public String columnNameOfOperation = "Operation"; //Operation
-	public String columnNameOfResource = "Resource";
-	public String columnNameOfResource_ID = "Resource_ID";
+	public static String columnNameChangeOfState = "changeOfState";
+	public static String columnNameChangedState = "ChangedState";
+	public static String columnNameOfOperation = "Operation"; //Operation
+	public static String columnNameOfResource = "Resource";
+	public static String columnNameOfResource_ID = "Resource_ID";
 	public String columnNameOfSetupTime = "SetupTime";
-	public String columnNameOfPlanStart = "PlanStart";
-	public String columnNameOfPlanEnd = "PlanEnde";
+	public static String columnNameOfPlanStart = "PlanStart";
+	public static String columnNameOfPlanEnd = "PlanEnde";
 	public String columnNameOfIstStart = "IstStart";
 	public String columnNameOfIstEnd = "IstEnde";
 	public String columnNameOfDueDate = "dueDate";
@@ -70,9 +84,10 @@ public abstract class _Agent_Template extends Agent{
 	public String columnNameOfNumber = "number";
 	public String columnNameOfProduct = "product";
 	public String columnNameOfTargetWarehouse = "targetWarehouse";
-	public String columnNameAuftrags_ID = "Auftrags_ID"; //Auftrags_ID
-	public String columnNameOperation_Type = "Operation_Type";
-	public String columnNameOfStarted = "Started";
+	public static String columnNameAuftrags_ID = "Auftrags_ID"; //Auftrags_ID
+	public static String columnNameOperation_Type = "Operation_Type";
+	public static String columnNameOfStarted = "Started";
+	public static String columnNameOfFinished = "Finished";
 	
 	public String nameOfMES_Data_Resource = prefix_schema+".total_operations";
 	public String nameOfMES_Data = prefix_schema+".productionplan_new";
@@ -81,9 +96,11 @@ public abstract class _Agent_Template extends Agent{
 	//private String columnNameOfIstStart = "IstStart";
 	//private String columnNameOfIstEnde = "IstEnde";
 	
-	public static Boolean simulation_mode = true;
-	public static String prefix_schema = "flexsimdata";
-	//public static String prefix_schema = "agentpro";
+	public static Boolean simulation_mode = false;
+	//public static String prefix_schema = "flexsimdata";
+	public static String prefix_schema = "agentpro";
+	public static String opimizationCriterion = "time_of_finish"; //duration_setup    //TODO receive that from database? TBD
+	public static long bufferThreshold = 0;
 	
 	public int duration_repair_workpiece = 20;
 	public int duration_light_disturbance = 2;
@@ -102,6 +119,7 @@ public abstract class _Agent_Template extends Agent{
 	public String columNameBeendet = "Beendet?";
 	public String columnNameStartSoll = "StartSoll";
 	public String columnNameEndeSoll = "EndeSoll";
+	public String tableNameBetriebskalender = prefix_schema+".betriebskalender";
 	public String tableNameResource = prefix_schema+".resources";
 	public String tableNameProductionPlan = prefix_schema+".productionplan";
 	public String tableNameResourceSetupMatrix = prefix_schema+".resources_setupmatrix";
@@ -173,6 +191,15 @@ public abstract class _Agent_Template extends Agent{
 	public void setCodec(Codec codec) {
 		this.codec = codec;
 	}
+	
+	public static Boolean doLocationsMatch(Location LocationA, Location locationB) {
+		if(LocationA.getCoordX() == locationB.getCoordX() && LocationA.getCoordY() == locationB.getCoordY()) {
+			return true;
+		}else {
+			return false;
+		}
+
+	}
 
 	public void addResourceAgent(DFAgentDescription result) {
 		boolean found = false;
@@ -217,6 +244,55 @@ public abstract class _Agent_Template extends Agent{
 		    	}			
 		    }
 	}
+	public static WorkPlan createWorkplanFromDatabase(String wp_id) {
+		WorkPlan workplan = new WorkPlan();
+		
+		try (Connection con = DriverManager.getConnection(_Agent_Template.dbaddress_sim); Statement stmt = con.createStatement(ResultSet.TYPE_SCROLL_SENSITIVE, ResultSet.CONCUR_UPDATABLE);
+				){
+
+			    	ResultSet rs = stmt.executeQuery(		
+			    			//"select * from "+nameOfMES_Data+" where "+columnNameOfOperation+" = '"+allWorkingStep.getHasOperation().getName()+"' and "+columnNameAuftrags_ID+" = '"+allWorkingStep.getHasOperation().getAppliedOn().getID_String()+"' and "+columnNameFinished+" = 'false'"); 
+			    			"select * from "+_Agent_Template.prefix_schema+".total_operations"+" where "+_Agent_Template.columnNameAuftrags_ID+" = '"+wp_id+"'"); 
+					// System.out.println("mes__table_to_be_used "+mes_table_to_be_used);      
+			    	if (rs.isBeforeFirst() ) {			    	//the SQL query has returned data  
+			    		while(rs.next()) {
+			    			AllocatedWorkingStep allWS = new AllocatedWorkingStep();
+			    			allWS.setID_String("Test");
+				        	Timeslot timeslot = new Timeslot();		     
+				        		timeslot.setStartDate(String.valueOf(rs.getTimestamp(_Agent_Template.columnNameOfPlanStart).getTime()));
+				        		timeslot.setEndDate(String.valueOf(rs.getTimestamp(_Agent_Template.columnNameOfPlanEnd).getTime()));
+				        		timeslot.setLength(rs.getTimestamp(_Agent_Template.columnNameOfPlanEnd).getTime()-rs.getTimestamp(_Agent_Template.columnNameOfPlanStart).getTime());
+				        		allWS.setHasTimeslot(timeslot);
+				        	allWS.setIsStarted(rs.getBoolean(_Agent_Template.columnNameOfStarted));	
+				        	allWS.setIsFinished(rs.getBoolean(_Agent_Template.columnNameOfFinished));	
+				        	Resource res = new Resource();
+				        		res.setName(rs.getString(_Agent_Template.columnNameOfResource));
+				        		res.setID_Number(rs.getInt(_Agent_Template.columnNameOfResource_ID));
+				        		res.setDetailed_Type("Test");
+				        		allWS.setHasResource(res);
+				        	Operation op = new Operation();
+				        		op.setName(rs.getString(_Agent_Template.columnNameOfOperation));
+				        			Workpiece wp = new Workpiece();
+				        			wp.setID_String(wp_id);
+				        		op.setAppliedOn(wp);
+				        		op.setType(rs.getString(_Agent_Template.columnNameOperation_Type));			        		
+				        		op.setSet_up_time(10);
+				        		op.setAvg_Duration(20);
+				        		allWS.setHasOperation(op);
+				        	workplan.addConsistsOfAllocatedWorkingSteps(allWS);
+			    		}
+			    	rs.close();	 
+			        _Agent_Template.printoutWorkPlan(workplan, "test_agent");   
+			    	}else {
+			    		System.out.println("No data found for id: "+wp_id);
+			    
+			    	}
+      
+	    } catch (SQLException e ) {
+	        e.printStackTrace();
+	    }	
+		return workplan;
+	}
 	public void setResourceAgents(ArrayList<DFAgentDescription> resourceAgents) {
 		this.resourceAgents = resourceAgents;
 	}
@@ -228,12 +304,12 @@ public abstract class _Agent_Template extends Agent{
 		this.workplan = workplan;
 	}
 	
-	public void sortWorkplanChronologically() {
+	public static WorkPlan sortWorkplanChronologically(WorkPlan wp) {
 
 		WorkPlan wP_toBeSorted = new WorkPlan();
 		
 	    @SuppressWarnings("unchecked")
-		Iterator<AllocatedWorkingStep> it = getWorkplan().getConsistsOfAllocatedWorkingSteps().iterator();
+		Iterator<AllocatedWorkingStep> it = wp.getConsistsOfAllocatedWorkingSteps().iterator();
 	   
 	    while(it.hasNext()) {		//checks for every allWS in Workplan
 	    	AllocatedWorkingStep allocWorkingstep = it.next();	  
@@ -260,7 +336,7 @@ public abstract class _Agent_Template extends Agent{
 	    		}
 
 	    }
-	    setWorkplan(wP_toBeSorted);
+	    return wP_toBeSorted;
 	}
 	public void cancelAllocatedWorkingSteps(AllocatedWorkingStep allWorkingStep, String receiver_string) {
 		Resource res = new Resource();
@@ -316,16 +392,16 @@ public abstract class _Agent_Template extends Agent{
 		long converted_time = start_simulation + (long) (occurance_time*60*60*1000);
 		return converted_time;
 	}
-	public void printoutWorkPlan() {
-		String printout = getLocalName()+" DEBUG____WORKPLAN	";
+	public static String printoutWorkPlan(WorkPlan workplan, String name_of_agent) {
+		String printout = name_of_agent+" DEBUG____WORKPLAN	";
 		@SuppressWarnings("unchecked")
 		
-		Iterator<AllocatedWorkingStep> it_2 = getWorkplan().getConsistsOfAllocatedWorkingSteps().iterator();		 	
+		Iterator<AllocatedWorkingStep> it_2 = workplan.getConsistsOfAllocatedWorkingSteps().iterator();		 	
 	    while(it_2.hasNext()) {
 	    	AllocatedWorkingStep a = it_2.next();
 	    	printout = printout +" "+a.getID_String()+" operation "+a.getHasOperation().getName()+" Slot "+ SimpleDateFormat.format(Long.parseLong(a.getHasTimeslot().getStartDate()))+";"+SimpleDateFormat.format(Long.parseLong(a.getHasTimeslot().getEndDate()));
 	    }
-	    System.out.println(printout);
+	   return printout;
 	}
 	
 	public void activateConnection() {
@@ -362,5 +438,80 @@ public abstract class _Agent_Template extends Agent{
 		}
 		return printout;
 		
+	}
+
+	public static double calculateDurationSetup(WorkPlan workplan2) {
+		double duration_setup = 0;
+		@SuppressWarnings("unchecked")
+		Iterator<AllocatedWorkingStep> it = workplan2.getAllConsistsOfAllocatedWorkingSteps();
+		while(it.hasNext()) {
+			float setup = it.next().getHasOperation().getSet_up_time();
+			duration_setup += (double) setup;
+		}
+		
+		return duration_setup;
+	}
+	//exclude operations from utilization
+	public static double calculateUtilization(WorkPlan workplan2) {
+		double working_time = 0;
+		double total_time = 0;
+		
+		@SuppressWarnings("unchecked")
+		Iterator<AllocatedWorkingStep> it = workplan2.getAllConsistsOfAllocatedWorkingSteps();
+		while(it.hasNext()) {
+			AllocatedWorkingStep allWS = it.next();
+			
+			Set<String> strings = new HashSet<String>();
+			strings.add("buffer");
+			//strings.add("transport");
+
+			if (!strings.contains(allWS.getHasResource().getDetailed_Type().toLowerCase()) || !strings.contains(allWS.getHasOperation().getType().toLowerCase()))
+			{
+				working_time += allWS.getHasOperation().getAvg_Duration();
+				total_time += allWS.getHasTimeslot().getLength()/(60*1000);
+			}
+			/*
+			if(!allWS.getHasResource().getDetailed_Type().contentEquals("buffer")) {
+				working_time += allWS.getHasOperation().getAvg_Duration();
+				total_time += allWS.getHasTimeslot().getLength()/(60*1000);
+			}*/
+			else {
+				total_time += allWS.getHasTimeslot().getLength()/(60*1000);
+			}		
+		}
+		System.out.println("working time "+working_time+" total_time "+total_time);
+		return working_time/total_time;
+	}
+	
+	public static OperationCombination getBestCombinationByCriterion(String opimizationCriterion,
+			ArrayList<OperationCombination> listOfCombinations) {
+		switch (opimizationCriterion){
+			case "timeOfFinish":
+			
+					Comparator<OperationCombination> comparator = Comparator.comparing(OperationCombination::getTimeOfFinish);
+					Collections.sort(listOfCombinations, comparator);
+			return listOfCombinations.get(0);
+				
+			case "":
+				break;
+		}
+		return null;
+	}
+
+	public static <T> void addUnique(ArrayList<T> proposal_senders, T sender) {
+		if (proposal_senders.contains(sender)) { // <- look for item!
+			   // ... item already in list
+			} else {
+				proposal_senders.add(sender);
+			}
+		
+	}
+
+	public static <T> String printOutArrayList(ArrayList<T> elements) {
+		String return_string = "";
+		for(T element : elements) {
+			return_string += element.toString()+" ";
+		}
+		return return_string;
 	}
 }

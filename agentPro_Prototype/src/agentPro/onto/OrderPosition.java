@@ -8,20 +8,9 @@ import jade.core.*;
 /**
 * Protege name: OrderPosition
 * @author ontology bean generator
-* @version 2019/03/20, 15:44:38
+* @version 2019/04/24, 14:43:54
 */
 public class OrderPosition implements Concept {
-
-   /**
-* Protege name: containsProduct
-   */
-   private Product containsProduct;
-   public void setContainsProduct(Product value) { 
-    this.containsProduct=value;
-   }
-   public Product getContainsProduct() {
-     return this.containsProduct;
-   }
 
    /**
 * Protege name: hasTargetWarehouse
@@ -35,17 +24,6 @@ public class OrderPosition implements Concept {
    }
 
    /**
-* Protege name: sequence_Number
-   */
-   private int sequence_Number;
-   public void setSequence_Number(int value) { 
-    this.sequence_Number=value;
-   }
-   public int getSequence_Number() {
-     return this.sequence_Number;
-   }
-
-   /**
 * Protege name: releaseDate
    */
    private String releaseDate;
@@ -54,28 +32,6 @@ public class OrderPosition implements Concept {
    }
    public String getReleaseDate() {
      return this.releaseDate;
-   }
-
-   /**
-* Protege name: quantity
-   */
-   private int quantity;
-   public void setQuantity(int value) { 
-    this.quantity=value;
-   }
-   public int getQuantity() {
-     return this.quantity;
-   }
-
-   /**
-* Protege name: startDate
-   */
-   private String startDate;
-   public void setStartDate(String value) { 
-    this.startDate=value;
-   }
-   public String getStartDate() {
-     return this.startDate;
    }
 
    /**
@@ -98,6 +54,50 @@ public class OrderPosition implements Concept {
    }
    public String getEndDate_String() {
      return this.endDate_String;
+   }
+
+   /**
+* Protege name: containsProduct
+   */
+   private Product containsProduct;
+   public void setContainsProduct(Product value) { 
+    this.containsProduct=value;
+   }
+   public Product getContainsProduct() {
+     return this.containsProduct;
+   }
+
+   /**
+* Protege name: startDate
+   */
+   private String startDate;
+   public void setStartDate(String value) { 
+    this.startDate=value;
+   }
+   public String getStartDate() {
+     return this.startDate;
+   }
+
+   /**
+* Protege name: quantity
+   */
+   private int quantity;
+   public void setQuantity(int value) { 
+    this.quantity=value;
+   }
+   public int getQuantity() {
+     return this.quantity;
+   }
+
+   /**
+* Protege name: sequence_Number
+   */
+   private int sequence_Number;
+   public void setSequence_Number(int value) { 
+    this.sequence_Number=value;
+   }
+   public int getSequence_Number() {
+     return this.sequence_Number;
    }
 
 }

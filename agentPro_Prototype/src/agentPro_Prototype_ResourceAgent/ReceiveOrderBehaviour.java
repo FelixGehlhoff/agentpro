@@ -2,24 +2,14 @@ package agentPro_Prototype_ResourceAgent;
 
 
 import java.util.Date;
-import java.util.Iterator;
-
-
 import agentPro.onto.Accept_Proposal;
-import agentPro.onto.AllocatedWorkingStep;
-import agentPro.onto.Inform_Scheduled;
-import agentPro.onto.Proposal;
-import agentPro.onto.Reject_Proposal;
 import agentPro.onto._SendAccept_Proposal;
-import agentPro.onto._SendInform_Scheduled;
-import agentPro.onto._SendReject_Proposal;
 import agentPro_Prototype_Agents.ResourceAgent;
 import agentPro_Prototype_Agents._Agent_Template;
 import jade.content.lang.Codec.CodecException;
 import jade.content.onto.OntologyException;
 import jade.content.onto.UngroundedException;
 import jade.content.onto.basic.Action;
-import jade.core.AID;
 import jade.core.behaviours.Behaviour;
 import jade.lang.acl.ACLMessage;
 import jade.lang.acl.MessageTemplate;
@@ -44,7 +34,7 @@ public class ReceiveOrderBehaviour extends Behaviour{
 	//private String requested_transport;
 	private ACLMessage received_order;
 	//private long continue_at;
-	private Inform_Scheduled inform_scheduled;
+	//private Inform_Scheduled inform_scheduled;
 	private long order_received_at_date = 0;
 	private String conversationID;
 	
@@ -92,23 +82,24 @@ public class ReceiveOrderBehaviour extends Behaviour{
 
 			MessageTemplate mt1 = MessageTemplate.MatchPerformative(ACLMessage.ACCEPT_PROPOSAL);
 	        MessageTemplate mt2 = MessageTemplate.MatchConversationId(conversationID);	
-	        MessageTemplate mt3 = MessageTemplate.MatchInReplyTo(String.valueOf(proposal_id));
-	        MessageTemplate mt_12 = MessageTemplate.and(mt1,mt2);
-	        MessageTemplate mt_total = MessageTemplate.and(mt_12,mt3);
+	        //MessageTemplate mt3 = MessageTemplate.MatchInReplyTo(String.valueOf(proposal_id));
+	        MessageTemplate mt_total = MessageTemplate.and(mt1,mt2);
+	        //MessageTemplate mt_total = MessageTemplate.and(mt_12,mt3);
 	        		
 			MessageTemplate mt1_reject = MessageTemplate.MatchPerformative(ACLMessage.REJECT_PROPOSAL);	  
-			//MessageTemplate mt2_reject = MessageTemplate.MatchConversationId(conversationID);	
+			MessageTemplate mt2_reject = MessageTemplate.MatchConversationId(conversationID);	
 			//MessageTemplate mt3_reject = MessageTemplate.MatchInReplyTo(String.valueOf(proposal_id));
-			MessageTemplate mt_12_reject = MessageTemplate.and(mt1_reject,mt2);
-			MessageTemplate mt_total_reject = MessageTemplate.and(mt_12_reject,mt3);
+			MessageTemplate mt_total_reject = MessageTemplate.and(mt1_reject,mt2_reject);
+			//MessageTemplate mt_total_reject = MessageTemplate.and(mt_12_reject,mt3);
 			
 		 ACLMessage order = myAgent.receive(mt_total);
 			if (order != null) {
 				received_order = order;
 				order_received_at_date = System.currentTimeMillis();
 				if(!myAgent.getLocalName().equals("Kranschiene")){
-					System.out.println(order_received_at_date+" "+myAgent.SimpleDateFormat.format(new Date())+" "+myAgent.getLocalName()+logLinePrefix+"Order from "+order.getSender().getLocalName()+" received for offer "+proposal_id);					
+					System.out.println(order_received_at_date+" "+_Agent_Template.SimpleDateFormat.format(new Date())+" "+myAgent.getLocalName()+logLinePrefix+"Order from "+order.getSender().getLocalName()+" received for offer "+proposal_id);					
 				}
+							
 				
 				//a transport agent who receives an order from a WP agent must now mark this in its data store so that the request_Performer_resource Behaviour 
 				// (for the shared resources) can continue the communication process with the shared resources and book them
@@ -129,42 +120,11 @@ public class ReceiveOrderBehaviour extends Behaviour{
 			
 				//request performer behaviours look for that data store value to be put to false or true
 				this.getDataStore().put(3, false);
-				
-					//analyze msg.content
-					Reject_Proposal reject_proposal = new Reject_Proposal();
-					try {			
-						
-						Action act = (Action) myAgent.getContentManager().extractContent(reject_proposal_message);
-						_SendReject_Proposal reject_proposal_onto = (_SendReject_Proposal) act.getAction();
 					
-						reject_proposal = reject_proposal_onto.getHasReject_Proposal();
-						//proposal_id = reject_proposal.getID_Number();
-						//System.out.println(myAgent.SimpleDateFormat.format(new Date())+" "+myAgent.getLocalName()+logLinePrefix+"reject_proposal from "+reject_proposal_message.getSender().getLocalName()+" received for offer "+reject_proposal_onto.getHasReject_Proposal().getID_Number());
-						
-						//for transport-agents the reservation is deleted here --> shared res. agents only book into schedule after they have received an accept proposal msg
-						if(myAgent.numberOfResourcesPossibleForCalculationOfSharedResourceProposal==0) {	
-							 @SuppressWarnings("unchecked")
-								Iterator<AllocatedWorkingStep> it = reject_proposal.getConsistsOfAllocatedWorkingSteps().iterator();		 	
-							    while(it.hasNext()) {
-							    	AllocatedWorkingStep allWS = it.next();
-							    	//System.out.println("DEBUG___________"+allWS.getID_String());
-							    	//myAgent.printoutBusyIntervals();
-							    	myAgent.removeAllocatedWorkingStepFromWorkPlanAndBusyIntervalsAndCreateFreeIntervals(allWS);					
-							    }
-						}
-
-						
-						
-					} catch (UngroundedException e) {
-						// TODO Auto-generated catch block
-						e.printStackTrace();
-					} catch (CodecException e) {
-						// TODO Auto-generated catch block
-						e.printStackTrace();
-					} catch (OntologyException e) {
-						// TODO Auto-generated catch block
-						e.printStackTrace();
-					}
+						myAgent.getReceiveCFPBehav().getProposed_slots().clear();	//erase slots
+						myAgent.getReceiveCFPBehav().getProposals().clear();
+						myAgent.getReceiveCFPBehav().setReservation_lock(false);	//reactivate Receive CFP Behaviour
+					
 					step = 2;
 					break;
 				
@@ -183,7 +143,7 @@ public class ReceiveOrderBehaviour extends Behaviour{
 			
 			break;
 		case 3:
-
+								
 			Accept_Proposal accept_proposal = new Accept_Proposal();
 			try {			
 				
@@ -191,17 +151,14 @@ public class ReceiveOrderBehaviour extends Behaviour{
 				_SendAccept_Proposal accept_proposal_onto = (_SendAccept_Proposal) act.getAction();
 			
 				accept_proposal = accept_proposal_onto.getHasAccept_Proposal();
-				Proposal proposal = accept_proposal.getHasProposal();
+		
+				//inform_scheduled = new Inform_Scheduled();	
 
-			
-
-				inform_scheduled = new Inform_Scheduled();	
-			    @SuppressWarnings("unchecked")
-				Iterator<AllocatedWorkingStep> it = proposal.getConsistsOfAllocatedWorkingSteps().iterator();
-			    while(it.hasNext()) {
-			    	AllocatedWorkingStep allocWorkingstep = it.next();	  
-			    		//bookIntoSchedule(allocWorkingstep);							
-			    		inform_scheduled.addConsistsOfAllocatedWorkingSteps(allocWorkingstep);
+			    	Boolean bool1 = myAgent.bookIntoSchedule(accept_proposal);
+					if(!bool1) {
+						System.out.println("ERROR______ReceiveOrder__"+myAgent.getLocalName()+"___STEP could not be added");
+					}					
+			    		//inform_scheduled.addConsistsOfAllocatedWorkingSteps(allocWorkingstep);
 					//System.out.println(myAgent.SimpleDateFormat.format(new Date())+" "+myAgent.getLocalName()+logLinePrefix+"allocatedWorkingStep added to schedule: Operation: "+allocWorkingstep.getHasOperation().getName()+" Resource: "+allocWorkingstep.getHasResource().getName()+" timeslot_start: "+myAgent.SimpleDateFormat.format(Long.parseLong(allocWorkingstep.getHasTimeslot().getStartDate()))+" timeslot_end: "+myAgent.SimpleDateFormat.format(Long.parseLong(allocWorkingstep.getHasTimeslot().getEndDate())));
 				
 			    		//for resources like Crane_Rail the reservation / booking in slots is done here	
@@ -209,7 +166,8 @@ public class ReceiveOrderBehaviour extends Behaviour{
 			    		if(!myAgent.getLocalName().equals("Kranschiene")){
 			    			//System.out.println("DEBUG     "+myAgent.getLocalName()  +  "  book Into Schedule "+allocWorkingstep.getHasTimeslot().getStartDate()+ " "+allocWorkingstep.getHasTimeslot().getEndDate());			    			    		
 			    			//myAgent.printoutBusyIntervals();
-			    			Boolean bool = myAgent.bookIntoSchedule(allocWorkingstep, 0); //no time increment necessary
+			    			//Boolean bool = myAgent.bookIntoSchedule(allocWorkingstep, 0); //no time increment necessary
+			    			Boolean bool = myAgent.bookIntoSchedule(accept_proposal); //no time increment necessary
 				    		if(!bool) {
 				    			System.out.println("ERROR_____________Receive Order "+myAgent.getLocalName()+"_____________step could not be added");
 				    		}
@@ -217,9 +175,7 @@ public class ReceiveOrderBehaviour extends Behaviour{
 			    		
 					
 					}
-			    		
-			    		
-			    }
+
 				
 			} catch (UngroundedException e) {
 				// TODO Auto-generated catch block
@@ -232,10 +188,14 @@ public class ReceiveOrderBehaviour extends Behaviour{
 				e.printStackTrace();
 			}
 			
+			myAgent.getReceiveCFPBehav().setReservation_lock(false);	//reactivate Receive CFP Behaviour
+			myAgent.getReceiveCFPBehav().getProposals().clear();
+			myAgent.getReceiveCFPBehav().getProposed_slots().clear();	//erase slots
 			//TBD --> any condition why a failure should occure at this point?
 						
 			//step = 3;			
 			//send inform_done
+			/*
 			AID receiver = new AID();
 			String localName = received_order.getSender().getLocalName();
 			receiver.setLocalName(localName);
@@ -265,7 +225,7 @@ public class ReceiveOrderBehaviour extends Behaviour{
 			}
 		
 			myAgent.send(inform_scheduled_acl);	
-			
+			*/
 			//System.out.println(System.currentTimeMillis()+" "+myAgent.SimpleDateFormat.format(new Date()) +" "+myAgent.getLocalName()+logLinePrefix+" inform_scheduled_acl for offer "+proposal_id+" and conv ID "+inform_scheduled_acl.getConversationId()+" sent to receiver: "+receiver.getLocalName());
 			
 			//sortWorkplan_chronologically();
@@ -278,7 +238,7 @@ public class ReceiveOrderBehaviour extends Behaviour{
 			//Thread thread = new Thread(gantt);
 			//thread.start();
 			
-			if(!_Agent_Template.simulation_mode && (myAgent.getRepresentedResource().getType().equals("transport") || myAgent.getRepresentedResource().getName().contains("Puffer"))) {
+			//if(!_Agent_Template.simulation_mode && (myAgent.getRepresentedResource().getType().equals("transport") || myAgent.getRepresentedResource().getName().contains("Puffer"))) {
 				   
 				//create GANTT Chart				
 				//WorkPlan wp = myAgent.getWorkplan();
@@ -293,25 +253,7 @@ public class ReceiveOrderBehaviour extends Behaviour{
 					//thread2.start();
 
 					
-			}else {
-				//do nothing
-				
-			}
-			
-			if(proposal_id == 21) {
-				//WorkPlan wp = myAgent.getWorkplan();
-				//Gantt_Creation gantt = new Gantt_Creation(wp, myAgent.getLocalName());
-				//Thread thread = new Thread(gantt);
-				//thread.start();
-				/*
-				System.out.println("DEBUG_________________"+myAgent.getLocalName()+"  QQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQ CREATE GANTT");
-			       final GanttDemo1 demo = new GanttDemo1("Workplan_"+myAgent.getLocalName(), myAgent.getWorkplan());
-			        demo.pack();
-			        RefineryUtilities.centerFrameOnScreen(demo);
-			        demo.setVisible(false);
-			        */
-			}
-
+			//}
 			
 			step = 5;
 			
@@ -339,7 +281,7 @@ public class ReceiveOrderBehaviour extends Behaviour{
 					step = 3; //continue calculation
 					break;
 				}else if (System.currentTimeMillis() >= order_received_at_date+2*myAgent.reply_by_time_shared_resources){	//time takes too long --> abort
-					System.out.println(System.currentTimeMillis()+" "+myAgent.SimpleDateFormat.format(new Date()) +" "+myAgent.getLocalName()+logLinePrefix+" no inform scheduled in time received.");
+					System.out.println(System.currentTimeMillis()+" "+_Agent_Template.SimpleDateFormat.format(new Date()) +" "+myAgent.getLocalName()+logLinePrefix+" no inform scheduled in time received.");
 					//Better Errorhandling TBD
 					step = 5;
 					

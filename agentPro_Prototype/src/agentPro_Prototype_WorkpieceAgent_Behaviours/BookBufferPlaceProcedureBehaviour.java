@@ -78,7 +78,7 @@ public class BookBufferPlaceProcedureBehaviour extends Behaviour{
 	    switch (step) {
 	    case 0:
 	    	//schedule next production step
-	    	myAgent.addBehaviour(new RequestPerformer(myAgent, relevant_AllWS.getHasOperation(), startdate_for_this_task, null, true));		//error step = true --> production manager is not started		    	
+	    	myAgent.addBehaviour(new RequestPerformer_transport(myAgent, relevant_AllWS.getHasOperation(), startdate_for_this_task, null, true));		//error step = true --> production manager is not started		    	
     		step = 1;
     		this.block(5);
     		break;
@@ -171,7 +171,7 @@ public class BookBufferPlaceProcedureBehaviour extends Behaviour{
 					  		    
 					    //use the same startdate_for_this_task as before
 					    System.out.println(myAgent.SimpleDateFormat.format(new Date())+" " +myAgent.getLocalName()+logLinePrefix+" Buffer is necessary for = "+duration/(1000*60)+" min.");
-					    myAgent.addBehaviour(new RequestPerformer(myAgent, buffer, timeslot_to_book_buffer_place, null, true));		//!last operation = false"  triggers the start of the production manager				    				    		
+					    myAgent.addBehaviour(new RequestPerformer_transport(myAgent, buffer, timeslot_to_book_buffer_place, null, true));		//!last operation = false"  triggers the start of the production manager				    				    		
 					    
 					step = 2;	
 					this.block(5);
@@ -209,7 +209,7 @@ public class BookBufferPlaceProcedureBehaviour extends Behaviour{
 	    		
 	    		//count_of_allocated_working_steps_before_new_task_is_scheduled = myAgent.getWorkplan().getConsistsOfAllocatedWorkingSteps().size();
 	    		clock = System.currentTimeMillis()+2*myAgent.getProductionManagerBehaviour().reply_by_time;
-	    		myAgent.addBehaviour(new RequestPerformer(myAgent, transport_operation, timeslot_to_book_transport_to_buffer, null, true));		//error step = true --> production manager is not started		    			    		
+	    		myAgent.addBehaviour(new RequestPerformer_transport(myAgent, transport_operation, timeslot_to_book_transport_to_buffer, null, true));		//error step = true --> production manager is not started		    			    		
 	    		step = 3;
 	    		this.block(5);
 	    	}
@@ -251,7 +251,7 @@ public class BookBufferPlaceProcedureBehaviour extends Behaviour{
 	    				    buffer.setAvg_Duration(duration/(1000*60));	//in minutes
 	    				  		    
 	    				    //use the same startdate_for_this_task as before
-	    				    myAgent.addBehaviour(new RequestPerformer(myAgent, buffer, new_timeslot_to_book_buffer_place, null, true));		//!last operation = false"  triggers the start of the production manager				    				    		
+	    				    myAgent.addBehaviour(new RequestPerformer_transport(myAgent, buffer, new_timeslot_to_book_buffer_place, null, true));		//!last operation = false"  triggers the start of the production manager				    				    		
 	    				    
 	    				    //reset backwards scheduling
 	    				    myAgent.getProductionManagerBehaviour().setBackwards_scheduling_activ(false);
@@ -291,7 +291,7 @@ public class BookBufferPlaceProcedureBehaviour extends Behaviour{
 	        		    		//end is start of production step		
 	        					timeslot_to_book_transport_to_production.setEndDate(relevant_AllWS.getHasTimeslot().getStartDate());
 	        		    		clock = System.currentTimeMillis()+2*myAgent.getProductionManagerBehaviour().reply_by_time;
-	        		    		myAgent.addBehaviour(new RequestPerformer(myAgent, transport_operation2, timeslot_to_book_transport_to_production, null, true));		//error step = true --> production manager is not started		    			    		
+	        		    		myAgent.addBehaviour(new RequestPerformer_transport(myAgent, transport_operation2, timeslot_to_book_transport_to_production, null, true));		//error step = true --> production manager is not started		    			    		
 	        		    		//count_of_allocated_working_steps_before_new_task_is_scheduled = myAgent.getWorkplan().getConsistsOfAllocatedWorkingSteps().size();
 	        		    		step = 4;
 	        		    		System.out.println("DEBUG___step = 4");
@@ -351,7 +351,7 @@ public class BookBufferPlaceProcedureBehaviour extends Behaviour{
 	    	    		new_timeslot_to_book_production.setEndDate(String.valueOf(Long.parseLong(allWS.getHasTimeslot().getEndDate())+myAgent.getTime_until_end()));
 	    	    		
 
-	    	    		myAgent.addBehaviour(new RequestPerformer(myAgent, relevant_AllWS.getHasOperation(), new_timeslot_to_book_production, null, true));		//error step = true --> production manager is not started		    	
+	    	    		myAgent.addBehaviour(new RequestPerformer_transport(myAgent, relevant_AllWS.getHasOperation(), new_timeslot_to_book_production, null, true));		//error step = true --> production manager is not started		    	
 	    	    		
 	    			    //reset backwards scheduling
 	    			    myAgent.getProductionManagerBehaviour().setBackwards_scheduling_activ(false);
@@ -397,7 +397,7 @@ public class BookBufferPlaceProcedureBehaviour extends Behaviour{
 		    				    buffer.setAvg_Duration(duration/(1000*60));	//in minutes
 		    				  		    
 		    				    //use the same startdate_for_this_task as before
-		    				    myAgent.addBehaviour(new RequestPerformer(myAgent, buffer, new_timeslot_to_book_buffer_place, null, true));		//!last operation = false"  triggers the start of the production manager				    				    		
+		    				    myAgent.addBehaviour(new RequestPerformer_transport(myAgent, buffer, new_timeslot_to_book_buffer_place, null, true));		//!last operation = false"  triggers the start of the production manager				    				    		
 		    				    waitForBuffer = true;
 		    				    break;
 		    				    //the buffer has been scheduled

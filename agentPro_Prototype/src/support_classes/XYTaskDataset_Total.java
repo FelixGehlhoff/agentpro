@@ -73,7 +73,7 @@ public class XYTaskDataset_Total extends ApplicationFrame {
 	static String DateFormat = "yyyy-MM-dd HH.mm.ss";
 	static SimpleDateFormat SimpleDateFormat = new SimpleDateFormat(DateFormat);
 	//static XYTaskDatasetDemo2 instance;
-	static storage_element [] storage_array;
+	static Storage_element [] storage_array;
 	
     public XYTaskDataset_Total(String title, WorkPlan workplan) {
         super(title);
@@ -123,7 +123,7 @@ public class XYTaskDataset_Total extends ApplicationFrame {
         DateAxis xAxis = new DateAxis("Date/Time");
     	
         int counter = 0;
-        for(storage_element element : storage_array) {
+        for(Storage_element element : storage_array) {
 	    	
 	    	if(element != null) {
 	    		counter++;
@@ -207,7 +207,7 @@ public class XYTaskDataset_Total extends ApplicationFrame {
         
         int size_allWS = workplan.getConsistsOfAllocatedWorkingSteps().size();
         
-        storage_element []	array_of_storage_elements = new storage_element[ size_allWS ] ;			//captures elements of storage (that contain id (string) and timeslots as a list)
+        Storage_element []	array_of_storage_elements = new Storage_element[ size_allWS ] ;			//captures elements of storage (that contain id (string) and timeslots as a list)
         
         //ArrayList <Timeslot> array_list = new ArrayList <>();
         
@@ -233,7 +233,7 @@ public class XYTaskDataset_Total extends ApplicationFrame {
 		    	for(int i = 0;i<size_allWS;i++) {	
 		    		
 		    		if(array_of_storage_elements[i] == null) {		
-		    			array_of_storage_elements [i] = new storage_element(resource_name);
+		    			array_of_storage_elements [i] = new Storage_element(resource_name);
 		    			array_of_storage_elements[i].addHasSlots(allWorkingStep.getHasTimeslot());    			//falls es für dieses workpiece schon timeslots gibt --> hinzufügen
 		    			//System.out.println("DEBUG_NEW element in array["+i+"] slot "+allWorkingStep.getHasTimeslot().getStartDate()+ "added for "+workpiece_ID);
 		    			break;
@@ -250,7 +250,7 @@ public class XYTaskDataset_Total extends ApplicationFrame {
 	     */
 	    
 	   //int counter = 1;
-	    for(storage_element element : array_of_storage_elements) {
+	    for(Storage_element element : array_of_storage_elements) {
 	    	
 	    	if(element != null) {
 		    	TaskSeries taskseries = new TaskSeries(element.getID());

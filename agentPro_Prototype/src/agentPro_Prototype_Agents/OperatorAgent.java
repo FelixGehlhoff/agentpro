@@ -117,7 +117,7 @@ public class OperatorAgent extends SharedResourceAgent{
 		timeslot_for_proposal.setEndDate(Long.toString(estimated_enddate));
 		timeslot_for_proposal.setStartDate(Long.toString(estimated_start_date));	
 		
-		proposal = createProposal(price, operation, timeslot_for_proposal, cfp.getHasSender());
+		proposal = createProposal(price, operation, timeslot_for_proposal, cfp.getHasSender(), "");	//cfp.getIDString() is empty in CFPs to production resources
 		
 		return proposal;
 	}

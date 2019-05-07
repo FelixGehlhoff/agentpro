@@ -6,12 +6,12 @@ import agentPro.onto.Timeslot;
 import jade.util.leap.ArrayList;
 import jade.util.leap.List;
 
-public class storage_element {
+public class Storage_element {
 private String ID;
 	
 	private List hasSlots = new ArrayList();
 	
-	public storage_element(String workpiece_id) {
+	public Storage_element(String workpiece_id) {
 		this.setID(workpiece_id);
 		
 	}

@@ -69,11 +69,13 @@ public class orderGenerationBehaviour extends OneShotBehaviour{
 	private String conversationID_forInterfaceAgent = "OrderAgent"; //for directly contacting the interface agent
 	private DFAgentDescription interface_agent;
 	private long initial_wait = 3000;
-	private double wait_between_agent_creation = 2000;
+	private double wait_between_agent_creation = 5000;
 	private String columnNameOfFollowUpConstraint = "hasFollowUpOperationConstraint";
 	private String columnNameOfWithStep = "withStep";
 	private String columnNameLocationX = "locationX";
 	private String columnNameLocationY = "locationY";
+	
+	private int limit = 3; //number of orders to create
 
 
 	public orderGenerationBehaviour(_Simulation_Order_Generator myAgent) {
@@ -147,6 +149,7 @@ public class orderGenerationBehaviour extends OneShotBehaviour{
 	    	        	 OrderedOperation orderedOp = new OrderedOperation();
 	    				    Operation op = new Operation();
 	    				    op.setName(rs.getString(columnNameOfOperation));
+	    				    op.setType("production");
 	    				    orderedOp.setFirstOperation(rs.getBoolean(columnNameOfFirstOperation));
 	    				    orderedOp.setLastOperation(rs.getBoolean(columnNameOfLastOperation));
 	    				    orderedOp.setHasOperation(op);
@@ -155,7 +158,7 @@ public class orderGenerationBehaviour extends OneShotBehaviour{
 	    		        	orderedOp.setWithOperationInStep(rs.getInt(columnNameOfWithStep));
 	    	        		product.setName(rs.getString(columnNameOfProductName));
 	    	        		pP.addConsistsOfOrderedOperations(orderedOp);	   
-	    	        		print = print + op.getName()+" ";
+	    	        		print = print + op.getName()+" "+i+" ";
 	    	        }
 		        	pP.setDefinesProduct(product);
 	        	    productionPlans.add(pP);  	 
@@ -183,22 +186,22 @@ public class orderGenerationBehaviour extends OneShotBehaviour{
 	        ResultSet rs = stmt.executeQuery(query);
 	       
 	        int i = 1;
-	        while (rs.next()) {
+	        while (rs.next() && i<=limit) {
 	        	String query2 = "select "+columnNameLocationX+" , "+myAgent.columnNameID+" , "+columnNameLocationY+" from "+myAgent.tableNameResource+" where "+myAgent.columnNameResourceName_simulation+" = ";
 	        		        	
 	        	OrderPosition orderPos = new OrderPosition();
 	        	orderPos.setQuantity(rs.getInt(myAgent.columnNameOfNumber));
 	        	
 	        	//15.01.19 dates for backwards calculation etc.
-	        	orderPos.setDueDate(myAgent.SimpleDateFormat.format(rs.getTime(myAgent.columnNameOfDueDate)));
-	        	orderPos.setReleaseDate(myAgent.SimpleDateFormat.format(rs.getTime(myAgent.columnNameOfReleaseDate)));
+	        	orderPos.setDueDate(_Agent_Template.SimpleDateFormat.format(rs.getTime(myAgent.columnNameOfDueDate)));
+	        	orderPos.setReleaseDate(_Agent_Template.SimpleDateFormat.format(rs.getTime(myAgent.columnNameOfReleaseDate)));
 	        	 if(_Agent_Template.simulation_mode) {
     				 orderPos.setStartDate(String.valueOf(myAgent.start_simulation));
     			 }else {
-    				 orderPos.setStartDate(myAgent.SimpleDateFormat.format(rs.getTimestamp(myAgent.columnNameOfPlanStart)));
+    				 orderPos.setStartDate(_Agent_Template.SimpleDateFormat.format(rs.getTimestamp(_Agent_Template.columnNameOfPlanStart)));
     			}
 	        
-	        	orderPos.setEndDate_String(myAgent.SimpleDateFormat.format(rs.getTimestamp(myAgent.columnNameOfPlanEnd)));
+	        	orderPos.setEndDate_String(_Agent_Template.SimpleDateFormat.format(rs.getTimestamp(_Agent_Template.columnNameOfPlanEnd)));
 	        	
 	        	String prod_name = rs.getString(myAgent.columnNameOfProduct);
 	        	Product product = new Product();

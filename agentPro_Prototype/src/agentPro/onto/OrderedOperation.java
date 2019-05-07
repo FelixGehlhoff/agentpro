@@ -8,30 +8,19 @@ import jade.core.*;
 /**
 * Protege name: OrderedOperation
 * @author ontology bean generator
-* @version 2019/03/20, 15:44:38
+* @version 2019/04/24, 14:43:54
 */
 public class OrderedOperation implements Concept {
 
    /**
-* Protege name: hasFollowUpOperation
+* Protege name: hasOperation
    */
-   private boolean hasFollowUpOperation;
-   public void setHasFollowUpOperation(boolean value) { 
-    this.hasFollowUpOperation=value;
+   private Operation hasOperation;
+   public void setHasOperation(Operation value) { 
+    this.hasOperation=value;
    }
-   public boolean getHasFollowUpOperation() {
-     return this.hasFollowUpOperation;
-   }
-
-   /**
-* Protege name: sequence_Number
-   */
-   private int sequence_Number;
-   public void setSequence_Number(int value) { 
-    this.sequence_Number=value;
-   }
-   public int getSequence_Number() {
-     return this.sequence_Number;
+   public Operation getHasOperation() {
+     return this.hasOperation;
    }
 
    /**
@@ -46,6 +35,17 @@ public class OrderedOperation implements Concept {
    }
 
    /**
+* Protege name: hasFollowUpOperation
+   */
+   private boolean hasFollowUpOperation;
+   public void setHasFollowUpOperation(boolean value) { 
+    this.hasFollowUpOperation=value;
+   }
+   public boolean getHasFollowUpOperation() {
+     return this.hasFollowUpOperation;
+   }
+
+   /**
 * Protege name: lastOperation
    */
    private boolean lastOperation;
@@ -57,6 +57,17 @@ public class OrderedOperation implements Concept {
    }
 
    /**
+* Protege name: sequence_Number
+   */
+   private int sequence_Number;
+   public void setSequence_Number(int value) { 
+    this.sequence_Number=value;
+   }
+   public int getSequence_Number() {
+     return this.sequence_Number;
+   }
+
+   /**
 * Protege name: withOperationInStep
    */
    private int withOperationInStep;
@@ -65,17 +76,6 @@ public class OrderedOperation implements Concept {
    }
    public int getWithOperationInStep() {
      return this.withOperationInStep;
-   }
-
-   /**
-* Protege name: hasOperation
-   */
-   private Operation hasOperation;
-   public void setHasOperation(Operation value) { 
-    this.hasOperation=value;
-   }
-   public Operation getHasOperation() {
-     return this.hasOperation;
    }
 
 }

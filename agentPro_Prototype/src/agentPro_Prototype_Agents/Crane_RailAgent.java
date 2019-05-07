@@ -114,7 +114,7 @@ public class Crane_RailAgent extends SharedResourceAgent{
 		timeslot_for_proposal.setEndDate(Long.toString(enddate_cfp));
 		timeslot_for_proposal.setStartDate(Long.toString(startdate_cfp));	
 		
-		proposal = createProposal(price, operation, timeslot_for_proposal, cfp.getHasSender());
+		proposal = createProposal(price, operation, timeslot_for_proposal, cfp.getHasSender(), "");	//cfp.getIDString() is empty in CFPs to production resources
 		return proposal;
 	}
 

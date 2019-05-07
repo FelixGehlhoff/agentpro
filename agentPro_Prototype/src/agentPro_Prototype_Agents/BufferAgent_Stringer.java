@@ -1,5 +1,6 @@
 package agentPro_Prototype_Agents;
 
+import agentPro.onto.Accept_Proposal;
 import agentPro.onto.AllocatedWorkingStep;
 import agentPro.onto.CFP;
 import agentPro.onto.Operation;
@@ -29,15 +30,16 @@ public class BufferAgent_Stringer extends TransportResourceAgent{
 		this.getReceiveCFPBehav().timeslot_for_schedule.setStartDate(String.valueOf(cfp_timeslot.getStartDate()));	
 		this.getReceiveCFPBehav().timeslot_for_schedule.setLength(cfp_timeslot.getLength());
 		
-	proposal = createProposal(price, transport_op_to_destination, cfp_timeslot, cfp.getHasSender());
+	proposal = createProposal(price, transport_op_to_destination, cfp_timeslot, cfp.getHasSender(), cfp.getID_String());
 	return proposal;
 	}
 	@Override
-	public Boolean bookIntoSchedule(AllocatedWorkingStep allocWorkingstep, float time_increment_or_decrement_to_be_added_for_setup_of_next_task) {
-		getWorkplan().addConsistsOfAllocatedWorkingSteps(allocWorkingstep);
+	public Boolean bookIntoSchedule(Accept_Proposal accept_proposal) {
+		Proposal prop = (Proposal) accept_proposal.getHasProposal().get(0);
+		getWorkplan().addConsistsOfAllocatedWorkingSteps((AllocatedWorkingStep) prop.getConsistsOfAllocatedWorkingSteps().get(0));
 		
 		if(getWorkplan().getConsistsOfAllocatedWorkingSteps().size()>1) {
-			sortWorkplanChronologically();
+			this.setWorkplan(_Agent_Template.sortWorkplanChronologically(this.getWorkplan()));
 		}
 		return true;
 		

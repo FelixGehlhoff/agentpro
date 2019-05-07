@@ -8,21 +8,12 @@ import jade.core.*;
 /**
 * Protege name: Operation
 * @author ontology bean generator
-* @version 2019/03/20, 15:44:38
+* @version 2019/04/29, 14:36:43
 */
 public class Operation implements Concept {
 
-   /**
-* Protege name: type
-   */
-   private String type;
-   public void setType(String value) { 
-    this.type=value;
-   }
-   public String getType() {
-     return this.type;
-   }
-
+//////////////////////////// User code
+@Override     public String toString() {return " operation  "+name+" set up "+set_up_time;}
    /**
 * Protege name: endState
    */
@@ -32,28 +23,6 @@ public class Operation implements Concept {
    }
    public State getEndState() {
      return this.endState;
-   }
-
-   /**
-* Protege name: set_up_time
-   */
-   private float set_up_time;
-   public void setSet_up_time(float value) { 
-    this.set_up_time=value;
-   }
-   public float getSet_up_time() {
-     return this.set_up_time;
-   }
-
-   /**
-* Protege name: name
-   */
-   private String name;
-   public void setName(String value) { 
-    this.name=value;
-   }
-   public String getName() {
-     return this.name;
    }
 
    /**
@@ -68,14 +37,25 @@ public class Operation implements Concept {
    }
 
    /**
-* Protege name: avg_Duration
+* Protege name: name
    */
-   private float avg_Duration;
-   public void setAvg_Duration(float value) { 
-    this.avg_Duration=value;
+   private String name;
+   public void setName(String value) { 
+    this.name=value;
    }
-   public float getAvg_Duration() {
-     return this.avg_Duration;
+   public String getName() {
+     return this.name;
+   }
+
+   /**
+* Protege name: type
+   */
+   private String type;
+   public void setType(String value) { 
+    this.type=value;
+   }
+   public String getType() {
+     return this.type;
    }
 
    /**
@@ -87,6 +67,39 @@ public class Operation implements Concept {
    }
    public float getBuffer_before_operation() {
      return this.buffer_before_operation;
+   }
+
+   /**
+* Protege name: avg_Duration
+   */
+   private float avg_Duration;
+   public void setAvg_Duration(float value) { 
+    this.avg_Duration=value;
+   }
+   public float getAvg_Duration() {
+     return this.avg_Duration;
+   }
+
+   /**
+* Protege name: set_up_time
+   */
+   private float set_up_time;
+   public void setSet_up_time(float value) { 
+    this.set_up_time=value;
+   }
+   public float getSet_up_time() {
+     return this.set_up_time;
+   }
+
+   /**
+* Protege name: buffer_after_operation
+   */
+   private float buffer_after_operation;
+   public void setBuffer_after_operation(float value) { 
+    this.buffer_after_operation=value;
+   }
+   public float getBuffer_after_operation() {
+     return this.buffer_after_operation;
    }
 
    /**
@@ -119,17 +132,6 @@ public class Operation implements Concept {
    }
    public State getStartState() {
      return this.startState;
-   }
-
-   /**
-* Protege name: buffer_after_operation
-   */
-   private float buffer_after_operation;
-   public void setBuffer_after_operation(float value) { 
-    this.buffer_after_operation=value;
-   }
-   public float getBuffer_after_operation() {
-     return this.buffer_after_operation;
    }
 
 }

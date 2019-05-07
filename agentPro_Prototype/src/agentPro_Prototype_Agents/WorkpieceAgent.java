@@ -1,30 +1,45 @@
 package agentPro_Prototype_Agents;
 
 import java.sql.Connection;
+import java.util.ArrayList;
 import java.util.Date;
 //import java.util.ArrayList;
 import java.util.Iterator;
 
 import agentPro.onto.AllocatedWorkingStep;
+import agentPro.onto.CFP;
 
 //import org.json.JSONArray;
 //import org.json.JSONObject;
 
 import agentPro.onto.Location;
+import agentPro.onto.Operation;
 import agentPro.onto.OrderPosition;
 import agentPro.onto.OrderedOperation;
 import agentPro.onto.ProductionPlan;
+import agentPro.onto.Proposal;
+import agentPro.onto.Timeslot;
+import agentPro.onto.Transport_Operation;
 import agentPro.onto.WorkPlan;
 import agentPro.onto.Workpiece;
+import agentPro.onto._SendCFP;
+import agentPro.onto._SendProposal;
 import agentPro_Prototype_WorkpieceAgent_Behaviours.ProductionManagerBehaviour;
 import agentPro_Prototype_WorkpieceAgent_Behaviours.MQTTListener_dummy;
 import agentPro_Prototype_WorkpieceAgent_Behaviours.Simulation_Listener;
+import jade.content.lang.Codec.CodecException;
+import jade.content.onto.OntologyException;
+import jade.content.onto.UngroundedException;
+import jade.content.onto.basic.Action;
 import jade.core.AID;
 import jade.domain.DFService;
 import jade.domain.FIPAException;
 import jade.domain.FIPAAgentManagement.DFAgentDescription;
 import jade.domain.FIPAAgentManagement.ServiceDescription;
+import jade.lang.acl.ACLMessage;
+import jade.lang.acl.MessageTemplate;
 import support_classes.Interval;
+import support_classes.OperationCombination;
 
 /*
  * Models a workpiece. Is created by order agent. Sends CFPs, receives PROPOSALS, sends ACCEPT_PROPOSALs and receives
@@ -49,7 +64,7 @@ public class WorkpieceAgent extends _Agent_Template{
 	//private int amountOfTimeLeft;
 	private int orderNumber;
 	
-	private long transport_estimation = (long) 1000*60*50;	//estimated duration of transport = 50 min
+	private long transport_estimation = (long) 1000*60*5;	//estimated duration of transport = 50 min
 	public int avg_pickUp = 10;
 	
 	private OrderPosition orderPos;
@@ -60,18 +75,14 @@ public class WorkpieceAgent extends _Agent_Template{
 	
 	protected void setup (){
 		logLinePrefix = getLocalName();
-		Location location = new Location();
-			float startx = 0;
-			float starty = 0;
-			location.setCoordX(startx);
-			location.setCoordY(starty);
-		setLocationOfStartingWarehouse(location);	
+	
 		Object[] args = getArguments();							//arguments of agent
 		
 		//String workpiece_string = args[0].toString(); 				//String of order
 		//get OrderPosition and ProductionPlan(ontology)
 		setOrderPos((OrderPosition) args[0]);
 		setProductionPlan(orderPos.getContainsProduct().getHasProductionPlan());
+		System.out.println(((OrderedOperation)orderPos.getContainsProduct().getHasProductionPlan().getConsistsOfOrderedOperations().get(0)).getHasOperation().getName());
 		setTypeOfOperationsToProduction();												//sets the Type of all production operations to production --> needed in RequestPerformer line 367
 		//createWorkplan
 		setWorkplan(new WorkPlan());
@@ -100,6 +111,7 @@ public class WorkpieceAgent extends _Agent_Template{
 		
 		// TBD determine start location --> from loc component?
 		setLocation((Location) args[4]);
+		setLocationOfStartingWarehouse((Location) args[4]);	
 		
 		super.setup();
 		registerAtDF();
@@ -113,6 +125,68 @@ public class WorkpieceAgent extends _Agent_Template{
         addBehaviour(Simulation_Listener);	
 	}
 	
+	public ArrayList<AID> findOfferingAgents(Operation requested_operation){
+		ArrayList<AID> resourceAgents = new ArrayList<AID>();
+		DFAgentDescription template = new DFAgentDescription();
+		ServiceDescription sd = new ServiceDescription();
+		//service_type = requested_operation.getType();
+		sd.setType(requested_operation.getType()); 	
+		String service_name = null;
+		if(requested_operation.getType().equals("production")){							//es wird nach Anbietern von z.B. Fräsen gesucht
+			String req_capability = requested_operation.getName();
+			String[] parts = req_capability.split("_");	
+			sd.setName(parts[0]);	//or requested_destination
+			service_name = parts[0];
+		}		
+		
+		template.addServices(sd);
+		
+		//check the agents we have already stored
+		if(this.resourceAgents.size() > 0) {
+			//DFAgentDescription[] result = 
+			for(DFAgentDescription a : this.resourceAgents) {				
+				  @SuppressWarnings("unchecked")
+					Iterator<ServiceDescription> it = a.getAllServices();
+				    while(it.hasNext()) {
+				    	ServiceDescription service_description = it.next();
+				    	if(service_description.getType().equals(requested_operation.getType())) {
+				    		if(requested_operation.getType().equals("production")){
+				    			if(service_description.getName().equals(service_name)) {
+				    				resourceAgents.add(a.getName());
+				    			}
+				    		}else {
+				    			resourceAgents.add(a.getName());
+				    		}
+				    		
+				    	}
+				    }
+			}				
+		}
+		//if there is no agent with the needed capability stored, search the DF
+		if(resourceAgents.size()==0) {	//TBD subscription!!		
+		try {
+				DFAgentDescription[] result = DFService.search(this, template);
+			if (result.length != 0){					
+				//resourceAgents = new AID[result.length];
+				for (int i = 0; i < result.length; ++i) {
+					//resourceAgents[i] = result[i].getName();
+					this.addResourceAgent(result[i]);
+					resourceAgents.add(result[i].getName());
+				}
+			}else {
+				System.out.println(_Agent_Template.SimpleDateFormat.format(new Date())+" "+this.getLocalName()+logLinePrefix+"no Agent with operation"+requested_operation.getName()+" was found");
+				//Handling of this situation --> tbd
+			}
+		}
+
+	
+			 catch (FIPAException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			 }
+		}	
+		return resourceAgents;	
+	}
 	private void setTypeOfOperationsToProduction() {
 		@SuppressWarnings("unchecked")
 		Iterator<OrderedOperation> it = prodPlan.getConsistsOfOrderedOperations().iterator();
@@ -248,7 +322,7 @@ public class WorkpieceAgent extends _Agent_Template{
 	public boolean checkConsistencyAndAddStepToWorkplan(AllocatedWorkingStep allocWorkingstep_toBeAdded) {
 		
 		Interval interval_of_WorkingStep_toBeAdded = new Interval(allocWorkingstep_toBeAdded.getHasTimeslot().getStartDate(), allocWorkingstep_toBeAdded.getHasTimeslot().getEndDate(), false);
-		Boolean interval_already_in_list = false;
+		Boolean no_conflicting_interval = true;
 		String printout= SimpleDateFormat.format(new Date())+" "+getLocalName()+logLinePrefix;
 		//is there already a step at this point in time?
 		 @SuppressWarnings("unchecked")
@@ -258,7 +332,7 @@ public class WorkpieceAgent extends _Agent_Template{
 		    	Interval interval_of_WorkingStep_inPlan = new Interval(allWorkingStep_alreadyInWorkplan.getHasTimeslot().getStartDate(), allWorkingStep_alreadyInWorkplan.getHasTimeslot().getEndDate(), false);
 		    	Interval intersection = interval_of_WorkingStep_toBeAdded.intersection(interval_of_WorkingStep_inPlan);
 		    	if(intersection.getSize() > 1) {
-		    		interval_already_in_list = true;
+		    		no_conflicting_interval = false;
 			    	printout = printout + " the step "+allocWorkingstep_toBeAdded.getHasOperation().getName()+" cannot be added. Step "+allWorkingStep_alreadyInWorkplan.getHasOperation().getName()+" shares Interval (intersection) "+intersection.toString();
 			    		
 		    	}
@@ -267,22 +341,22 @@ public class WorkpieceAgent extends _Agent_Template{
 		    	}
 		    }
 		    
-		    if(interval_already_in_list) {
+		    if(!no_conflicting_interval) {
 		    	System.out.println(printout);
 		    }else {
 		    	getWorkplan().addConsistsOfAllocatedWorkingSteps(allocWorkingstep_toBeAdded); 		//allocWorkingStep is added to workplan	
 		    	//System.out.println("DEBUG________________WP allocWorkingstep_toBeAdded.Timeslot.getStartdate() "+allocWorkingstep_toBeAdded.getHasTimeslot().getStartDate()+" allocWorkingstep_toBeAdded.Timeslot.getEnddate() "+allocWorkingstep_toBeAdded.getHasTimeslot().getEndDate());
 		    }
 		
-		return interval_already_in_list;
+		return no_conflicting_interval;
 	}
-	public Boolean doLocationsMatch(Location LocationA, Location locationB) {
-		if(LocationA.getCoordX() == locationB.getCoordX() && LocationA.getCoordY() == locationB.getCoordY()) {
-			return true;
-		}else {
-			return false;
-		}
-
+	
+	public boolean doLocationsMatch(Proposal prop_production, Proposal prop_transport) {
+		AllocatedWorkingStep prod = (AllocatedWorkingStep) prop_production.getConsistsOfAllocatedWorkingSteps().get(0);
+		Location res_Prod = prod.getHasResource().getHasLocation();
+		AllocatedWorkingStep trans = (AllocatedWorkingStep) prop_transport.getConsistsOfAllocatedWorkingSteps().get(0);
+		Location target_transport = (Location)((Transport_Operation)trans.getHasOperation()).getEndState();	
+		return doLocationsMatch(res_Prod, target_transport);
 	}
 	
 	public boolean check_if_element_of_production_plan(AllocatedWorkingStep allocWorkingstep) {
@@ -308,5 +382,103 @@ public class WorkpieceAgent extends _Agent_Template{
 		this.locationOfStartingWarehouse = locationOfStartingWarehouse;
 	}
 	
+	public int receiveProposals (String conversationID, ArrayList<AID>proposal_senders, ArrayList<Proposal>received_proposals) {
+		int numberOfAnswers = 0;
+		MessageTemplate mt1 = MessageTemplate.MatchPerformative(ACLMessage.PROPOSE);
+        MessageTemplate mt2 = MessageTemplate.MatchConversationId(conversationID);	
+        MessageTemplate mt_total = MessageTemplate.and(mt1,mt2);
+        
+		ACLMessage reply = receive(mt_total);
+		if (reply != null) {
+			numberOfAnswers++;
+			_SendProposal proposal_onto = new _SendProposal();
+			try {
+				Action act = (Action) getContentManager().extractContent(reply);
+				proposal_onto = (_SendProposal) act.getAction();
+			} catch (UngroundedException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			} catch (CodecException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			} catch (OntologyException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+				
+			_Agent_Template.addUnique(proposal_senders, reply.getSender());
+				
+				@SuppressWarnings("unchecked")
+				Iterator<Proposal> i = proposal_onto.getAllHasProposal();
+				while(i.hasNext()) {
+				    	Proposal proposal = i.next();
+						received_proposals.add(proposal);				
+				}	
+	}
+		return numberOfAnswers;
+	}
+	public int receiveRejection(String conversationID, ArrayList<AID>proposal_senders, ArrayList<Proposal>received_proposals) {
+		//Boolean rejection_received = false; 
+		int numberOfAnswers = 0;
+        MessageTemplate ref = MessageTemplate.MatchPerformative(ACLMessage.REFUSE);
+        MessageTemplate ref2 = MessageTemplate.MatchConversationId(conversationID);
+        MessageTemplate mt_total_ref = MessageTemplate.and(ref,ref2);
+        ACLMessage refusal = receive(mt_total_ref);	
+		if(refusal != null) {
+			numberOfAnswers++;
+			//rejection_received = true;
+			//Proposal ref_workaraound = new Proposal();
+			//received_proposals.add(ref_workaraound);		//this empty proposal is added to enable the check in step = 1 to recongnize the answer
+			_Agent_Template.addUnique(proposal_senders, refusal.getSender());
+		}	
+		return numberOfAnswers;
+	}
+
+	public void sendCfps(Timeslot cfp_timeslot, Operation requested_operation, String conversationID, ArrayList<AID> resourceAgents, Date reply_by_date) {
+		CFP cfp_onto = new CFP();
+		 cfp_onto.setHasTimeslot(cfp_timeslot);
+		cfp_onto.setHasOperation(requested_operation);
+		cfp_onto.setHasSender(getAID());
+		//26.02.2019 add quantity
+		cfp_onto.setQuantity(getOrderPos().getQuantity());
+				
+	_SendCFP sendCFP = new _SendCFP();
+	sendCFP.addHasCFP(cfp_onto);			
+	Action content = new Action(getAID(),sendCFP);
+
+	//create ACL Message
+	
+	ACLMessage cfp = new ACLMessage(ACLMessage.CFP);
+	cfp.setLanguage(getCodec().getName());
+	cfp.setOntology(getOntology().getName());
+	cfp.setConversationId(conversationID);
+	cfp.setReplyByDate(reply_by_date);
+	
+	
+
+	//ontology --> fill content
+	try {
+		getContentManager().fillContent(cfp, content);
+	} catch (CodecException e) {
+		// TODO Auto-generated catch block
+		e.printStackTrace();
+	} catch (OntologyException e) {
+		// TODO Auto-generated catch block
+		e.printStackTrace();
+	}
+					
+	
+	for (int i = 0;i<resourceAgents.size();i++){
+		cfp.addReceiver(resourceAgents.get(i));
+		//System.out.println(myAgent.SimpleDateFormat.format(new Date())+" "+myAgent.getLocalName()+logLinePrefix+"cfp sent to receiver: "+result[i].getName().getLocalName()+" with content "+cfp.getContent());
+	}
+	//myAgent.printOutSent(cfp);			
+	send(cfp);
+	}
+
+	public boolean checkConsistencyAndAddStepsToWorkplan(OperationCombination combination_best) {
+		// TODO Auto-generated method stub
+		return false;
+	}
 
 }

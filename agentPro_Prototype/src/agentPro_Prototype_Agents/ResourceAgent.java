@@ -10,6 +10,7 @@ import java.util.Comparator;
 import java.util.Date;
 import java.util.Iterator;
 
+import agentPro.onto.Accept_Proposal;
 import agentPro.onto.AllocatedWorkingStep;
 import agentPro.onto.CFP;
 import agentPro.onto.DetailedOperationDescription;
@@ -35,6 +36,7 @@ import jade.core.behaviours.ThreadedBehaviourFactory;
 import jade.lang.acl.ACLMessage;
 //import agentPro_Prototype_ResourceAgent.ReceiveRejectProposalBehaviour;
 import support_classes.Interval;
+import support_classes.Storage_element_slot;
 
 /* 
  * Models a resource.
@@ -98,7 +100,8 @@ public abstract class ResourceAgent extends _Agent_Template{
 					free_interval_array.add(free_starting_interval);
 				//}
 		}else {
-			free_starting_interval = new Interval (System.currentTimeMillis(), System.currentTimeMillis()+time_until_end, false);
+			free_starting_interval = new Interval (1556632800000L, 1556632800000L+time_until_end, false); //30.04. 16 Uhr = start
+			//System.out.println("Starting interval = "+_Agent_Template.SimpleDateFormat.format(1556632800000L)+" ; "+_Agent_Template.SimpleDateFormat.format(1556632800000L+time_until_end));
 			free_interval_array.add(free_starting_interval);
 		}
 		
@@ -124,26 +127,83 @@ public abstract class ResourceAgent extends _Agent_Template{
 	protected abstract void setStartState();
 	protected abstract void receiveValuesFromDB(Resource r);
 
-	public Boolean bookIntoSchedule(AllocatedWorkingStep allocWorkingstep, float time_increment_or_decrement_to_be_added_for_setup_of_next_task) {		
-		/*
-		 * add interval (busy) and new resulting free intervals
-		 * 
-		 * 
-		 */
+	public Boolean bookIntoSchedule(Accept_Proposal accept_proposal) {			
+		 //add interval (busy) and new resulting free intervals	 *  
 		Boolean booking_successful = false;
+		@SuppressWarnings("unchecked")		
+		Iterator<Proposal> it = accept_proposal.getHasProposal().iterator();	  
+	    while(it.hasNext()) {	
+			Proposal proposal = it.next();
+			
+			//receive the right interval from the list of intervals
+			long long_time_increment_or_decrement_to_be_added_for_setup_of_next_task = 0;
+			Timeslot timeslot_to_add = new Timeslot();
+			String type = "";
+			Storage_element_slot right_slot = null;
+			for(Storage_element_slot slot : this.getReceiveCFPBehav().getProposed_slots()) {
+				if(slot.getID().contentEquals(((AllocatedWorkingStep)proposal.getConsistsOfAllocatedWorkingSteps().get(0)).getHasOperation().getName())) {
+					if(slot.checkNewTimeslot(((AllocatedWorkingStep)proposal.getConsistsOfAllocatedWorkingSteps().get(0)).getHasTimeslot())) {
+						timeslot_to_add = ((AllocatedWorkingStep)proposal.getConsistsOfAllocatedWorkingSteps().get(0)).getHasTimeslot();					
+						//slot_to_add = slot.getTimeslot();							//use the timeslot from the list (includes setup etc.
+						long_time_increment_or_decrement_to_be_added_for_setup_of_next_task = slot.getTime_increment();
+						type = slot.getType();
+						right_slot = slot;
+						((AllocatedWorkingStep) right_slot.getProposal().getConsistsOfAllocatedWorkingSteps().get(0)).setHasTimeslot(timeslot_to_add);
+						
+					}else {
+						System.out.println(logLinePrefix  + "______________ERROR_________step has wrong timeslot!!"); //TODO better error handling
+						return false;
+					}
+					
+
+				}
+			}
+			
+			//long long_time_increment_or_decrement_to_be_added_for_setup_of_next_task = (long) (time_increment_or_decrement_to_be_added_for_setup_of_next_task*60*1000);
+			long startdate_busy_interval_new = Long.parseLong(timeslot_to_add.getStartDate())-(long)right_slot.getDuration_to_get_to_workpiece()*60*1000;
+			long enddate_busy_interval_new = Long.parseLong(timeslot_to_add.getEndDate());
+			Location new_endLocation = null;
+			if(type.equals("transport")) {
+				new_endLocation = (Location) ((Transport_Operation)((AllocatedWorkingStep)right_slot.getProposal().getConsistsOfAllocatedWorkingSteps()).getHasOperation()).getEndState();				
+			}
+			
+			Interval timeslot_interval_busy = new Interval(startdate_busy_interval_new, enddate_busy_interval_new, false);
+			timeslot_interval_busy.setId(accept_proposal.getID_String());
+			//System.out.println("DEBUG_                  REceiveCFPBookintoSchedule  allocWorkingstep.getHasTimeslot().getStartDate() "+allocWorkingstep.getHasTimeslot().getStartDate()+" allocWorkingstep.getHasTimeslot().getEndDate() "+allocWorkingstep.getHasTimeslot().getEndDate()+" Long.parseLong(allocWorkingstep.getHasTimeslot().getStartDate()  "+Long.parseLong(allocWorkingstep.getHasTimeslot().getStartDate())+" Long.parseLong(allocWorkingstep.getHasTimeslot().getEndDate())  "+Long.parseLong(allocWorkingstep.getHasTimeslot().getEndDate())+" time_increment_or_decrement_to_be_added_for_setup_of_next_task*60*1000+ "+(long) time_increment_or_decrement_to_be_added_for_setup_of_next_task*60*1000+" timeslot_interval_busy "+timeslot_interval_busy.toString());
+			
+			
+			
+			booking_successful = adjustIntervals(timeslot_interval_busy, long_time_increment_or_decrement_to_be_added_for_setup_of_next_task, new_endLocation);
+
+			if(booking_successful) {
+				getBusyInterval_array().add(timeslot_interval_busy);	
+				sortArrayListIntervalsEarliestFirst(getBusyInterval_array(), "start");
+				
+				getWorkplan().addConsistsOfAllocatedWorkingSteps((AllocatedWorkingStep) right_slot.getProposal().getConsistsOfAllocatedWorkingSteps().get(0));
+				
+				if(getWorkplan().getConsistsOfAllocatedWorkingSteps().size()>1) {
+					this.setWorkplan(_Agent_Template.sortWorkplanChronologically(this.getWorkplan()));
+				}
+			}
+	    
+	    }
 		
-		long long_time_increment_or_decrement_to_be_added_for_setup_of_next_task = (long) (time_increment_or_decrement_to_be_added_for_setup_of_next_task*60*1000);
-		long startdate_busy_interval_new = Long.parseLong(allocWorkingstep.getHasTimeslot().getStartDate());
-		long enddate_busy_interval_new = Long.parseLong(allocWorkingstep.getHasTimeslot().getEndDate());
-		Location new_endLocation = null;
-		if(allocWorkingstep.getHasOperation().getType().equals("transport")) {
-			new_endLocation = (Location) ((Transport_Operation)allocWorkingstep.getHasOperation()).getEndState();				
-		}
+
 		
-		Interval timeslot_interval_busy = new Interval(startdate_busy_interval_new, enddate_busy_interval_new, false);
-		timeslot_interval_busy.setId(allocWorkingstep.getID_String());
-		//System.out.println("DEBUG_                  REceiveCFPBookintoSchedule  allocWorkingstep.getHasTimeslot().getStartDate() "+allocWorkingstep.getHasTimeslot().getStartDate()+" allocWorkingstep.getHasTimeslot().getEndDate() "+allocWorkingstep.getHasTimeslot().getEndDate()+" Long.parseLong(allocWorkingstep.getHasTimeslot().getStartDate()  "+Long.parseLong(allocWorkingstep.getHasTimeslot().getStartDate())+" Long.parseLong(allocWorkingstep.getHasTimeslot().getEndDate())  "+Long.parseLong(allocWorkingstep.getHasTimeslot().getEndDate())+" time_increment_or_decrement_to_be_added_for_setup_of_next_task*60*1000+ "+(long) time_increment_or_decrement_to_be_added_for_setup_of_next_task*60*1000+" timeslot_interval_busy "+timeslot_interval_busy.toString());
-		
+		printoutFreeIntervals();
+		printoutBusyIntervals();
+		return booking_successful;		
+		//create GANTT chart
+		/*
+			 XYTaskDatasetDemo2 demo = new XYTaskDatasetDemo2(
+		                "JFreeChart : XYTaskDatasetDemo2.java", getWorkplan(), getLocalName());
+		        demo.pack();
+		        RefineryUtilities.centerFrameOnScreen(demo);
+		        demo.setVisible(false);	*/
+	}
+	
+	protected boolean adjustIntervals(Interval timeslot_interval_busy, long long_time_increment_or_decrement_to_be_added_for_setup_of_next_task, Location new_endLocation) {
+		Boolean booking_successful = false;
 		for(int i = 0;i<getFree_interval_array().size();i++) {		//check the free intervals and find the one that fits		
 			if(getFree_interval_array().get(i).contains(timeslot_interval_busy)) {
 				booking_successful = true;
@@ -165,11 +225,11 @@ public abstract class ResourceAgent extends _Agent_Template{
 						for(int j = 0;j < getBusyInterval_array().size();j++) {
 							
 							//if this busy interval contains the start date of the new busy interval --> enddate before and start new are equal
-							if(getBusyInterval_array().get(j).contains(startdate_busy_interval_new)) {	
+							if(getBusyInterval_array().get(j).contains(timeslot_interval_busy.lowerBound())) {	
 								busy_interval_before_contains_startdate = true;
 								//if there is a busy interval after
 								if(j+1<getBusyInterval_array().size()) {
-									if(getBusyInterval_array().get(j).contains(enddate_busy_interval_new)) {	//new 12.02.19
+									if(getBusyInterval_array().get(j).contains(timeslot_interval_busy.upperBound())) {	//new 12.02.19
 										busy_interval_after_contains_enddate = true;
 									}
 									
@@ -183,7 +243,7 @@ public abstract class ResourceAgent extends _Agent_Template{
 								}						
 								break;
 							//if this busy interval contains the end date of the new busy interval --> startdate after and end new are equal
-							}else if(getBusyInterval_array().get(j).contains(enddate_busy_interval_new)) {								
+							}else if(getBusyInterval_array().get(j).contains(timeslot_interval_busy.upperBound())) {								
 								busy_interval_after_contains_enddate = true;
 							//startdate of the new free interval BEFORE must be the old start date of the free interval
 							//enddate of the new free interval BEFORE must be the start date of the new busy interval
@@ -207,22 +267,22 @@ public abstract class ResourceAgent extends _Agent_Template{
 					//if only the startdate is element of a busy interval
 					// --> one new free interval AFTER the new busy interval
 					if(busy_interval_before_contains_startdate && !busy_interval_after_contains_enddate) {
-						Interval new_free_intervall_after = new Interval(enddate_busy_interval_new, free_interval_that_existed_before.upperBound()- long_time_increment_or_decrement_to_be_added_for_setup_of_next_task, false);
+						Interval new_free_intervall_after = new Interval(timeslot_interval_busy.upperBound(), free_interval_that_existed_before.upperBound()- long_time_increment_or_decrement_to_be_added_for_setup_of_next_task, false);
 						getFree_interval_array().add(i, new_free_intervall_after);
 					}
 					
 					//if the enddate is element of a busy interval
 					// --> one new free interval BEFORE the new busy interval
 					else if(!busy_interval_before_contains_startdate && busy_interval_after_contains_enddate) {
-						Interval new_free_intervall_before = new Interval(free_interval_that_existed_before.lowerBound(), startdate_busy_interval_new, false);
+						Interval new_free_intervall_before = new Interval(free_interval_that_existed_before.lowerBound(), timeslot_interval_busy.lowerBound(), false);
 						getFree_interval_array().add(i, new_free_intervall_before);	
 						
 					}											
 					//if neither the startdate nor the enddate is element of any busy interval --> two new free intervals are needed
 					// --> two new free intervals are needed (BEFORE and AFTER)
 					else if(!busy_interval_before_contains_startdate && !busy_interval_after_contains_enddate) {
-						Interval new_free_intervall_before = new Interval(free_interval_that_existed_before.lowerBound(), startdate_busy_interval_new, false);
-						Interval new_free_intervall_after = new Interval(enddate_busy_interval_new, free_interval_that_existed_before.upperBound(), false);						
+						Interval new_free_intervall_before = new Interval(free_interval_that_existed_before.lowerBound(), timeslot_interval_busy.lowerBound(), false);
+						Interval new_free_intervall_after = new Interval(timeslot_interval_busy.upperBound(), free_interval_that_existed_before.upperBound(), false);						
 						getFree_interval_array().add(i, new_free_intervall_after);
 						getFree_interval_array().add(i, new_free_intervall_before);
 						
@@ -236,29 +296,10 @@ public abstract class ResourceAgent extends _Agent_Template{
 			//break;
 			
 		}
-		if(booking_successful) {
-			getBusyInterval_array().add(timeslot_interval_busy);	
-			sortArrayListIntervalsEarliestFirst(getBusyInterval_array(), "start");
-		    
-			getWorkplan().addConsistsOfAllocatedWorkingSteps(allocWorkingstep);
-			
-			if(getWorkplan().getConsistsOfAllocatedWorkingSteps().size()>1) {
-				sortWorkplanChronologically();
-			}
-		}
-		
-		printoutFreeIntervals();
-		printoutBusyIntervals();
-		return booking_successful;		
-		//create GANTT chart
-		/*
-			 XYTaskDatasetDemo2 demo = new XYTaskDatasetDemo2(
-		                "JFreeChart : XYTaskDatasetDemo2.java", getWorkplan(), getLocalName());
-		        demo.pack();
-		        RefineryUtilities.centerFrameOnScreen(demo);
-		        demo.setVisible(false);	*/
+		return booking_successful;
 	}
-	
+
+
 	private void setStartOfAllocatedWorkingStepThatStartsAtTimeXToYandChangeStartLocation(long old_start_date, long new_start_date, Location new_endLocation) {
 		for(int i = 0; i<getWorkplan().getConsistsOfAllocatedWorkingSteps().size();i++) {   	   	
 				AllocatedWorkingStep a = (AllocatedWorkingStep) getWorkplan().getConsistsOfAllocatedWorkingSteps().get(i);				
@@ -357,11 +398,10 @@ public abstract class ResourceAgent extends _Agent_Template{
 		    	//take the end location of the last allocated step
 		    	Operation op = ((AllocatedWorkingStep) getWorkplan().getConsistsOfAllocatedWorkingSteps().get(getWorkplan().getConsistsOfAllocatedWorkingSteps().size()-1)).getHasOperation();
 		    	state = op.getEndState();
-		    	 System.out.println("DEBUG_________________"+this.getLocalName()+"______"+op.getEndState().getClass().getSimpleName());
 		    }
 		}else { //first step
 			state = getRepresentedResource().getStartState(); 
-			System.out.println("DEBUG___________First step____________"+state.toString());
+			//System.out.println(this.getLocalName()+"  DEBUG___________First step____________"+state.getClass().getSimpleName());
 		}
 		return state;
 	
@@ -396,14 +436,16 @@ public abstract class ResourceAgent extends _Agent_Template{
 		return array;
 	}
 	
-	public Proposal createProposal(float price, Operation operation, Timeslot timeslot_for_proposal, AID sender) {
+	public Proposal createProposal(float price, Operation operation, Timeslot timeslot_for_proposal, AID sender, String id_string) {
 		Proposal proposal = new Proposal();
 		int proposal_id = getOfferNumber();
 		proposal.setID_Number(proposal_id);
-		
+		setOfferNumber(getOfferNumber()+1);
+		proposal.setID_String(id_string);
+		proposal.setHasSender(this.getAID());
 		AllocatedWorkingStep proposed_slot = new AllocatedWorkingStep();
 		//25.02. in Operation
-		operation.setBuffer_before_operation(this.getReceiveCFPBehav().buffer_time_that_production_can_start_earlier);
+		//operation.setBuffer_before_operation(this.getReceiveCFPBehav().buffer_time_that_production_can_start_earlier);
 		proposed_slot.setHasOperation(operation);
 		
 		Resource thisResource = new Resource();
@@ -411,6 +453,7 @@ public abstract class ResourceAgent extends _Agent_Template{
 		thisResource.setName(getRepresentedResource().getName());  		//not all parameters are relevant
 		thisResource.setHasLocation(getRepresentedResource().getHasLocation());
 		thisResource.setType(getRepresentedResource().getType());
+		thisResource.setDetailed_Type(getRepresentedResource().getDetailed_Type());
 		thisResource.setID_Number(getRepresentedResource().getID_Number());
 		proposed_slot.setHasResource(thisResource);
 		
@@ -452,55 +495,6 @@ public abstract class ResourceAgent extends _Agent_Template{
 
 	public void setFree_interval_array(ArrayList <Interval> free_interval_array) {
 		this.free_interval_array = free_interval_array;
-	}
-	//i for x times replybytime
-	public void sendProposal(Proposal proposal_onto, String conversationID, String sender, Double i) {
-		ACLMessage proposal = new ACLMessage(ACLMessage.PROPOSE);
-			AID receiver = new AID();		
-			receiver.setLocalName(sender);
-		proposal.addReceiver(receiver);
-		proposal.setConversationId(conversationID);
-		proposal.setLanguage(getCodec().getName());
-		proposal.setOntology(getOntology().getName());
-		//proposal.setReplyWith(String.valueOf(proposal_onto.getID_Number()));
-		proposal.setInReplyTo(String.valueOf(proposal_onto.getID_Number()));
-		
-		_SendProposal sendProposal = new _SendProposal();
-		sendProposal.setHasProposal(proposal_onto);
-		
-		Action content = new Action(getAID(),sendProposal);
-		
-		try {
-			getContentManager().fillContent(proposal, content);
-		} catch (CodecException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} catch (OntologyException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-		
-		//determine reply by time
-		long reply_by_date_long = 0;
-		if(i != null) {
-			reply_by_date_long = (long) (System.currentTimeMillis()+i*reply_by_time);
-		}else {
-			reply_by_date_long = System.currentTimeMillis()+reply_by_time;
-		}
-		
-		Date reply_by_date = new Date(reply_by_date_long);
-		proposal.setReplyByDate(reply_by_date);
-		send(proposal);		
-		printOutSent(proposal);
-		//System.out.println("DEBUG_______proposal sent at______"+System.currentTimeMillis());
-		//System.out.println(SimpleDateFormat.format(new Date()) +" "+getLocalName()+logLinePrefix+" PROPOSAL sent to receiver: "+receiver.getLocalName()+" with content: "+proposal.getContent());
-		
-	}
-	
-	public void sendProposal(Proposal proposal_onto, String conversationID, ArrayList<String> sender, Double i) {
-		for(String sender_localName : sender) {
-				sendProposal(proposal_onto, conversationID, sender_localName, i);			
-			}
 	}
 	
 	public void removeAllocatedWorkingStepFromWorkPlanAndBusyIntervalsAndCreateFreeIntervals(AllocatedWorkingStep allWS) {
@@ -702,6 +696,81 @@ public abstract class ResourceAgent extends _Agent_Template{
 	
 	send(refusal);		
 	printOutSent(refusal);
+		
+	}
+
+	//i for x times replybytime
+		public void sendProposal(Proposal proposal_onto, String conversationID, String sender, Double i) {
+			ArrayList<Proposal>list = new ArrayList<Proposal>();
+			list.add(proposal_onto);
+			ArrayList<String>list_sender = new ArrayList<String>();
+			list_sender.add(sender);
+			sendProposal(list, conversationID, list_sender, i);
+			//System.out.println("DEBUG_______proposal sent at______"+System.currentTimeMillis());
+			//System.out.println(SimpleDateFormat.format(new Date()) +" "+getLocalName()+logLinePrefix+" PROPOSAL sent to receiver: "+receiver.getLocalName()+" with content: "+proposal.getContent());
+			
+		}
+		
+		public void sendProposal(Proposal proposal_onto, String conversationID, ArrayList<String> sender, Double i) {
+			for(String sender_localName : sender) {
+					sendProposal(proposal_onto, conversationID, sender_localName, i);			
+				}
+		}
+		
+	public void sendProposal(ArrayList<Proposal> proposals, String conversationID, ArrayList<String> sender, Double i) {
+		ACLMessage proposal = new ACLMessage(ACLMessage.PROPOSE);
+		for(String receiver_name : sender) {
+			AID receiver = new AID();		
+			receiver.setLocalName(receiver_name);
+			proposal.addReceiver(receiver);
+		}
+		
+	proposal.setConversationId(conversationID);
+	proposal.setLanguage(getCodec().getName());
+	proposal.setOntology(getOntology().getName());
+	//proposal.setReplyWith(String.valueOf(proposal_onto.getID_Number()));
+	
+	
+	_SendProposal sendProposal = new _SendProposal();
+	for(Proposal proposal_onto : proposals) {
+		sendProposal.addHasProposal((proposal_onto));
+		proposal.setInReplyTo(String.valueOf(proposal_onto.getID_Number()));	//wird überschrieben, ist aber bei allen gleich
+	}
+	
+	
+	Action content = new Action(getAID(),sendProposal);
+	
+	try {
+		getContentManager().fillContent(proposal, content);
+	} catch (CodecException e) {
+		// TODO Auto-generated catch block
+		e.printStackTrace();
+	} catch (OntologyException e) {
+		// TODO Auto-generated catch block
+		e.printStackTrace();
+	}
+	
+	//determine reply by time
+	long reply_by_date_long = 0;
+	if(i != null) {
+		reply_by_date_long = (long) (System.currentTimeMillis()+i*reply_by_time);
+	}else {
+		reply_by_date_long = System.currentTimeMillis()+reply_by_time;
+	}
+	
+	Date reply_by_date = new Date(reply_by_date_long);
+	proposal.setReplyByDate(reply_by_date);
+	send(proposal);		
+	printOutSent(proposal);
+		
+	}
+	
+	protected Storage_element_slot createStorageElement(Operation operation, Timeslot timeslot, float duration_to_get_to_workpiece,
+			float time_increment) {
+		
+		Storage_element_slot slot = new Storage_element_slot(operation, timeslot, duration_to_get_to_workpiece, (long) time_increment);
+		
+			return slot;
 		
 	}
 } 

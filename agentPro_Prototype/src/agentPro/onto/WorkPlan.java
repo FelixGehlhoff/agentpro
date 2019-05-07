@@ -7,7 +7,7 @@ import jade.core.*;
 /**
 * Protege name: WorkPlan
 * @author ontology bean generator
-* @version 2019/03/20, 15:44:38
+* @version 2019/04/24, 14:43:54
 */
 public class WorkPlan extends TimedPlan{ 
 

@@ -33,7 +33,9 @@ public class Test_transport_algorithm {
 		 	 sfef = effr-d_eff;
 		 	 d2WP = 20;
 		 	 TI = 10;
-		 	 
+		 	 Integer i = 0;
+		 	 changeNumber(i);
+		 	 System.out.println("i = "+i);
 		 	 ArrayList<Interval> listOfIntervals = calculateIntervals();
 			 checkFeasibility(listOfIntervals);
 		 	
@@ -49,7 +51,9 @@ public class Test_transport_algorithm {
 	
 	}
 	
-	
+	private static void changeNumber(Integer i) {
+		i= i+1;
+	}
 	
 	private static void checkSchedule(ArrayList<Interval> listOfIntervals_possibleFromResourceSide) {
 		int counter = 1; //no of element

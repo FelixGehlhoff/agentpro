@@ -13,41 +13,21 @@ import jade.core.*;
     </p>
 * Protege name: AllocatedWorkingStep
 * @author ontology bean generator
-* @version 2019/03/20, 15:44:38
+* @version 2019/04/29, 14:34:02
 */
 public class AllocatedWorkingStep implements Concept {
 
+//////////////////////////// User code
+@Override     public String toString() {return " allocated working step "+iD_String+" "+hasOperation.toString()+" with timeslot "+hasTimeslot.toString();}
    /**
-* Protege name: isErrorStep
+* Protege name: hasOperation
    */
-   private boolean isErrorStep;
-   public void setIsErrorStep(boolean value) { 
-    this.isErrorStep=value;
+   private Operation hasOperation;
+   public void setHasOperation(Operation value) { 
+    this.hasOperation=value;
    }
-   public boolean getIsErrorStep() {
-     return this.isErrorStep;
-   }
-
-   /**
-* Protege name: hasResource
-   */
-   private Resource hasResource;
-   public void setHasResource(Resource value) { 
-    this.hasResource=value;
-   }
-   public Resource getHasResource() {
-     return this.hasResource;
-   }
-
-   /**
-* Protege name: startdate
-   */
-   private float startdate;
-   public void setStartdate(float value) { 
-    this.startdate=value;
-   }
-   public float getStartdate() {
-     return this.startdate;
+   public Operation getHasOperation() {
+     return this.hasOperation;
    }
 
    /**
@@ -62,17 +42,6 @@ public class AllocatedWorkingStep implements Concept {
    }
 
    /**
-* Protege name: hasTimeslot
-   */
-   private Timeslot hasTimeslot;
-   public void setHasTimeslot(Timeslot value) { 
-    this.hasTimeslot=value;
-   }
-   public Timeslot getHasTimeslot() {
-     return this.hasTimeslot;
-   }
-
-   /**
 * Protege name: enddate
    */
    private float enddate;
@@ -84,14 +53,14 @@ public class AllocatedWorkingStep implements Concept {
    }
 
    /**
-* Protege name: isStarted
+* Protege name: startdate
    */
-   private boolean isStarted;
-   public void setIsStarted(boolean value) { 
-    this.isStarted=value;
+   private float startdate;
+   public void setStartdate(float value) { 
+    this.startdate=value;
    }
-   public boolean getIsStarted() {
-     return this.isStarted;
+   public float getStartdate() {
+     return this.startdate;
    }
 
    /**
@@ -106,14 +75,47 @@ public class AllocatedWorkingStep implements Concept {
    }
 
    /**
-* Protege name: hasOperation
+* Protege name: isErrorStep
    */
-   private Operation hasOperation;
-   public void setHasOperation(Operation value) { 
-    this.hasOperation=value;
+   private boolean isErrorStep;
+   public void setIsErrorStep(boolean value) { 
+    this.isErrorStep=value;
    }
-   public Operation getHasOperation() {
-     return this.hasOperation;
+   public boolean getIsErrorStep() {
+     return this.isErrorStep;
+   }
+
+   /**
+* Protege name: hasTimeslot
+   */
+   private Timeslot hasTimeslot;
+   public void setHasTimeslot(Timeslot value) { 
+    this.hasTimeslot=value;
+   }
+   public Timeslot getHasTimeslot() {
+     return this.hasTimeslot;
+   }
+
+   /**
+* Protege name: isStarted
+   */
+   private boolean isStarted;
+   public void setIsStarted(boolean value) { 
+    this.isStarted=value;
+   }
+   public boolean getIsStarted() {
+     return this.isStarted;
+   }
+
+   /**
+* Protege name: hasResource
+   */
+   private Resource hasResource;
+   public void setHasResource(Resource value) { 
+    this.hasResource=value;
+   }
+   public Resource getHasResource() {
+     return this.hasResource;
    }
 
 }

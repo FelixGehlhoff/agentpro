@@ -8,20 +8,9 @@ import jade.core.*;
 /**
 * Protege name: Capability
 * @author ontology bean generator
-* @version 2019/03/20, 15:44:38
+* @version 2019/04/24, 14:43:54
 */
 public class Capability implements Concept {
-
-   /**
-* Protege name: name
-   */
-   private String name;
-   public void setName(String value) { 
-    this.name=value;
-   }
-   public String getName() {
-     return this.name;
-   }
 
    /**
 * Protege name: iD_Number
@@ -32,6 +21,17 @@ public class Capability implements Concept {
    }
    public int getID_Number() {
      return this.iD_Number;
+   }
+
+   /**
+* Protege name: name
+   */
+   private String name;
+   public void setName(String value) { 
+    this.name=value;
+   }
+   public String getName() {
+     return this.name;
    }
 
    /**

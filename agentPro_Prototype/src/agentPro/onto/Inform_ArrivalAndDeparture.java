@@ -7,7 +7,7 @@ import jade.core.*;
 /**
 * Protege name: Inform_ArrivalAndDeparture
 * @author ontology bean generator
-* @version 2019/03/20, 15:44:38
+* @version 2019/04/24, 14:43:54
 */
 public class Inform_ArrivalAndDeparture extends Message{ 
 
@@ -23,17 +23,6 @@ public class Inform_ArrivalAndDeparture extends Message{
    }
 
    /**
-* Protege name: avg_PickupTime
-   */
-   private int avg_PickupTime;
-   public void setAvg_PickupTime(int value) { 
-    this.avg_PickupTime=value;
-   }
-   public int getAvg_PickupTime() {
-     return this.avg_PickupTime;
-   }
-
-   /**
 * Protege name: ID_String
    */
    private String iD_String;
@@ -42,6 +31,17 @@ public class Inform_ArrivalAndDeparture extends Message{
    }
    public String getID_String() {
      return this.iD_String;
+   }
+
+   /**
+* Protege name: avg_PickupTime
+   */
+   private int avg_PickupTime;
+   public void setAvg_PickupTime(int value) { 
+    this.avg_PickupTime=value;
+   }
+   public int getAvg_PickupTime() {
+     return this.avg_PickupTime;
    }
 
    /**
