@@ -71,8 +71,11 @@ public class ReceiveOrderBehaviour extends Behaviour{
 				step = 1;	
 				break;
 			}else if(System.currentTimeMillis()>reply_by_date_long) {
+				myAgent.getReceiveCFPBehav().getProposed_slots().clear();	//erase slots
+				myAgent.getReceiveCFPBehav().getProposals().clear();
+				myAgent.getReceiveCFPBehav().setReservation_lock(false);	//reactivate Receive CFP Behaviour
 				step = 2;
-				System.out.println("DEBUG_____"+myAgent.getLocalName()+" "+logLinePrefix+" time expired in recieve Order");
+				System.out.println("DEBUG_____"+myAgent.getLocalName()+" "+logLinePrefix+" time expired in recieve Order    conv id  "+this.conversationID+" proposal id "+this.proposal_id);
 				break;
 			}
 			//step = 1;

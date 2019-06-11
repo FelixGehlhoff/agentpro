@@ -324,7 +324,7 @@ private static HashMap<String, Double> setup_matrix = new HashMap();
 		//connection = con;	
 		
 		
-			if(_Agent_Template.simulation_mode) {
+			if(_Agent_Template.simulation_enercon_mode) {
 				
 				try {
 					Connection con = DriverManager.getConnection(dbaddress_sim);

@@ -64,14 +64,15 @@ public class WorkpieceAgent extends _Agent_Template{
 	//private int amountOfTimeLeft;
 	private int orderNumber;
 	
-	private long transport_estimation = (long) 1000*60*5;	//estimated duration of transport = 50 min
-	public int avg_pickUp = 10;
+	public static long transport_estimation = (long) 1000*60*25;	//estimated duration of transport = 15 min
+	public int avg_pickUp = 5;
 	
 	private OrderPosition orderPos;
 	private ProductionPlan prodPlan;
 	private Workpiece represented_Workpiece;
 	//private Location lastLocation;
 	//private Resource nextProductionResource;
+	public boolean useCurrentLocationDueToDisturbance = false;
 	
 	protected void setup (){
 		logLinePrefix = getLocalName();

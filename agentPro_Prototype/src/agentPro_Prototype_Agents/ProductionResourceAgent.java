@@ -63,7 +63,6 @@ public class ProductionResourceAgent extends ResourceAgent{
 	private String startState = "B";
 	public Boolean parallel_processing_pick_and_setup_possible = true;
 	
-	
 	public HashMap<String, Double> getSetup_matrix() {
 		return setup_matrix;
 	}
@@ -75,7 +74,6 @@ public class ProductionResourceAgent extends ResourceAgent{
 	protected void setup (){		
 			
 		super.setup();
-		
 		// / INITIALISATION
 		// /////////////////////////////////////////////////////////
 		logLinePrefix = logLinePrefix+".ProductionRessourceAgent.";						
@@ -100,7 +98,7 @@ public class ProductionResourceAgent extends ResourceAgent{
         // /////////////////////////////////////////////////////////
 		ReceiveInformWorkpieceDepartureBehav = new ReceiveInformWorkpieceDepartureBehaviour(this);
         addBehaviour(ReceiveInformWorkpieceDepartureBehav);
-        if(simulation_mode) {
+        if(simulation_enercon_mode) {
         	 if(getLocalName().equals("Skoda_1_1") || getLocalName().equals("Skoda_2_1") || getLocalName().equals("Skoda_3_1")) {
         		 addBehaviour(new ReceiveIntervalForConnectedResourceBehaviour(this));
 			    }
@@ -112,6 +110,7 @@ public class ProductionResourceAgent extends ResourceAgent{
 		start.setID_String(startState);
 		this.getRepresentedResource().setStartState(start);
 	}
+	
 
 	public int getDuration_of_process() {
 		return duration_of_process;
@@ -246,7 +245,7 @@ public void receiveValuesFromDB(Resource r) {
 	}
 
 
-private void receiveWorkPlanValuesFromDB(ProductionResource r) {
+public void receiveWorkPlanValuesFromDB(ProductionResource r) {
 	Statement stmt = null;
     String query = "";
 
@@ -271,11 +270,12 @@ private void receiveWorkPlanValuesFromDB(ProductionResource r) {
         		}else {
         			state.setID_String(this.startState);
         		}
+        		op.setstartStateNeeded(state);//TODO eventuell dynmaiisch bestimmen?
         		op.setStartState(state);//TODO eventuell dynmaiisch bestimmen?
         		op.setEndState(state);	
-        		op.setName("maintenance");
+        		op.setName("maintenance@"+this.getLocalName());
         			Workpiece wp = new Workpiece();
-        			wp.setID_String("maschine");
+        			wp.setID_String("machine");
         		op.setAppliedOn(wp);
         		allWS.setHasOperation(op);
         		allWS.setHasResource(this.getRepresentedResource());
@@ -439,7 +439,7 @@ public Proposal checkScheduleDetermineTimeslotAndCreateProposal(CFP cfp) {
 			timeslot_for_proposal.setEndDate(String.valueOf(listOfIntervals.get(0).upperBound()));
 			timeslot_for_proposal.setStartDate(String.valueOf(listOfIntervals.get(0).lowerBound()));	
 			timeslot_for_proposal.setLength(listOfIntervals.get(0).upperBound()-listOfIntervals.get(0).lowerBound());
-			slot = createStorageElement(operation, timeslot_for_proposal, setup_and_pickup_to_consider, (long)(time_increment_or_decrement_to_be_added_for_setup_of_next_task*60*1000));
+			slot = createStorageElement(operation, timeslot_for_proposal, setup_and_pickup_to_consider*60*1000, (long)(time_increment_or_decrement_to_be_added_for_setup_of_next_task*60*1000));
 			 this.getReceiveCFPBehav().getProposed_slots().add(slot);
 			 //TBD Buffer
 			 break;
@@ -458,9 +458,9 @@ public Proposal checkScheduleDetermineTimeslotAndCreateProposal(CFP cfp) {
 	float price = duration_total_for_price + deadline_not_met;		//strafkosten, wenn deadline_not_met
 	
 	
-	if(simulation_mode && (this.getRepresentedResource().getName().contains("Skoda_2") || this.getRepresentedResource().getName().contains("Skoda_3")) ) {		//skoda 1 is better
+	if(simulation_enercon_mode && (this.getRepresentedResource().getName().contains("Skoda_2") || this.getRepresentedResource().getName().contains("Skoda_3")) ) {		//skoda 1 is better
 		price = price + 50;
-	}else if(simulation_mode && this.getRepresentedResource().getName().contains("Konfektion") || this.getRepresentedResource().getName().contains("FAD")) {
+	}else if(simulation_enercon_mode && this.getRepresentedResource().getName().contains("Konfektion") || this.getRepresentedResource().getName().contains("FAD")) {
 		if(this.getWorkplan().getConsistsOfAllocatedWorkingSteps().size() > 0) {
 			AllocatedWorkingStep lastAllWS = (AllocatedWorkingStep) this.getWorkplan().getConsistsOfAllocatedWorkingSteps().get(this.getWorkplan().getConsistsOfAllocatedWorkingSteps().size()-1);
 			long difference = estimated_start_date - Long.parseLong(lastAllWS.getHasTimeslot().getEndDate());
@@ -582,6 +582,7 @@ public double calculateDurationSetup(Interval free_interval, Operation operation
 	endstate_of_new_operation.setID_String(wp_type);
 	
 	operation.setStartState((Setup_state) this.getStateAtTime(free_interval.lowerBound()));
+	operation.setstartStateNeeded(endstate_of_new_operation);
 	operation.setEndState(endstate_of_new_operation);
 	
 	if(wp_type.equals(wp_startstate_nextStep)) {
@@ -657,6 +658,16 @@ public ProductionResource getRepresentedResource() {
 @Override
 public void setRepresentedResource(Resource res) {
 	representedResource = (ProductionResource) res;
+}
+
+@Override
+protected void considerPickup(AllocatedWorkingStep allocatedWorkingStep) {
+	if(!parallel_processing_pick_and_setup_possible) {
+		Timeslot timeslot_new = allocatedWorkingStep.getHasTimeslot();
+		//add the pickup time before the "real" startdate of the machine
+		timeslot_new.setStartDate(Long.toString((Long.parseLong(timeslot_new.getStartDate())-allocatedWorkingStep.getHasOperation().getAvg_PickupTime()*1000*60)));
+		allocatedWorkingStep.setHasTimeslot(timeslot_new);		
+	}		
 }
 
 

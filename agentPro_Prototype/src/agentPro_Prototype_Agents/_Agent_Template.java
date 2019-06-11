@@ -13,14 +13,11 @@ import java.util.Date;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Set;
-import java.util.stream.Stream;
-
 import agentPro.onto.AgentPro_ProductionOntology;
 import agentPro.onto.AllocatedWorkingStep;
 import agentPro.onto.Cancellation;
 import agentPro.onto.Location;
 import agentPro.onto.Operation;
-import agentPro.onto.Proposal;
 import agentPro.onto.Resource;
 import agentPro.onto.Timeslot;
 import agentPro.onto.WorkPlan;
@@ -88,24 +85,29 @@ public abstract class _Agent_Template extends Agent{
 	public static String columnNameOperation_Type = "Operation_Type";
 	public static String columnNameOfStarted = "Started";
 	public static String columnNameOfFinished = "Finished";
-	
-	public String nameOfMES_Data_Resource = prefix_schema+".total_operations";
+	public static String prefix_schema = "agentpro";
+	public static String nameOfMES_Data_Resource = prefix_schema+".total_operations_my";
 	public String nameOfMES_Data = prefix_schema+".productionplan_new";
 	public String nameOfOrderbook = prefix_schema+".orderbook";
 	//private String columnNameFinished = "Finished";
 	//private String columnNameOfIstStart = "IstStart";
 	//private String columnNameOfIstEnde = "IstEnde";
 	
-	public static Boolean simulation_mode = false;
+	public static Boolean simulation_enercon_mode = false;
 	//public static String prefix_schema = "flexsimdata";
-	public static String prefix_schema = "agentpro";
+	
 	public static String opimizationCriterion = "time_of_finish"; //duration_setup    //TODO receive that from database? TBD
-	public static long bufferThreshold = 0;
+	public static long bufferThreshold = 30;
+	
+	public static int limit = 2; //number of orders to create
 	
 	public int duration_repair_workpiece = 20;
 	public int duration_light_disturbance = 2;
 	public int duration_severe_disturbance = 8;
 	public long start_simulation = 1533074400000L; //01.08.2018 00:00
+	public long start_simulation_agentpto = 1556632800000L; //Tue Apr 30 2019 16:00:00 GMT+0200 1556632800000L
+	public String columnNameStartSimulation = "PlanStart_Simulation";
+	public String columnNameEndSimulation = "PlanEnd_Simulation";
 	public String columnNameResourceName_simulation = "Bezeichnung";
 	public String columnNameErrorType = "Error_Type";
 	public String columnNameError_Occur_Time = "Error_Occur_Time";
@@ -252,7 +254,7 @@ public abstract class _Agent_Template extends Agent{
 
 			    	ResultSet rs = stmt.executeQuery(		
 			    			//"select * from "+nameOfMES_Data+" where "+columnNameOfOperation+" = '"+allWorkingStep.getHasOperation().getName()+"' and "+columnNameAuftrags_ID+" = '"+allWorkingStep.getHasOperation().getAppliedOn().getID_String()+"' and "+columnNameFinished+" = 'false'"); 
-			    			"select * from "+_Agent_Template.prefix_schema+".total_operations"+" where "+_Agent_Template.columnNameAuftrags_ID+" = '"+wp_id+"'"); 
+			    			"select * from "+_Agent_Template.nameOfMES_Data_Resource+" where "+_Agent_Template.columnNameAuftrags_ID+" = '"+wp_id+"'"); 
 					// System.out.println("mes__table_to_be_used "+mes_table_to_be_used);      
 			    	if (rs.isBeforeFirst() ) {			    	//the SQL query has returned data  
 			    		while(rs.next()) {
@@ -282,7 +284,7 @@ public abstract class _Agent_Template extends Agent{
 				        	workplan.addConsistsOfAllocatedWorkingSteps(allWS);
 			    		}
 			    	rs.close();	 
-			        _Agent_Template.printoutWorkPlan(workplan, "test_agent");   
+			        System.out.println(_Agent_Template.printoutWorkPlan(workplan, "test_agent"));   
 			    	}else {
 			    		System.out.println("No data found for id: "+wp_id);
 			    

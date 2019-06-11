@@ -46,8 +46,8 @@ public class BufferDeterminationBehaviour extends Behaviour{
 	public BufferDeterminationBehaviour(WorkpieceAgent myAgent, AllocatedWorkingStep relevant_allWS, boolean buffer_place_needed, Disturbance disturbance) {
 		this.myAgent = myAgent;
 		this.relevant_AllWS = relevant_allWS;
-		if(myAgent.simulation_mode) {
-			this.buffer_place_needed = !myAgent.simulation_mode;	//no buffer needed in case of simulation
+		if(myAgent.simulation_enercon_mode) {
+			this.buffer_place_needed = !myAgent.simulation_enercon_mode;	//no buffer needed in case of simulation
 			this.disturbance = disturbance;
 		}else {
 			this.buffer_place_needed = buffer_place_needed;
@@ -268,7 +268,7 @@ public class BufferDeterminationBehaviour extends Behaviour{
 			}
 			
 			
-			if(_Agent_Template.simulation_mode) {	//check if we have to arrange new planning
+			if(_Agent_Template.simulation_enercon_mode) {	//check if we have to arrange new planning
 				Machine_Error dis_type = (Machine_Error) disturbance.getHasDisturbanceType();
 			
 				if(shared_minimum_buffer_stored>=dis_type.getExpected_Duration_Of_Repair()) {		//nothing else has to be changed

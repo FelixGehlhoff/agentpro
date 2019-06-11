@@ -96,7 +96,7 @@ public class DatabaseConnectorAgent extends _Agent_Template{
 		}
 		
 		
-		if(_Agent_Template.simulation_mode) {
+		if(_Agent_Template.simulation_enercon_mode) {
 			if(this.getConnection().isClosed()) {
 				activateConnection();
 			}
@@ -183,10 +183,15 @@ public class DatabaseConnectorAgent extends _Agent_Template{
 				 	        //rs2.updateDate(columnNameOfPlanEnd, new java.sql.Date(Long.parseLong(allWorkingStep.getHasTimeslot().getEndDate())));	
 				 	       rs2.updateTimestamp(columnNameOfPlanEnd, new java.sql.Timestamp(Long.parseLong(allWorkingStep.getHasTimeslot().getEndDate())));
 				 	       
-				 	        if(getLocalName().equals("Pufferplatz1")) {
-				 	        	System.out.println("DEBUG_________columnNameOfPlanStart__"+sql_timestamp.getTime());
-				 	        	System.out.println("DEBUG_________columnNameOfPlanEnd__"+new java.sql.Date(Long.parseLong(allWorkingStep.getHasTimeslot().getEndDate())).getTime());			 	        	
-				 	        }
+				 	       //simulation times
+				 	       	double hours_sim_time_start_soll = (double) (Long.parseLong(allWorkingStep.getHasTimeslot().getStartDate()) - this.start_simulation_agentpto) / (1000*60*60);
+				    		double hours_sim_time_start_soll_rounded = GeneralFunctions.round(hours_sim_time_start_soll,4);
+				    		double hours_sim_time_end_soll = (double) (Long.parseLong(allWorkingStep.getHasTimeslot().getEndDate()) - this.start_simulation_agentpto) / (1000*60*60);							    		
+				    		double hours_sim_time_end_soll_rounded = GeneralFunctions.round(hours_sim_time_end_soll,4);		
+				    		
+				    		rs2.updateDouble(columnNameStartSimulation, hours_sim_time_start_soll_rounded);	
+				    		rs2.updateDouble(columnNameEndSimulation, hours_sim_time_end_soll_rounded);		
+			
 				 	        //only those should be found and updated that are not finished already
 				 	        rs2.updateBoolean(columnNameOfStarted, false);
 				 	   
@@ -214,6 +219,15 @@ public class DatabaseConnectorAgent extends _Agent_Template{
 				        //rs.updateDate(columnNameOfPlanEnd, new java.sql.Date(Long.parseLong(allWorkingStep.getHasTimeslot().getEndDate())));	
 				        rs.updateTimestamp(columnNameOfPlanStart, new java.sql.Timestamp(Long.parseLong(allWorkingStep.getHasTimeslot().getStartDate())));
 				        rs.updateTimestamp(columnNameOfPlanEnd, new java.sql.Timestamp(Long.parseLong(allWorkingStep.getHasTimeslot().getEndDate())));
+				 	       //simulation times
+			 	       	double hours_sim_time_start_soll = (double) (Long.parseLong(allWorkingStep.getHasTimeslot().getStartDate()) - this.start_simulation_agentpto) / (1000*60*60);
+			    		double hours_sim_time_start_soll_rounded = GeneralFunctions.round(hours_sim_time_start_soll,4);
+			    		double hours_sim_time_end_soll = (double) (Long.parseLong(allWorkingStep.getHasTimeslot().getEndDate()) - this.start_simulation_agentpto) / (1000*60*60);							    		
+			    		double hours_sim_time_end_soll_rounded = GeneralFunctions.round(hours_sim_time_end_soll,4);		
+			    		
+			    		rs.updateDouble(columnNameStartSimulation, hours_sim_time_start_soll_rounded);	
+			    		rs.updateDouble(columnNameEndSimulation, hours_sim_time_end_soll_rounded);		
+				        
 				        rs.updateString(columnNameAuftrags_ID, allWorkingStep.getHasOperation().getAppliedOn().getID_String());
 				        rs.updateString(columnNameOperation_Type, allWorkingStep.getHasOperation().getType());
 				      
@@ -388,7 +402,7 @@ public class DatabaseConnectorAgent extends _Agent_Template{
 			Resource_Extension res = new Resource_Extension();
 			res.setID_Number(rs.getInt(columnNameID));
 			res.setName(rs.getString(columnNameResourceName_simulation));
-			if(_Agent_Template.simulation_mode) {
+			if(_Agent_Template.simulation_enercon_mode) {
 				res.setColumninproductionplan(rs.getInt(columnNameColumnInProductionPlan));
 			}
 			

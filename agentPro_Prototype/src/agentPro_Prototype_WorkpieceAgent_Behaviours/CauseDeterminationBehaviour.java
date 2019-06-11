@@ -187,7 +187,7 @@ public class CauseDeterminationBehaviour extends OneShotBehaviour{
 				    	if(res.getName().equals(res_that_error_occures_at.getName())) {	//find out the position of the relevant step			    	
 				    		allocWorkingstep.setEnddate(disturbance.getError_occurance_time());
 				    		relevant_allWS = allocWorkingstep;	    		
-				    		if(myAgent.simulation_mode) {
+				    		if(myAgent.simulation_enercon_mode) {
 				    			myAgent.setLocation(res_that_error_occures_at.getHasLocation());
 				    		}			    		
 				    		break;

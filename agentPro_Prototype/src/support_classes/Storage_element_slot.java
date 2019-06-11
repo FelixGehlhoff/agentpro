@@ -1,5 +1,6 @@
 package support_classes;
 
+import agentPro.onto.AllocatedWorkingStep;
 import agentPro.onto.Operation;
 import agentPro.onto.Proposal;
 import agentPro.onto.Timeslot;
@@ -18,6 +19,9 @@ private String type;
 		this.setID(operation.getName());
 		this.setTimeslot(slot);
 		this.setTime_increment(increment);
+		if(increment<0) {
+			System.out.println("here");
+		}
 		this.setBuffer_after(operation.getBuffer_after_operation());
 		this.setBuffer_before(operation.getBuffer_before_operation());
 		this.setDuration_to_get_to_workpiece(duration_to_get_to_workpiece);
@@ -34,7 +38,8 @@ private String type;
 		this.duration_to_get_to_workpiece = duration_to_get_to_workpiece;
 	}
 
-	public Boolean checkNewTimeslot(Timeslot timeslot_new) {																		// new end = 12, old end = 11 + 1 (buffer)
+	public Boolean checkNewTimeslot(AllocatedWorkingStep allWS) {																		// new end = 12, old end = 11 + 1 (buffer)
+		Timeslot timeslot_new = allWS.getHasTimeslot();
 		if(Long.parseLong(timeslot_new.getStartDate())>=Long.parseLong(timeslot.getStartDate())-buffer_before && Long.parseLong(timeslot_new.getEndDate())<=Long.parseLong(timeslot.getEndDate())+buffer_after){	//eg new start = 10 vorher 11-1(buffer before)
 			return true;
 		}else {

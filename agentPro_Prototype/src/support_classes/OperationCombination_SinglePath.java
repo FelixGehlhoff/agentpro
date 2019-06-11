@@ -6,6 +6,7 @@ import agentPro.onto.AllocatedWorkingStep;
 import agentPro.onto.Proposal;
 import agentPro.onto.Transport_Operation;
 import agentPro.onto.WorkPlan;
+import agentPro_Prototype_Agents.WorkpieceAgent;
 import agentPro_Prototype_Agents._Agent_Template;
 
 public class OperationCombination_SinglePath {
@@ -129,6 +130,7 @@ public class OperationCombination_SinglePath {
 				case "time_of_finish":		//take earliest, if equal consider setup
 					if(Long.parseLong(transport_to_production.getHasTimeslot().getEndDate())>Long.parseLong(allWS_of_proposal.getHasTimeslot().getEndDate())) {
 						setTransport_to_production(allWS_of_proposal); //adjusts the other steps too
+						best_proposal_transport_to_production = proposal_transport;
 					}else if(Long.parseLong(transport_to_production.getHasTimeslot().getEndDate())==Long.parseLong(allWS_of_proposal.getHasTimeslot().getEndDate())) {
 						if(transport_to_production.getHasOperation().getSet_up_time()>allWS_of_proposal.getHasOperation().getSet_up_time()) {
 							setTransport_to_production(allWS_of_proposal);
@@ -137,7 +139,8 @@ public class OperationCombination_SinglePath {
 					}
 				case "duration_setup":		//take least setup, if equal earliest
 					if(transport_to_production.getHasOperation().getSet_up_time()>allWS_of_proposal.getHasOperation().getSet_up_time()) {
-						setTransport_to_production(allWS_of_proposal); //adjusts the other steps too					
+						setTransport_to_production(allWS_of_proposal); //adjusts the other steps too
+						best_proposal_transport_to_production = proposal_transport;
 					}else if(transport_to_production.getHasOperation().getSet_up_time()==allWS_of_proposal.getHasOperation().getSet_up_time()) {
 						if(Long.parseLong(transport_to_production.getHasTimeslot().getEndDate())>Long.parseLong(allWS_of_proposal.getHasTimeslot().getEndDate())) {
 							setTransport_to_production(allWS_of_proposal);
@@ -159,11 +162,25 @@ public class OperationCombination_SinglePath {
 	public void setTransport_to_production(AllocatedWorkingStep transport_to_production) {
 		this.transport_to_production = transport_to_production;
 		if(buffer != null) {
-			buffer.getHasTimeslot().setEndDate(transport_to_production.getHasTimeslot().getStartDate());	//TODO muss hier noch geprüft werden?				
+			buffer.getHasTimeslot().setEndDate(transport_to_production.getHasTimeslot().getStartDate());	//TODO muss hier noch geprüft werden?
+			buffer.getHasOperation().setAvg_PickupTime(transport_to_production.getHasOperation().getAvg_PickupTime());
 		}else {
-			startStep.getHasTimeslot().setEndDate(transport_to_buffer.getHasTimeslot().getStartDate());
+			if(Long.parseLong(transport_to_production.getHasTimeslot().getStartDate())-Long.parseLong(startStep.getHasTimeslot().getEndDate())>WorkpieceAgent.transport_estimation+_Agent_Template.bufferThreshold*60*1000){
+				System.out.println("OPERATIONCOMBINATION_SINGLEPATH______________________ERROR_____________A BUFFER SHOULD BE ARRANGED!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! Waiting time now: 	"+(Long.parseLong(transport_to_production.getHasTimeslot().getStartDate())-Long.parseLong(startStep.getHasTimeslot().getEndDate())));
+			}
+			startStep.getHasTimeslot().setEndDate(transport_to_production.getHasTimeslot().getStartDate());
+			startStep.getHasOperation().setAvg_PickupTime(transport_to_production.getHasOperation().getAvg_PickupTime());
 		}
-		nextProductionStep.getHasTimeslot().setStartDate(transport_to_production.getHasTimeslot().getEndDate());
+		long length = (long) nextProductionStep.getHasTimeslot().getLength();
+		//check if the later arrival can be accounted for with the buffer after operation
+		if(Long.parseLong(nextProductionStep.getHasTimeslot().getEndDate())+(long)nextProductionStep.getHasOperation().getBuffer_after_operation()>= Long.parseLong(transport_to_production.getHasTimeslot().getEndDate())+length) {
+			nextProductionStep.getHasTimeslot().setStartDate(transport_to_production.getHasTimeslot().getEndDate());
+			nextProductionStep.getHasTimeslot().setEndDate(Long.toString(Long.parseLong(nextProductionStep.getHasTimeslot().getStartDate())+length));
+			nextProductionStep.getHasOperation().setAvg_PickupTime(transport_to_production.getHasOperation().getAvg_PickupTime());
+		}else {
+			System.out.println("ERROR_______________TRANSPORT IS TOO LATE FOR PRODUCTION STEP"); //TODO ERROR routine, e.g. restart procedure with earliest arrival?
+		}
+		
 	}
 	public AllocatedWorkingStep getTransport_to_buffer() {
 		return transport_to_buffer;
@@ -172,7 +189,9 @@ public class OperationCombination_SinglePath {
 	public void setTransport_to_buffer(AllocatedWorkingStep transport_to_buffer) {
 		this.transport_to_buffer = transport_to_buffer;
 		buffer.getHasTimeslot().setStartDate(transport_to_buffer.getHasTimeslot().getEndDate());
+		buffer.getHasOperation().setAvg_PickupTime(transport_to_buffer.getHasOperation().getAvg_PickupTime());
 		startStep.getHasTimeslot().setEndDate(transport_to_buffer.getHasTimeslot().getStartDate());
+		startStep.getHasOperation().setAvg_PickupTime(transport_to_buffer.getHasOperation().getAvg_PickupTime());
 	}
 	
 	public long getTimeOfFinish() {

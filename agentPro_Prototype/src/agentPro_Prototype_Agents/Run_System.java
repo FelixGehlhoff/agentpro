@@ -36,7 +36,7 @@ public class Run_System {
 	        
 	        String paramlist = "DatabaseConnectorAgent:agentPro_Prototype_Agents.DatabaseConnectorAgent();Simulation_Infrastrucutre:agentPro_Prototype_Agents._Simulation_Order_Generator;InterfaceAgent:agentPro_Prototype_Agents.InterfaceAgent()";
 	        //SIMULATION
-	        if(_Agent_Template.simulation_mode) {
+	        if(_Agent_Template.simulation_enercon_mode) {
 	        	paramlist += ";DatabaseMonitorAgent:agentPro_Prototype_Agents.DatabaseMonitorAgent()";
 	        }
 	        paramList.add(paramlist);	     

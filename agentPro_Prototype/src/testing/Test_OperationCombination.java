@@ -35,27 +35,7 @@ public class Test_OperationCombination {
 	static double costs = 0;
 	static double utilization = 0;
 	public static void main(String[] args){
-		String wp_id = "A_1.1";
-		String wp_id2 = "B_2.2";
-		String wp_id3 = "A_3.3";
-		WorkPlan wp = createWorkplanFromDatabase(wp_id);
-		WorkPlan wp2 = createWorkplanFromDatabase(wp_id2);
-		WorkPlan wp3 = createWorkplanFromDatabase(wp_id3);
 		
-		@SuppressWarnings("unchecked")
-		Iterator<AllocatedWorkingStep>it = wp.getConsistsOfAllocatedWorkingSteps().iterator();
-		while(it.hasNext()) {
-			wp2.addConsistsOfAllocatedWorkingSteps(it.next());
-		}
-		@SuppressWarnings("unchecked")
-		Iterator<AllocatedWorkingStep>ite = wp3.getConsistsOfAllocatedWorkingSteps().iterator();
-		while(ite.hasNext()) {
-			wp2.addConsistsOfAllocatedWorkingSteps(ite.next());
-		}
-		 XYTaskDataset_Total demo = new XYTaskDataset_Total("JFreeChart : XYTaskDataset_Total.java", wp2);
-	        demo.pack();
-	        RefineryUtilities.centerFrameOnScreen(demo);
-	        demo.setVisible(false);	
 		
 	/*
 		WorkPlan wp2 = createWorkplanFromDatabase(wp_id2);
@@ -84,6 +64,8 @@ public class Test_OperationCombination {
 			System.out.println(longNumber+" "+longNumber2);*/
 	}
 	
+	
+	
 	public static void calculateValues(WorkPlan wp) {		
 		wp = _Agent_Template.sortWorkplanChronologically(wp);	//sorts it chronologically
 		AllocatedWorkingStep lastStep = (AllocatedWorkingStep) wp.getConsistsOfAllocatedWorkingSteps().get(wp.getConsistsOfAllocatedWorkingSteps().size()-1);
@@ -104,55 +86,7 @@ public class Test_OperationCombination {
 		
 		}
 
-	private static WorkPlan createWorkplanFromDatabase(String wp_id) {
-		WorkPlan workplan = new WorkPlan();
-		
-		try (Connection con = DriverManager.getConnection(_Agent_Template.dbaddress_sim); Statement stmt = con.createStatement(ResultSet.TYPE_SCROLL_SENSITIVE, ResultSet.CONCUR_UPDATABLE);
-				){
-
-			    	ResultSet rs = stmt.executeQuery(		
-			    			//"select * from "+nameOfMES_Data+" where "+columnNameOfOperation+" = '"+allWorkingStep.getHasOperation().getName()+"' and "+columnNameAuftrags_ID+" = '"+allWorkingStep.getHasOperation().getAppliedOn().getID_String()+"' and "+columnNameFinished+" = 'false'"); 
-			    			"select * from "+_Agent_Template.prefix_schema+".total_operations"+" where "+_Agent_Template.columnNameAuftrags_ID+" = '"+wp_id+"'"); 
-					// System.out.println("mes__table_to_be_used "+mes_table_to_be_used);      
-			    	if (rs.isBeforeFirst() ) {			    	//the SQL query has returned data  
-			    		while(rs.next()) {
-			    			AllocatedWorkingStep allWS = new AllocatedWorkingStep();
-			    			allWS.setID_String("Test");
-				        	Timeslot timeslot = new Timeslot();		     
-				        		timeslot.setStartDate(String.valueOf(rs.getTimestamp(_Agent_Template.columnNameOfPlanStart).getTime()));
-				        		timeslot.setEndDate(String.valueOf(rs.getTimestamp(_Agent_Template.columnNameOfPlanEnd).getTime()));
-				        		timeslot.setLength(rs.getTimestamp(_Agent_Template.columnNameOfPlanEnd).getTime()-rs.getTimestamp(_Agent_Template.columnNameOfPlanStart).getTime());
-				        		allWS.setHasTimeslot(timeslot);
-				        	allWS.setIsStarted(rs.getBoolean(_Agent_Template.columnNameOfStarted));	
-				        	allWS.setIsFinished(rs.getBoolean(_Agent_Template.columnNameOfFinished));	
-				        	Resource res = new Resource();
-				        		res.setName(rs.getString(_Agent_Template.columnNameOfResource));
-				        		res.setID_Number(rs.getInt(_Agent_Template.columnNameOfResource_ID));
-				        		res.setDetailed_Type("Test");
-				        		allWS.setHasResource(res);
-				        	Operation op = new Operation();
-				        		op.setName(rs.getString(_Agent_Template.columnNameOfOperation));
-				        			Workpiece wp = new Workpiece();
-				        			wp.setID_String(wp_id);
-				        		op.setAppliedOn(wp);
-				        		op.setType(rs.getString(_Agent_Template.columnNameOperation_Type));			        		
-				        		op.setSet_up_time(10);
-				        		op.setAvg_Duration(20);
-				        		allWS.setHasOperation(op);
-				        	workplan.addConsistsOfAllocatedWorkingSteps(allWS);
-			    		}
-			    	rs.close();	 
-			        System.out.println(_Agent_Template.printoutWorkPlan(workplan, "test_agent"));   
-			    	}else {
-			    		System.out.println("No data found for id: "+wp_id);
-			    
-			    	}
-      
-	    } catch (SQLException e ) {
-	        e.printStackTrace();
-	    }	
-		return workplan;
-	}
+	
 	private static double calculateCosts(Proposal initial_proposal_production2, ArrayList<Proposal> proposal_list_followup2) {
 		double costs = 0;
 		costs += initial_proposal_production2.getPrice();

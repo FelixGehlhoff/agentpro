@@ -48,7 +48,7 @@ public class BookBufferPlaceProcedureBehaviour extends Behaviour{
 		//startdate_for_this_task = Long.parseLong(((AllocatedWorkingStep) myAgent.getWorkplan().getConsistsOfAllocatedWorkingSteps().get(position_in_Allocated_Working_step_list)).getHasTimeslot().getEndDate());
 		
 		//startdate_for_this_task is the start of the next regular production step
-		if(myAgent.simulation_mode) {
+		if(myAgent.simulation_enercon_mode) {
 			startdate_for_this_task = (long) relevant_allWS.getEnddate()+2*myAgent.getTransport_estimation()+(long)myAgent.duration_repair_workpiece*60*60*1000;
 		}else {
 			//26.03. new workaround: use old enddate as startdate	
@@ -120,7 +120,7 @@ public class BookBufferPlaceProcedureBehaviour extends Behaviour{
 		    		//interval between now and the start of the next production step
 	    		Interval interval_between_now_and_Startdate_production = new Interval();
 	    		
-	    		if(myAgent.simulation_mode) {
+	    		if(myAgent.simulation_enercon_mode) {
 	    			interval_between_now_and_Startdate_production = new Interval((long)failure_step.getEnddate(), Long.parseLong(next_production_step.getHasTimeslot().getStartDate()));
 		    			
 	    		}else {
@@ -144,7 +144,7 @@ public class BookBufferPlaceProcedureBehaviour extends Behaviour{
 		    		}else { //if the interval is big enough --> book buffer
 		    			Timeslot timeslot_to_book_buffer_place = new Timeslot();
 			    		//start is "now" (with workaround its the end of the last finished production step) + transport estimation
-		    			if(myAgent.simulation_mode) {
+		    			if(myAgent.simulation_enercon_mode) {
 		    				timeslot_to_book_buffer_place.setStartDate(String.valueOf((long)failure_step.getEnddate()+myAgent.getTransport_estimation()));
 				    		//end is start of next production - transport estimation				    		
 		    			}else {
@@ -156,7 +156,7 @@ public class BookBufferPlaceProcedureBehaviour extends Behaviour{
 			    		Operation buffer = new Operation();
 					    buffer.setType("production");
 					    long duration = 0;
-						if(myAgent.simulation_mode) {
+						if(myAgent.simulation_enercon_mode) {
 							buffer.setName("Nachbearbeitung");
 						 duration = (Long.parseLong(next_production_step.getHasTimeslot().getStartDate())-myAgent.getTransport_estimation())-((long)failure_step.getEnddate()+myAgent.getTransport_estimation());
 							    
@@ -222,7 +222,7 @@ public class BookBufferPlaceProcedureBehaviour extends Behaviour{
 	    			AllocatedWorkingStep allWS_transport_to_buffer = (AllocatedWorkingStep) myAgent.getWorkplan().getConsistsOfAllocatedWorkingSteps().get(i);
 	    			Boolean doLocationsmatch_startTransporttoProduction_LocationOfOldProductionStep = false;
 	    			if(allWS_transport_to_buffer.getHasOperation().getType().equals("transport")) {
-	    				if(_Agent_Template.simulation_mode) {
+	    				if(_Agent_Template.simulation_enercon_mode) {
 	    					doLocationsmatch_startTransporttoProduction_LocationOfOldProductionStep = myAgent.doLocationsMatch(((Location)allWS_transport_to_buffer.getHasOperation().getStartState()), failure_step.getHasResource().getHasLocation());    		     				  	    			
 	    				}else {
 	    					doLocationsmatch_startTransporttoProduction_LocationOfOldProductionStep = myAgent.doLocationsMatch(((Location)allWS_transport_to_buffer.getHasOperation().getStartState()), relevant_AllWS.getHasResource().getHasLocation());    		     				    			

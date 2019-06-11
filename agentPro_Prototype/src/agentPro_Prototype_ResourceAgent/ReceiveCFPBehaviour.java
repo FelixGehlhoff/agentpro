@@ -170,37 +170,31 @@ public class ReceiveCFPBehaviour extends Behaviour{
 								//timeslot_for_schedule = new Timeslot();		//TBD not needed anymore?							
 								proposals.add(myAgent.checkScheduleDetermineTimeslotAndCreateProposal(cfp));																						
 								deadline_not_met = 0;
-								
-
-								if(proposals.size()>0 && myAgent.getNeeded_shared_resources().size()>0) {
-									step = 2;
-									break;
-																	
-								}else if (proposals.size()>0){	//no need for shared resources to be considered
-									step = 1;
-									break;
-								}else {	//error handling
-									System.out.println(_Agent_Template.SimpleDateFormat.format(new Date())+" " +myAgent.getLocalName()+logLinePrefix+" no proposal can be made. No free slot found --> should not happen.");
-									step = 0;
-									break;
-								}
-								
-								
-								
-
 							}
 							else {
 								numberOfRefusals++;								
 							}    	
 				    }
-				    
-				    if(numberOfRefusals == sendcfp_onto.getHasCFP().size()) {
+				    if(proposals.size()+numberOfRefusals ==sendcfp_onto.getHasCFP().size()&& myAgent.getNeeded_shared_resources().size()>0) {
+						step = 2;
+						break;
+														
+					}/*else if (proposals.size()>0){	//no need for shared resources to be considered
+						step = 1;
+						break;
+					}*/else if(numberOfRefusals == sendcfp_onto.getHasCFP().size()) {
 				    	System.out.println(_Agent_Template.SimpleDateFormat.format(new Date())+" " +myAgent.getLocalName()+logLinePrefix+" no proposal can be made. Product type not enabled or coordinates not reachable.");						
 				    	myAgent.sendRefusal(msg);
 				    	sender.clear(); //clears the arraylist of senders for the next message
 				    	numberOfRefusals = 0;
 						break;
-				    }   
+				    }else if(proposals.size()+numberOfRefusals==sendcfp_onto.getHasCFP().size()) {
+				    	step=1;
+				    }else {	//error handling
+						System.out.println(_Agent_Template.SimpleDateFormat.format(new Date())+" " +myAgent.getLocalName()+logLinePrefix+" no proposal can be made. No free slot found --> should not happen.");
+						step = 0;
+						break;
+					}
 			}
 			else {
 				block();

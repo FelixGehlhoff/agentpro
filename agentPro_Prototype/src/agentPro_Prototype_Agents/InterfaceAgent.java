@@ -50,9 +50,6 @@ public class InterfaceAgent extends _Agent_Template{
 		private String columnNameOfLastOperation = "LastOperation";
 	*/
 		
-	//Ontology
-	private Ontology ontology = AgentPro_ProductionOntology.getInstance();
-	private Codec codec = new SLCodec();
 	
 	protected void setup (){
 		//super.setup();

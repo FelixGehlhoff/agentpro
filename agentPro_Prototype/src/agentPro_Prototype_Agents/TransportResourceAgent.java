@@ -48,7 +48,6 @@ public class TransportResourceAgent extends ResourceAgent{
 		
 		
 		super.setup();
-		
 		logLinePrefix = logLinePrefix+".TransportRessourceAgent.";
 		
 		representedResource = new TransportResource();
@@ -97,7 +96,7 @@ public class TransportResourceAgent extends ResourceAgent{
 		
 		boolean return_value = true;
 		Transport_Operation transport_op = (Transport_Operation) operation;
-		Location start = (Location) transport_op.getStartState();
+		Location start = (Location) transport_op.getstartStateNeeded();
 		Location end = (Location) transport_op.getEndState();
 		
 		//System.out.println("DEBUG___"+this.getName()+" range "+range.toString()+" contains "+end.getCoordX()+" and contains "+ start.getCoordX());
@@ -246,17 +245,20 @@ public class TransportResourceAgent extends ResourceAgent{
 				
 		boolean slot_found = false;
 		String printout = "";
-		long buffer_after_operation = 0;
-		long buffer_before_operation = 0;
+		//long buffer_after_operation = 0;
+		//long buffer_before_operation = 0;
 		long earliest_finish_date_from_arrive_at_resource = enddate_cfp;
 
 		 ArrayList<Interval> listOfIntervals = new ArrayList<Interval>();
 		
 		 //independent parameters
 		 float duration_eff = calculateDurationOfProcessWithoutSetup(operation, number_of_tours_needed);
+		 Storage_element_slot slot = null;
 		 
 	for(int i = 0;i<getFree_interval_array().size();i++) {	
-		
+		if(transport_op_to_destination.getName().contains("Fraese")&&transport_op_to_destination.getAppliedOn().getID_String().contains("B")) {
+			System.out.println("here");
+		}	
 			operation_description.clearAllHasRequest_Points();	
 			
 			//dependent parameters
@@ -265,45 +267,49 @@ public class TransportResourceAgent extends ResourceAgent{
 						//duration_to_get_to_workpiece = (distance_TransportResource_to_Workpiece/avg_speed) / 60 ;	// in min
 			duration_to_get_to_workpiece = calculateDurationSetup(getFree_interval_array().get(i), operation);
 			//time_increment_or_decrement_to_be_added_for_setup_of_next_task = this.calculateTimeIncrement(transport_op_to_destination, avg_speed, i, operation_description); // in min
-				time_increment_or_decrement_to_be_added_for_setup_of_next_task = this.calculateTimeIncrement(transport_op_to_destination, i, operation_description); // in min
-						
+
+			time_increment_or_decrement_to_be_added_for_setup_of_next_task = this.calculateTimeIncrement(transport_op_to_destination, i, operation_description); // in min
+				if(operation.getName().contentEquals("20.0;5.0_Rollformen")) {
+					System.out.println("here");
+				}
 			duration_total_for_schedule = duration_to_get_to_workpiece + duration_eff + buffer + time_increment_or_decrement_to_be_added_for_setup_of_next_task;	// min
 			duration_for_answering_CFP_so_for_Workpiece_schedule 	=  	 duration_eff + buffer;
-
-			
+		
 			//calculate possible slots within this free interval (FI)
-			listOfIntervals = calculateIntervals(startdate_cfp, enddate_cfp, (long)(duration_to_get_to_workpiece*60*1000), (long)(duration_eff*60*1000), (long)(time_increment_or_decrement_to_be_added_for_setup_of_next_task*60*1000), buffer_time_that_production_can_start_earlier, i);
-			System.out.println("DEBUG__________interval "+listOfIntervals.get(0).toString());
+			listOfIntervals = calculateIntervals(startdate_cfp, enddate_cfp, (long)(Math.round(duration_to_get_to_workpiece*60*1000)), (long)(Math.round(duration_eff*60*1000)), (long)(Math.round(time_increment_or_decrement_to_be_added_for_setup_of_next_task*60*1000)), buffer_time_that_production_can_start_earlier, i);
+			//System.out.println("DEBUG__________interval "+listOfIntervals.get(0).toString());
 			//check which slots are possible from (production) ressource side --> dont take the WP too early and dont arrive too early
 			 checkFeasibility(listOfIntervals, startdate_cfp, enddate_cfp, buffer_time_that_production_can_start_earlier);
-			 System.out.println("DEBUG__________interval "+listOfIntervals.get(0).toString());
+			// System.out.println("DEBUG__________interval "+listOfIntervals.get(0).toString());
 			 //checks the schedule --> LB and UB violated?
-			 checkSchedule(listOfIntervals, (long)(duration_to_get_to_workpiece*60*1000), (long)(time_increment_or_decrement_to_be_added_for_setup_of_next_task*60*1000), i);
+			 checkSchedule(listOfIntervals, (long)(duration_to_get_to_workpiece*60*1000), (long)(time_increment_or_decrement_to_be_added_for_setup_of_next_task*60*1000), i, cfp.getID_String());
 			 
 			 if(listOfIntervals.size()>0) {
 				 slot_found = true;
 				 //sort earliest end first
 				 this.sortArrayListIntervalsEarliestFirst(listOfIntervals, "end");
-				 
-				 Storage_element_slot slot = createStorageElement(operation.getName(), listOfIntervals, duration_to_get_to_workpiece, (long)(time_increment_or_decrement_to_be_added_for_setup_of_next_task*60*1000));
-				 
+				 		
 					//the duration of the (offered) operation must be reduced by the time that the transport resource needs to get to the workpiece / the set up time of the machine
 					transport_op_to_destination.setAvg_Duration(duration_for_answering_CFP_so_for_Workpiece_schedule);
 						//System.out.println("DEBUG___________duration_for_answering_CFP_so_for_Workpiece_schedule "+duration_for_answering_CFP_so_for_Workpiece_schedule+" start minus end = "+(estimated_enddate-estimated_start_date)/(1000*60));
 						transport_op_to_destination.setSet_up_time(duration_to_get_to_workpiece);
 						transport_op_to_destination.setAvg_PickupTime(this.getRepresentedResource().getAvg_PickupTime());
-						transport_op_to_destination.setBuffer_after_operation(buffer_after_operation);
-						transport_op_to_destination.setBuffer_before_operation(buffer_before_operation);
+						transport_op_to_destination.setBuffer_after_operation(0);		//not needed?
+						transport_op_to_destination.setBuffer_before_operation(0);	//not needed?
 							//	if(consider_shared_resources) {transport_op_to_destination.setHasDetailedOperationDescription(createDetailedOperationDescription));}		
 						timeslot_for_proposal.setEndDate(String.valueOf(listOfIntervals.get(0).upperBound()));
 						timeslot_for_proposal.setStartDate(String.valueOf(listOfIntervals.get(0).lowerBound()));
 						timeslot_for_proposal.setLength(listOfIntervals.get(0).upperBound()-listOfIntervals.get(0).lowerBound());
 						
-						System.out.println("DEBUG_____"+logLinePrefix+"  transport resource agent ______estimated_end_date "+String.valueOf(listOfIntervals.get(0).upperBound())+" estimated_startdate "+(listOfIntervals.get(0).lowerBound()-(long) duration_to_get_to_workpiece)+" time_increment_or_decrement_to_be_added_for_setup_of_next_task "+time_increment_or_decrement_to_be_added_for_setup_of_next_task+" duration_total_for_schedule = "+duration_total_for_schedule+" duration_to_get_to_workpiece = "+duration_to_get_to_workpiece);
-					float price = duration_total_for_schedule + deadline_not_met;		//strafkosten, wenn deadline_not_met
+						slot = createStorageElement(operation, timeslot_for_proposal, duration_to_get_to_workpiece*60*1000, (long)(time_increment_or_decrement_to_be_added_for_setup_of_next_task*60*1000));
+						 //Storage_element_slot slot = createStorageElement(operation.getName(), listOfIntervals, duration_to_get_to_workpiece, (long)(time_increment_or_decrement_to_be_added_for_setup_of_next_task*60*1000));
+						 
+						
+						//System.out.println("DEBUG_____"+logLinePrefix+"  transport resource agent ______estimated_end_date "+String.valueOf(listOfIntervals.get(0).upperBound())+" estimated_startdate "+(listOfIntervals.get(0).lowerBound()-(long) duration_to_get_to_workpiece)+" time_increment_or_decrement_to_be_added_for_setup_of_next_task "+time_increment_or_decrement_to_be_added_for_setup_of_next_task+" duration_total_for_schedule = "+duration_total_for_schedule+" duration_to_get_to_workpiece = "+duration_to_get_to_workpiece);
+					//float price = duration_total_for_schedule + deadline_not_met;		//strafkosten, wenn deadline_not_met
 
-					proposal = createProposal(price, transport_op_to_destination, timeslot_for_proposal, cfp.getHasSender(), cfp.getID_String());
-					slot.setProposal(proposal);
+					//proposal = createProposal(price, transport_op_to_destination, timeslot_for_proposal, cfp.getHasSender(), cfp.getID_String());
+					//slot.setProposal(proposal);
 				 this.getReceiveCFPBehav().getProposed_slots().add(slot);
 					
 				 //TBD Buffer
@@ -318,7 +324,16 @@ public class TransportResourceAgent extends ResourceAgent{
 		}
 		System.out.println("DEBUG----------"+"NO FREE SLOT FOUND ---> this should not happen   printout   	"+printout);
 		proposal = null;
+	}else {
+		
+		float price = duration_total_for_schedule + deadline_not_met;
+		proposal = createProposal(price, operation, timeslot_for_proposal, cfp.getHasSender(), cfp.getID_String());	//cfp.getIDString() is empty in CFPs to production resources
+		slot.setProposal(proposal);
+	
 	}
+		if(timeslot_for_proposal.getLength() == 0) {
+		proposal = null;	
+		}
 		return proposal;
 	}	
 
@@ -345,9 +360,9 @@ public class TransportResourceAgent extends ResourceAgent{
 	}*/
 	
 	private float calculateDurationOfProcessWithoutSetup(Operation operation, int number_of_times_to_be_executed) {
-		float distance_Workpiece_to_ProductionResource = calcDistance((Location)operation.getStartState(), (Location)operation.getEndState());	//in m
+		float distance_Workpiece_to_ProductionResource = calcDistance((Location)operation.getstartStateNeeded(), (Location)operation.getEndState());	//in m
 		 float traveling_time  = (distance_Workpiece_to_ProductionResource/this.getRepresentedResource().getAvg_Speed())/60; // in min
-		System.out.println("DEBUG__TR____number_of_times_to_be_executed "+number_of_times_to_be_executed+" calculated (1+(number_of_times_to_be_executed-1)*2) "+(1+(number_of_times_to_be_executed-1)*2));
+		//System.out.println("DEBUG__TR____number_of_times_to_be_executed "+number_of_times_to_be_executed+" calculated (1+(number_of_times_to_be_executed-1)*2) "+(1+(number_of_times_to_be_executed-1)*2));
 		 float duration_eff = traveling_time*(1+(number_of_times_to_be_executed-1)*2) + 2*this.getRepresentedResource().getAvg_PickupTime()*number_of_times_to_be_executed;
 		 
 		return duration_eff;
@@ -355,33 +370,40 @@ public class TransportResourceAgent extends ResourceAgent{
 
 	private float calculateDurationSetup(Interval interval, Operation operation) {
 		Location start_old_idle = (Location) this.getStateAtTime(interval.lowerBound());	
-		System.out.println("DEBUG_______start_old_idle 1 "+start_old_idle.toString());
-		System.out.println("DEBUG_______start_old_idle 2 "+start_old_idle.getCoordX());
-		System.out.println("DEBUG_______start_old_idle 3 "+start_old_idle.getCoordY());
-		
-		
-		Location start_new = (Location) operation.getStartState();
+		operation.setStartState(start_old_idle);
+		Location start_new = (Location) operation.getstartStateNeeded();
 		float distance_TransportResource_to_Workpiece = calcDistance(start_old_idle, start_new);			
 		float duration_to_get_to_workpiece = (distance_TransportResource_to_Workpiece/this.getRepresentedResource().getAvg_Speed()) / 60 ;	// in min
 		return duration_to_get_to_workpiece;
 	}
 
 	//checks whether the start >= LB and end <= UB
-	public void checkSchedule(ArrayList<Interval> listOfIntervals_possibleFromResourceSide, long duration_to_get_to_workpiece, long time_increment_or_decrement_to_be_added_for_setup_of_next_task, int i2) {
+	public void checkSchedule(ArrayList<Interval> listOfIntervals_possibleFromResourceSide, long duration_to_get_to_workpiece, long time_increment_or_decrement_to_be_added_for_setup_of_next_task, int i2, String id_string) {
 		int counter = 1; //no of element
 		 Iterator<Interval> it = listOfIntervals_possibleFromResourceSide.iterator();		 	
 		    while(it.hasNext()) {
 		    	Interval i = it.next();
 		    	//check Free Interval parameters
 		    	if(i.lowerBound()-duration_to_get_to_workpiece< getFree_interval_array().get(i2).lowerBound() && i.upperBound()<=getFree_interval_array().get(i2).upperBound()-time_increment_or_decrement_to_be_added_for_setup_of_next_task) {
-		    		System.out.println("REMOVED: "+counter+" "+i.getId()+" "+i.toString()+" because LB_Ress-d2WP "+(i.lowerBound()-duration_to_get_to_workpiece)+" < "+getFree_interval_array().get(i2).lowerBound()+" lower_bound_Transporter --> start too early FOR TRANSPORTER");
+		    		//System.out.println("REMOVED: "+counter+" "+i.getId()+" "+i.toString()+" because LB_Ress-d2WP "+(i.lowerBound()-duration_to_get_to_workpiece)+" < "+getFree_interval_array().get(i2).lowerBound()+" lower_bound_Transporter --> start too early FOR TRANSPORTER");
 		    		it.remove();
 		 		 }else if(i.lowerBound()-duration_to_get_to_workpiece>= getFree_interval_array().get(i2).lowerBound() && i.upperBound() > getFree_interval_array().get(i2).upperBound()-time_increment_or_decrement_to_be_added_for_setup_of_next_task){
-		 			System.out.println("REMOVED: "+counter+" "+i.getId()+" "+i.toString()+" because UB_Ress "+i.upperBound()+" > "+(getFree_interval_array().get(i2).upperBound()-time_increment_or_decrement_to_be_added_for_setup_of_next_task)+" upper_bound_transporter --> Finish too late for TRANSPORTER");
+		 			//System.out.println("REMOVED: "+counter+" "+i.getId()+" "+i.toString()+" because UB_Ress "+i.upperBound()+" > "+(getFree_interval_array().get(i2).upperBound()-time_increment_or_decrement_to_be_added_for_setup_of_next_task)+" upper_bound_transporter --> Finish too late for TRANSPORTER");
 		    		it.remove();
 		 		 }else if(i.lowerBound()-duration_to_get_to_workpiece< getFree_interval_array().get(i2).lowerBound() && i.upperBound() > getFree_interval_array().get(i2).upperBound()-time_increment_or_decrement_to_be_added_for_setup_of_next_task){
-		 			System.out.println("REMOVED: "+counter+" "+i.getId()+" "+i.toString()+" because UB "+i.upperBound()+" > "+(getFree_interval_array().get(i2).upperBound()-time_increment_or_decrement_to_be_added_for_setup_of_next_task)+" upper_bound_transporter  --> Finish too late for TRANSPORTER AND because LB_Ress "+(i.lowerBound()-duration_to_get_to_workpiece)+" < "+getFree_interval_array().get(i2).lowerBound()+" lower_bound_Transporter --> start too early FOR TRANSPORTER");
+		 			//System.out.println("REMOVED: "+counter+" "+i.getId()+" "+i.toString()+" because UB "+i.upperBound()+" > "+(getFree_interval_array().get(i2).upperBound()-time_increment_or_decrement_to_be_added_for_setup_of_next_task)+" upper_bound_transporter  --> Finish too late for TRANSPORTER AND because LB_Ress "+(i.lowerBound()-duration_to_get_to_workpiece)+" < "+getFree_interval_array().get(i2).lowerBound()+" lower_bound_Transporter --> start too early FOR TRANSPORTER");
 		    		it.remove();
+		 		 }else if(this.getReceiveCFPBehav().getProposed_slots()!=null){
+		 			for(Storage_element_slot slot : this.getReceiveCFPBehav().getProposed_slots()) {
+		 				if(slot.getID().contentEquals(id_string)) {
+		 					Timeslot already_promised_for_this_id = slot.getTimeslot();
+		 					Interval interval = new Interval(Long.parseLong(already_promised_for_this_id.getStartDate()), Long.parseLong(already_promised_for_this_id.getEndDate()), false);
+		 					if(i.contains(interval)) {
+		 						it.remove();
+		 						//TODO better handling!
+		 					}
+		 				}
+		 			}
 		 		 }else {
 		 			 //fine
 		 		 }
@@ -547,6 +569,12 @@ public class TransportResourceAgent extends ResourceAgent{
 	@Override
 	public void setRepresentedResource(Resource res) {
 		representedResource = (TransportResource) res;
+		
+	}
+
+	@Override
+	protected void considerPickup(AllocatedWorkingStep allocatedWorkingStep) {
+		// nothing has to happen
 		
 	}
 

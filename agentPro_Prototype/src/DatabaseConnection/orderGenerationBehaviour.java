@@ -1,48 +1,24 @@
 package DatabaseConnection;
 
-import java.sql.Connection;
-import java.sql.DriverManager;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
-import java.util.Calendar;
 import java.util.Date;
-import java.util.Iterator;
-import java.util.Random;
-
-import agentPro.onto.AllocatedWorkingStep;
-import agentPro.onto.Capability;
-import agentPro.onto.Disturbance;
-import agentPro.onto.DisturbanceType;
 import agentPro.onto.Location;
-import agentPro.onto.Machine_Error;
 import agentPro.onto.Operation;
-import agentPro.onto.Order;
 import agentPro.onto.OrderPosition;
 import agentPro.onto.OrderedOperation;
 import agentPro.onto.Product;
 import agentPro.onto.ProductionPlan;
-import agentPro.onto.Request_DatabaseEntry;
-import agentPro.onto.Resource;
 import agentPro.onto.Warehouse_Resource;
-import agentPro.onto.Workpiece_Error;
-import agentPro.onto._Incoming_Disturbance;
-import agentPro.onto._SendRequest_DatabaseEntry;
-import agentPro_Prototype_Agents.DatabaseMonitorAgent;
 import agentPro_Prototype_Agents._Agent_Template;
 import agentPro_Prototype_Agents._Simulation_Order_Generator;
-import jade.content.lang.Codec.CodecException;
-import jade.content.onto.OntologyException;
-import jade.content.onto.basic.Action;
-import jade.core.AID;
-import jade.core.behaviours.CyclicBehaviour;
 import jade.core.behaviours.OneShotBehaviour;
 import jade.domain.DFService;
 import jade.domain.FIPAException;
 import jade.domain.FIPAAgentManagement.DFAgentDescription;
 import jade.domain.FIPAAgentManagement.ServiceDescription;
-import jade.lang.acl.ACLMessage;
 import jade.wrapper.AgentController;
 import jade.wrapper.ContainerController;
 import jade.wrapper.StaleProxyException;
@@ -53,29 +29,26 @@ public class orderGenerationBehaviour extends OneShotBehaviour{
 	 */
 	private static final long serialVersionUID = 1L;
 	private _Simulation_Order_Generator myAgent;
-
-	
-	private ArrayList<Order> orders = new ArrayList<Order>();
 	private ArrayList<ProductionPlan> productionPlans = new ArrayList<ProductionPlan>();
 	
 	private String columnNameOfStep = "Step";
 	private String columnNameOfOperation = "Operation";
 	private String columnNameOfFirstOperation = "FirstOperation";
 	private String columnNameOfLastOperation = "LastOperation";
-	private String nameOfProduction_Plan_Def_Table = myAgent.prefix_schema+".production_plan_def";
+	private String nameOfProduction_Plan_Def_Table = _Agent_Template.prefix_schema+".production_plan_def";
 	private String columnNameOfProductName = "ProductName";
 	private int numberOfProducts = 2;
 	
 	private String conversationID_forInterfaceAgent = "OrderAgent"; //for directly contacting the interface agent
 	private DFAgentDescription interface_agent;
-	private long initial_wait = 3000;
-	private double wait_between_agent_creation = 5000;
+	private long initial_wait = 12000;
+	private double wait_between_agent_creation = 3000;
 	private String columnNameOfFollowUpConstraint = "hasFollowUpOperationConstraint";
 	private String columnNameOfWithStep = "withStep";
 	private String columnNameLocationX = "locationX";
 	private String columnNameLocationY = "locationY";
 	
-	private int limit = 3; //number of orders to create
+	
 
 
 	public orderGenerationBehaviour(_Simulation_Order_Generator myAgent) {
@@ -119,7 +92,7 @@ public class orderGenerationBehaviour extends OneShotBehaviour{
 					interface_agent = result[0];
 				
 				}else {
-					System.out.println(myAgent.SimpleDateFormat.format(new Date())+" "+myAgent.getLocalName()+" no Interface Agent was found");
+					System.out.println(_Agent_Template.SimpleDateFormat.format(new Date())+" "+myAgent.getLocalName()+" no Interface Agent was found");
 				}
 			}
 				 catch (FIPAException e) {
@@ -186,7 +159,7 @@ public class orderGenerationBehaviour extends OneShotBehaviour{
 	        ResultSet rs = stmt.executeQuery(query);
 	       
 	        int i = 1;
-	        while (rs.next() && i<=limit) {
+	        while (rs.next() && i<=_Agent_Template.limit) {
 	        	String query2 = "select "+columnNameLocationX+" , "+myAgent.columnNameID+" , "+columnNameLocationY+" from "+myAgent.tableNameResource+" where "+myAgent.columnNameResourceName_simulation+" = ";
 	        		        	
 	        	OrderPosition orderPos = new OrderPosition();
@@ -195,7 +168,7 @@ public class orderGenerationBehaviour extends OneShotBehaviour{
 	        	//15.01.19 dates for backwards calculation etc.
 	        	orderPos.setDueDate(_Agent_Template.SimpleDateFormat.format(rs.getTime(myAgent.columnNameOfDueDate)));
 	        	orderPos.setReleaseDate(_Agent_Template.SimpleDateFormat.format(rs.getTime(myAgent.columnNameOfReleaseDate)));
-	        	 if(_Agent_Template.simulation_mode) {
+	        	 if(_Agent_Template.simulation_enercon_mode) {
     				 orderPos.setStartDate(String.valueOf(myAgent.start_simulation));
     			 }else {
     				 orderPos.setStartDate(_Agent_Template.SimpleDateFormat.format(rs.getTimestamp(_Agent_Template.columnNameOfPlanStart)));
@@ -211,7 +184,7 @@ public class orderGenerationBehaviour extends OneShotBehaviour{
 	        		//System.out.println("DEBUG____"+prod_name+" pP.getDefinesProduct().getName() "+pP.getDefinesProduct().getName());
 	        		if(pP.getDefinesProduct().getName().equals(prod_name)) {
 	        			 orderPos.getContainsProduct().setHasProductionPlan(pP);
-	        			 if(_Agent_Template.simulation_mode) {
+	        			 if(_Agent_Template.simulation_enercon_mode) {
 	        				 orderPos.setSequence_Number(i);
 	        			 }else {
 	        				 orderPos.setSequence_Number(rs.getInt(myAgent.columnNameID)); 

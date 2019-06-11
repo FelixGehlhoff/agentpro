@@ -22,15 +22,5 @@ public class Transport_Operation extends Operation{
      return this.hasDetailedOperationDescription;
    }
 
-   /**
-* Protege name: avg_PickupTime
-   */
-   private int avg_PickupTime;
-   public void setAvg_PickupTime(int value) { 
-    this.avg_PickupTime=value;
-   }
-   public int getAvg_PickupTime() {
-     return this.avg_PickupTime;
-   }
 
 }

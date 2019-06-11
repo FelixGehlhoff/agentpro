@@ -114,7 +114,7 @@ public class AgentPro_ProductionOntology extends jade.content.onto.Ontology  {
     public static final String TOPIC_ID_NUMBER="iD_Number";
     public static final String TOPIC="Topic";
     public static final String NEW_PLAN_ARRIVED="New_Plan_Arrived";
-    public static final String TRANSPORT_OPERATION_AVG_PICKUPTIME="avg_PickupTime";
+    public static final String OPERATION_AVG_PICKUPTIME="avg_PickupTime";
     public static final String TRANSPORT_OPERATION_HASDETAILEDOPERATIONDESCRIPTION="hasDetailedOperationDescription";
     public static final String TRANSPORT_OPERATION="Transport_Operation";
     public static final String ORDERPOSITION_SEQUENCE_NUMBER="sequence_Number";
@@ -143,6 +143,7 @@ public class AgentPro_ProductionOntology extends jade.content.onto.Ontology  {
     public static final String PRODUCT="Product";
     public static final String TIMEDPLAN="TimedPlan";
     public static final String OPERATION_STARTSTATE="startState";
+    public static final String OPERATION_STARTSTATENEEDED="startStateNeeded";
     public static final String OPERATION_ISENABLEDBY="isEnabledBy";
     public static final String OPERATION_BUFFER_AFTER_OPERATION="buffer_after_operation";
     public static final String OPERATION_SET_UP_TIME="set_up_time";
@@ -428,6 +429,7 @@ public class AgentPro_ProductionOntology extends jade.content.onto.Ontology  {
     operationSchema.add(OPERATION_BUFFER_AFTER_OPERATION, (TermSchema)getSchema(BasicOntology.FLOAT), ObjectSchema.OPTIONAL);
     operationSchema.add(OPERATION_ISENABLEDBY, capabilitySchema, 0, ObjectSchema.UNLIMITED);
     operationSchema.add(OPERATION_STARTSTATE, stateSchema, ObjectSchema.OPTIONAL);
+    operationSchema.add(OPERATION_STARTSTATENEEDED, stateSchema, ObjectSchema.OPTIONAL);
     productSchema.add(PRODUCT_ID_NUMBER, (TermSchema)getSchema(BasicOntology.INTEGER), ObjectSchema.OPTIONAL);
     productSchema.add(PRODUCT_NAME, (TermSchema)getSchema(BasicOntology.STRING), ObjectSchema.OPTIONAL);
     productSchema.add(PRODUCT_ISDEFINEDBYPRODUCTIONPLAN, productionPlanSchema, ObjectSchema.OPTIONAL);
@@ -447,7 +449,7 @@ public class AgentPro_ProductionOntology extends jade.content.onto.Ontology  {
     orderPositionSchema.add(ORDERPOSITION_QUANTITY, (TermSchema)getSchema(BasicOntology.INTEGER), ObjectSchema.OPTIONAL);
     orderPositionSchema.add(ORDERPOSITION_SEQUENCE_NUMBER, (TermSchema)getSchema(BasicOntology.INTEGER), ObjectSchema.OPTIONAL);
     transport_OperationSchema.add(TRANSPORT_OPERATION_HASDETAILEDOPERATIONDESCRIPTION, detailedOperationDescriptionSchema, ObjectSchema.OPTIONAL);
-    transport_OperationSchema.add(TRANSPORT_OPERATION_AVG_PICKUPTIME, (TermSchema)getSchema(BasicOntology.INTEGER), ObjectSchema.OPTIONAL);
+    operationSchema.add(OPERATION_AVG_PICKUPTIME, (TermSchema)getSchema(BasicOntology.INTEGER), ObjectSchema.OPTIONAL);
     topicSchema.add(TOPIC_ID_NUMBER, (TermSchema)getSchema(BasicOntology.INTEGER), ObjectSchema.OPTIONAL);
     topicSchema.add(TOPIC_NAME, (TermSchema)getSchema(BasicOntology.STRING), ObjectSchema.OPTIONAL);
     reject_ProposalSchema.add(REJECT_PROPOSAL_ID_NUMBER, (TermSchema)getSchema(BasicOntology.INTEGER), ObjectSchema.OPTIONAL);

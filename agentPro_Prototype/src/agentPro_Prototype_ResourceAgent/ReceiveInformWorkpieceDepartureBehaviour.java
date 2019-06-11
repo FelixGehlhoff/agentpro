@@ -90,7 +90,7 @@ public class ReceiveInformWorkpieceDepartureBehaviour extends CyclicBehaviour{
 			    		new_enddate = Long.parseLong(time_of_departure_process_started)+avg_pickUp*60*1000;
 			    		allocWS.getHasTimeslot().setEndDate(String.valueOf(new_enddate));	//d
 			    		//System.out.println("DEBUG ______time_of_departure_process_started___"+time_of_departure_process_started+"  avg_pickUp  "+avg_pickUp*60*1000+" old_enddate "+old_enddate);
-			    		if(_Agent_Template.simulation_mode && (myAgent.getLocalName().equals("Skoda_1_2") || myAgent.getLocalName().equals("Skoda_2_2") || myAgent.getLocalName().equals("Skoda_3_2"))) {
+			    		if(_Agent_Template.simulation_enercon_mode && (myAgent.getLocalName().equals("Skoda_1_2") || myAgent.getLocalName().equals("Skoda_2_2") || myAgent.getLocalName().equals("Skoda_3_2"))) {
 					    	sendIntervalToOtherAgent(allocWS);
 					    }
 			    	
@@ -112,7 +112,7 @@ public class ReceiveInformWorkpieceDepartureBehaviour extends CyclicBehaviour{
 		    				if(interval_to_be_checked.intersection(new_busy_interval).getSize()>1) { //more than the Bound is shared
 		    					//System.out.println(myAgent.SimpleDateFormat.format(new Date())+" "+myAgent.getLocalName()+logLinePrefix+" Interval cannot be increased to that size. Busy interval "+interval_to_be_checked.toString()+" conflicts. ");
 		    					//Better ErrorHandling TBD
-		    					
+		    					//TODO
 		    					//if this is not possible, the resource must inform the workpiece, that it has to leave before X
 		    					//the workpiece might have to arrange a buffer place in that case or follow another routine to fix the issue
 		    				}else if(interval_to_be_checked.intersection(new_busy_interval).getSize()==1){ //now the free interval can be deleted 
@@ -151,7 +151,7 @@ public class ReceiveInformWorkpieceDepartureBehaviour extends CyclicBehaviour{
 					
 		     //add to database
 			    
-			    if(myAgent.simulation_mode) {
+			    if(myAgent.simulation_enercon_mode) {
 			    //}else if(!myAgent.simulation_mode){
 			    }else {
 			    	 myAgent.addBehaviour(new RequestDatabaseEntryBehaviour(myAgent));  
@@ -274,7 +274,7 @@ public class ReceiveInformWorkpieceDepartureBehaviour extends CyclicBehaviour{
 				//myAgent.printoutWorkPlan();        
 		        	
 	     //add to database
-		    if(myAgent.simulation_mode) {		    	  
+		    if(myAgent.simulation_enercon_mode) {		    	  
 		    }else {
 		    	myAgent.addBehaviour(new RequestDatabaseEntryBehaviour(myAgent));  
 		    }

@@ -133,5 +133,28 @@ public class Operation implements Concept {
    public State getStartState() {
      return this.startState;
    }
+   
+   /**
+   * Protege name: startStateNeeded
+      */
+      private State startStateNeeded;
+      public void setstartStateNeeded(State value) { 
+       this.startStateNeeded=value;
+      }
+      public State getstartStateNeeded() {
+        return this.startStateNeeded;
+      }
+
+
+   /**
+* Protege name: avg_PickupTime
+   */
+   private int avg_PickupTime;
+   public void setAvg_PickupTime(int value) { 
+    this.avg_PickupTime=value;
+   }
+   public int getAvg_PickupTime() {
+     return this.avg_PickupTime;
+   }
 
 }

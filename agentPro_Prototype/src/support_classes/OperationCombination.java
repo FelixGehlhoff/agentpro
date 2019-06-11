@@ -73,6 +73,9 @@ public class OperationCombination {
 						comb.addTransportToProduction(proposal_transport, _Agent_Template.opimizationCriterion);	//adds the transport if its better than the existing one
 					}
 				}
+				if(comb.getTransport_to_production()!= null) {
+					
+				}
 				Location buffer_loc =((AllocatedWorkingStep)proposal_buffer.getConsistsOfAllocatedWorkingSteps().get(0)).getHasResource().getHasLocation();
 				//add the best transport to buffer (earliest)
 				for(Proposal proposal_transport : proposal_list_transport) {

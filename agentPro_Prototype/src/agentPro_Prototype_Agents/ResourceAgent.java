@@ -90,7 +90,7 @@ public abstract class ResourceAgent extends _Agent_Template{
 		//representedResource = new Resource();
 		setWorkplan(new WorkPlan());
 		Interval free_starting_interval = new Interval();
-		if(simulation_mode) {		
+		if(simulation_enercon_mode) {		
 			/*	
 			if(getLocalName().equals("gr_Bk_West")) {
 					addBehaviour(new ReceiveIntervalForConnectedResourceBehaviour((ProductionResourceAgent)this));
@@ -142,8 +142,13 @@ public abstract class ResourceAgent extends _Agent_Template{
 			Storage_element_slot right_slot = null;
 			for(Storage_element_slot slot : this.getReceiveCFPBehav().getProposed_slots()) {
 				if(slot.getID().contentEquals(((AllocatedWorkingStep)proposal.getConsistsOfAllocatedWorkingSteps().get(0)).getHasOperation().getName())) {
-					if(slot.checkNewTimeslot(((AllocatedWorkingStep)proposal.getConsistsOfAllocatedWorkingSteps().get(0)).getHasTimeslot())) {
-						timeslot_to_add = ((AllocatedWorkingStep)proposal.getConsistsOfAllocatedWorkingSteps().get(0)).getHasTimeslot();					
+					if(((AllocatedWorkingStep)proposal.getConsistsOfAllocatedWorkingSteps().get(0)).getHasOperation().getName().contentEquals("20.0;5.0_Rollformen")){
+						System.out.println("here");
+					}
+					considerPickup((AllocatedWorkingStep)proposal.getConsistsOfAllocatedWorkingSteps().get(0));	//prod. res adds the pick up at the beginning
+					if(slot.checkNewTimeslot((AllocatedWorkingStep)proposal.getConsistsOfAllocatedWorkingSteps().get(0))) {
+						timeslot_to_add = ((AllocatedWorkingStep)proposal.getConsistsOfAllocatedWorkingSteps().get(0)).getHasTimeslot();
+						//timeslot_to_add.setStartDate(Long.toString(Long.parseLong(timeslot_to_add.getStartDate())-(long)slot.getDuration_to_get_to_workpiece()));
 						//slot_to_add = slot.getTimeslot();							//use the timeslot from the list (includes setup etc.
 						long_time_increment_or_decrement_to_be_added_for_setup_of_next_task = slot.getTime_increment();
 						type = slot.getType();
@@ -160,11 +165,12 @@ public abstract class ResourceAgent extends _Agent_Template{
 			}
 			
 			//long long_time_increment_or_decrement_to_be_added_for_setup_of_next_task = (long) (time_increment_or_decrement_to_be_added_for_setup_of_next_task*60*1000);
-			long startdate_busy_interval_new = Long.parseLong(timeslot_to_add.getStartDate())-(long)right_slot.getDuration_to_get_to_workpiece()*60*1000;
+			long startdate_busy_interval_new = Long.parseLong(timeslot_to_add.getStartDate())-(long)right_slot.getDuration_to_get_to_workpiece();
+			((AllocatedWorkingStep)right_slot.getProposal().getConsistsOfAllocatedWorkingSteps().get(0)).getHasTimeslot().setStartDate(Long.toString(Long.parseLong(timeslot_to_add.getStartDate())-(long)right_slot.getDuration_to_get_to_workpiece()));
 			long enddate_busy_interval_new = Long.parseLong(timeslot_to_add.getEndDate());
 			Location new_endLocation = null;
 			if(type.equals("transport")) {
-				new_endLocation = (Location) ((Transport_Operation)((AllocatedWorkingStep)right_slot.getProposal().getConsistsOfAllocatedWorkingSteps()).getHasOperation()).getEndState();				
+				new_endLocation = (Location) ((Transport_Operation)((AllocatedWorkingStep)right_slot.getProposal().getConsistsOfAllocatedWorkingSteps().get(0)).getHasOperation()).getEndState();				
 			}
 			
 			Interval timeslot_interval_busy = new Interval(startdate_busy_interval_new, enddate_busy_interval_new, false);
@@ -202,6 +208,9 @@ public abstract class ResourceAgent extends _Agent_Template{
 		        demo.setVisible(false);	*/
 	}
 	
+	protected abstract void considerPickup(AllocatedWorkingStep allocatedWorkingStep);
+
+
 	protected boolean adjustIntervals(Interval timeslot_interval_busy, long long_time_increment_or_decrement_to_be_added_for_setup_of_next_task, Location new_endLocation) {
 		Boolean booking_successful = false;
 		for(int i = 0;i<getFree_interval_array().size();i++) {		//check the free intervals and find the one that fits		
@@ -238,7 +247,7 @@ public abstract class ResourceAgent extends _Agent_Template{
 									new_busy_interval_AFTER.setId(getBusyInterval_array().get(j+1).getId());
 									getBusyInterval_array().remove(j+1);
 									getBusyInterval_array().add(j+1, new_busy_interval_AFTER);	
-									setStartOfAllocatedWorkingStepThatStartsAtTimeXToYandChangeStartLocation(old_start, old_start - long_time_increment_or_decrement_to_be_added_for_setup_of_next_task, new_endLocation);
+									setStartOfAllocatedWorkingStepThatStartsAtTimeXToYandChangeStartLocation(old_start, long_time_increment_or_decrement_to_be_added_for_setup_of_next_task, new_endLocation);
 									
 								}						
 								break;
@@ -256,9 +265,18 @@ public abstract class ResourceAgent extends _Agent_Template{
 							new_busy_interval_AFTER.setId(getBusyInterval_array().get(j).getId()); //new 12.02.19
 							getBusyInterval_array().remove(j);
 							getBusyInterval_array().add(j, new_busy_interval_AFTER);
-							setStartOfAllocatedWorkingStepThatStartsAtTimeXToYandChangeStartLocation(old_start, old_start - long_time_increment_or_decrement_to_be_added_for_setup_of_next_task, new_endLocation); //new 12.02.19
+							setStartOfAllocatedWorkingStepThatStartsAtTimeXToYandChangeStartLocation(old_start, long_time_increment_or_decrement_to_be_added_for_setup_of_next_task, new_endLocation); //new 12.02.19
 							
 							break;
+							//new busy interval does not connect to another but still influences the next one
+							}else if(getBusyInterval_array().get(j).contains(free_interval_that_existed_before.upperBound())) {
+								long old_start = getBusyInterval_array().get(j).lowerBound(); //new 12.02.19
+								Interval new_busy_interval_AFTER = new Interval(getBusyInterval_array().get(j).lowerBound() - long_time_increment_or_decrement_to_be_added_for_setup_of_next_task, getBusyInterval_array().get(j).upperBound());
+								new_busy_interval_AFTER.setId(getBusyInterval_array().get(j).getId()); //new 12.02.19
+								getBusyInterval_array().remove(j);
+								getBusyInterval_array().add(j, new_busy_interval_AFTER);
+								setStartOfAllocatedWorkingStepThatStartsAtTimeXToYandChangeStartLocation(old_start, long_time_increment_or_decrement_to_be_added_for_setup_of_next_task, new_endLocation); //new 12.02.19
+								break;
 							}
 						}					
 					}
@@ -281,11 +299,12 @@ public abstract class ResourceAgent extends _Agent_Template{
 					//if neither the startdate nor the enddate is element of any busy interval --> two new free intervals are needed
 					// --> two new free intervals are needed (BEFORE and AFTER)
 					else if(!busy_interval_before_contains_startdate && !busy_interval_after_contains_enddate) {
+						
 						Interval new_free_intervall_before = new Interval(free_interval_that_existed_before.lowerBound(), timeslot_interval_busy.lowerBound(), false);
-						Interval new_free_intervall_after = new Interval(timeslot_interval_busy.upperBound(), free_interval_that_existed_before.upperBound(), false);						
+						Interval new_free_intervall_after = new Interval(timeslot_interval_busy.upperBound(), free_interval_that_existed_before.upperBound()- long_time_increment_or_decrement_to_be_added_for_setup_of_next_task, false);						
 						getFree_interval_array().add(i, new_free_intervall_after);
 						getFree_interval_array().add(i, new_free_intervall_before);
-						
+							
 					}
 						//if both are elements of two different busy intervals
 						// --> no new free interval is needed because it is "replaced" by a busy interval	
@@ -300,11 +319,14 @@ public abstract class ResourceAgent extends _Agent_Template{
 	}
 
 
-	private void setStartOfAllocatedWorkingStepThatStartsAtTimeXToYandChangeStartLocation(long old_start_date, long new_start_date, Location new_endLocation) {
+	private void setStartOfAllocatedWorkingStepThatStartsAtTimeXToYandChangeStartLocation(long old_start_date, long time_increment, Location new_endLocation) {
+	
+		long new_start_date = old_start_date - time_increment;
 		for(int i = 0; i<getWorkplan().getConsistsOfAllocatedWorkingSteps().size();i++) {   	   	
 				AllocatedWorkingStep a = (AllocatedWorkingStep) getWorkplan().getConsistsOfAllocatedWorkingSteps().get(i);				
 				if(Long.parseLong(a.getHasTimeslot().getStartDate()) == old_start_date) {	    		
-		    		a.getHasTimeslot().setStartDate(String.valueOf(new_start_date));	
+					a.getHasOperation().setSet_up_time(a.getHasOperation().getSet_up_time()+(float)time_increment/(60*1000));
+					a.getHasTimeslot().setStartDate(String.valueOf(new_start_date));	    		
 		    		if(new_endLocation != null) {
 		    			((Transport_Operation)a.getHasOperation()).setStartState(new_endLocation);
 		    		}
@@ -329,7 +351,7 @@ public abstract class ResourceAgent extends _Agent_Template{
 	
 	protected float calculateTimeIncrement(Operation op, int counter_free_interval_i, DetailedOperationDescription operation_description) {
 		float time_increment_or_decrement_to_be_added = 0;
-		
+
 		//check if there is a task that starts at the end of the free interval
 		if(getWorkplan().getConsistsOfAllocatedWorkingSteps().size()>0) {		
 			@SuppressWarnings("unchecked")		
@@ -338,14 +360,15 @@ public abstract class ResourceAgent extends _Agent_Template{
 		    	AllocatedWorkingStep a = it.next();	  
 		    	if(Long.parseLong(a.getHasTimeslot().getStartDate()) == getFree_interval_array().get(counter_free_interval_i).upperBound()) {
 		    		//if yes
+
+		    		State start_next_task_needed = a.getHasOperation().getstartStateNeeded();
 		    		
-		    		State start_next_task = a.getHasOperation().getStartState();	    		
 		    		//Location start_next_task = (Location) ((Transport_Operation)a.getHasOperation()).getStartState();
 		    		
 		    		State end_new = op.getEndState();
 		    		//Location end_new = (Location) transport_op_to_destination.getEndState();
 		    		
-		    		time_increment_or_decrement_to_be_added = calculateTimeBetweenStates(start_next_task, end_new, counter_free_interval_i);
+		    		time_increment_or_decrement_to_be_added = calculateTimeBetweenStates(start_next_task_needed, end_new, counter_free_interval_i);
 		    				    		
 		    		if(time_increment_or_decrement_to_be_added != 0) {
 		    			//addPointToList(operation_description, end_new.getCoordX(), getFree_interval_array().get(i).upperBound()-(long)(time_increment_or_decrement_to_be_added*60*1000), "Start:set_up");		    			    					    		

@@ -73,7 +73,7 @@ public class ProductionManagerBehaviour extends Behaviour{
 			Boolean last_operation = determineLastOperation(position_next_step);
 			long startdate_for_this_task = 0;
 			Date d = new Date();
-			if(_Agent_Template.simulation_mode) {
+			if(_Agent_Template.simulation_enercon_mode) {
 				startdate_for_this_task	= Long.parseLong(myAgent.getOrderPos().getStartDate());
 			}else {
 				
@@ -331,7 +331,7 @@ private void arrangeTransportToWarehouse() {
 				myAgent.getProductionManagerBehaviour().setStep(2);
 				myAgent.getProductionManagerBehaviour().restart();
 			}else {
-				transport_operation.setStartState(startlocation);
+				transport_operation.setstartStateNeeded(startlocation);
 				transport_operation.setEndState(myAgent.getOrderPos().getHasTargetWarehouse().getHasLocation());
 				
 				

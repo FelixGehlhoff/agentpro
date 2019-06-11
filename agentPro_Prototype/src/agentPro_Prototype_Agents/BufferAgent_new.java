@@ -31,7 +31,7 @@ public class BufferAgent_new extends ProductionResourceAgent{
 	
 	@Override
 	public boolean feasibilityCheckAndDetermineDurationParameters(Operation operation) {
-		Location start = (Location) operation.getStartState();
+		Location start = (Location) operation.getstartStateNeeded();
 		Location end = (Location) operation.getEndState();	
 		//System.out.println("DEBUG___"+this.getName()+" range "+range.toString()+" contains "+end.getCoordX()+" and contains "+ start.getCoordX());
 		
@@ -58,13 +58,13 @@ public class BufferAgent_new extends ProductionResourceAgent{
 		Proposal proposal = new Proposal();
 		Production_Operation buffer_operation = (Production_Operation) operation;
 		float price = 1;
-		buffer_operation.setBuffer_after_operation(Float.MAX_VALUE);
-		buffer_operation.setBuffer_before_operation(Float.MAX_VALUE);
+		buffer_operation.setBuffer_after_operation(10*60*60*1000);
+		buffer_operation.setBuffer_before_operation(10*60*60*1000);
 		//buffer_operation.setName("buffer_"+this.getOfferNumber());
 		//this.getReceiveCFPBehav().timeslot_for_schedule.setEndDate(String.valueOf(cfp_timeslot.getEndDate())); //time increment is reduced / put to the other busy interval later
 		//this.getReceiveCFPBehav().timeslot_for_schedule.setStartDate(String.valueOf(cfp_timeslot.getStartDate()));	
 		//this.getReceiveCFPBehav().timeslot_for_schedule.setLength(cfp_timeslot.getLength());
-		Storage_element_slot slot = createStorageElement(operation, cfp_timeslot, 0F, 0F);
+		Storage_element_slot slot = createStorageElement(operation, cfp_timeslot, (long) cfp.getHasOperation().getAvg_PickupTime()*60*1000, 0F);
 		 this.getReceiveCFPBehav().getProposed_slots().add(slot);	
 	proposal = createProposal(price, buffer_operation, cfp_timeslot, cfp.getHasSender(), cfp.getID_String());
 	return proposal;
@@ -72,6 +72,11 @@ public class BufferAgent_new extends ProductionResourceAgent{
 	@Override
 	public Boolean bookIntoSchedule(Accept_Proposal accept_proposal) {
 		Proposal prop = (Proposal) accept_proposal.getHasProposal().get(0);
+		int pick_up = ((AllocatedWorkingStep) prop.getConsistsOfAllocatedWorkingSteps().get(0)).getHasOperation().getAvg_PickupTime();
+		Long start_new = Long.parseLong(((AllocatedWorkingStep)prop.getConsistsOfAllocatedWorkingSteps().get(0)).getHasTimeslot().getStartDate())-pick_up*60*1000;
+		Long end_new = Long.parseLong(((AllocatedWorkingStep)prop.getConsistsOfAllocatedWorkingSteps().get(0)).getHasTimeslot().getEndDate())+pick_up*60*1000;
+		((AllocatedWorkingStep)prop.getConsistsOfAllocatedWorkingSteps().get(0)).getHasTimeslot().setStartDate(Long.toString(start_new));
+		((AllocatedWorkingStep)prop.getConsistsOfAllocatedWorkingSteps().get(0)).getHasTimeslot().setEndDate(Long.toString(end_new));
 		getWorkplan().addConsistsOfAllocatedWorkingSteps((AllocatedWorkingStep) prop.getConsistsOfAllocatedWorkingSteps().get(0));
 		
 		if(getWorkplan().getConsistsOfAllocatedWorkingSteps().size()>1) {
