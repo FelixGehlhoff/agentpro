@@ -71,24 +71,30 @@ public class ReceiveInformOrderCompletionBehaviour extends CyclicBehaviour{
         
 		ACLMessage inform = myAgent.receive(mt_total);
 		if (inform != null) {
-			System.out.println(myAgent.SimpleDateFormat.format(new java.util.Date())+" "+myAgent.getLocalName()+logLinePrefix+inform.getContent());
+			System.out.println(System.currentTimeMillis()+" "+myAgent.SimpleDateFormat.format(new java.util.Date())+" "+myAgent.getLocalName()+logLinePrefix+inform.getContent());
+			enterOrderDataIntoDatabase(inform);
+			
 			numberOfMessagesReceived++;
 			if(_Agent_Template.simulation_enercon_mode) {
 				
 			}else {
-				//wait for last entry in DB (transport process to warehouse outbound
-				try {
-					Thread.sleep(1000);
-				} catch (InterruptedException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				}
 				
 				
+				/*
 				if(numberOfMessagesReceived==_Agent_Template.limit) {
+					//wait for last entry in DB (transport process to warehouse outbound
+					try {
+						Thread.sleep(5000);
+					} catch (InterruptedException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					}
+					
+				
 					ArrayList <String> orders = new ArrayList<String>();
 					try {
 						orders = getOrdersFromDB();
+						System.out.println(orders);
 					} catch (SQLException e) {
 						// TODO Auto-generated catch block
 						e.printStackTrace();
@@ -99,7 +105,9 @@ public class ReceiveInformOrderCompletionBehaviour extends CyclicBehaviour{
 				        demo.pack();
 				        RefineryUtilities.centerFrameOnScreen(demo);
 				        demo.setVisible(false);	
-				}		
+					
+				}	
+				*/
 			}
 			
 			
@@ -118,7 +126,39 @@ public class ReceiveInformOrderCompletionBehaviour extends CyclicBehaviour{
 		}
 		
 	}
-	private static WorkPlan createWorkPlan(ArrayList<String> orders) {
+	private void enterOrderDataIntoDatabase(ACLMessage inform) {
+		String [] split = inform.getContent().split("_");
+		String type = split[0];
+		int id = Integer.parseInt(split[1]);
+		long start = Long.parseLong(split[3]);
+		long end = Long.parseLong(split[4]);
+		int quantity = Integer.parseInt(split[5]);
+		
+			    	try(Connection con = DriverManager.getConnection(_Agent_Template.dbaddress_sim); Statement stmt = con.createStatement(ResultSet.TYPE_SCROLL_SENSITIVE, ResultSet.CONCUR_UPDATABLE);
+							) {
+			    		ResultSet rs = stmt.executeQuery(						    			
+				    			"select * from "+"agentpro.orderbook"+" where orderID = "+id); 
+						// System.out.println("mes__table_to_be_used "+mes_table_to_be_used);      
+				    	if (rs.isBeforeFirst() ) {  //the SQL query has returned data  
+				    		rs.next(); 
+				    		rs.updateString("product", type);
+				    		rs.updateDouble("number", quantity);
+				    		rs.updateDouble("StartCoordination", start);	    		
+				    		rs.updateDouble("EndCoordination", end);
+				    	}else {
+				    		stmt.executeUpdate( 
+									"Insert into "+_Agent_Template.nameOfOrderbook+" (orderID, product, number, StartCoordination, EndCoordination) Values ("+id+", '"+type+"' , "+quantity+", "+start+", "+end+");");
+						
+				    	}
+						} catch (SQLException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					}
+					// System.out.println("mes__table_to_be_used "+mes_table_to_be_used);      
+		}
+
+
+	public static WorkPlan createWorkPlan(ArrayList<String> orders) {
 		WorkPlan wp_total = new WorkPlan();
 		for(String order : orders) {
 			WorkPlan wp_order = createWorkplanFromDatabase(order);
@@ -131,7 +171,7 @@ public class ReceiveInformOrderCompletionBehaviour extends CyclicBehaviour{
 		return wp_total;
 	}
 
-	private static ArrayList<String> getOrdersFromDB() throws SQLException {
+	public static ArrayList<String> getOrdersFromDB() throws SQLException {
 		ArrayList<String>orders = new ArrayList<String>();
 		try (Connection con = DriverManager.getConnection(_Agent_Template.dbaddress_sim); Statement stmt = con.createStatement(ResultSet.TYPE_SCROLL_SENSITIVE, ResultSet.CONCUR_UPDATABLE);
 				){
@@ -147,7 +187,7 @@ public class ReceiveInformOrderCompletionBehaviour extends CyclicBehaviour{
 		return orders;
 	}
 	
-	private static WorkPlan createWorkplanFromDatabase(String wp_id) {
+	public static WorkPlan createWorkplanFromDatabase(String wp_id) {
 		WorkPlan workplan = new WorkPlan();
 		
 		try (Connection con = DriverManager.getConnection(_Agent_Template.dbaddress_sim); Statement stmt = con.createStatement(ResultSet.TYPE_SCROLL_SENSITIVE, ResultSet.CONCUR_UPDATABLE);
@@ -178,9 +218,9 @@ public class ReceiveInformOrderCompletionBehaviour extends CyclicBehaviour{
 				        			Workpiece wp = new Workpiece();
 				        			wp.setID_String(wp_id);
 				        		op.setAppliedOn(wp);
-				        		op.setType(rs.getString(_Agent_Template.columnNameOperation_Type));			        		
-				        		op.setSet_up_time(10);
-				        		op.setAvg_Duration(20);
+				        		//op.setType(rs.getString(_Agent_Template.columnNameOperation_Type));			        		
+				        		//op.setSet_up_time(10);
+				        		//op.setAvg_Duration(20);
 				        		allWS.setHasOperation(op);
 				        	workplan.addConsistsOfAllocatedWorkingSteps(allWS);
 			    		}

@@ -8,23 +8,12 @@ import jade.core.*;
 /**
 * Protege name: Timeslot
 * @author ontology bean generator
-* @version 2019/04/29, 11:20:20
+* @version 2019/09/27, 11:08:18
 */
 public class Timeslot implements Concept {
 
 //////////////////////////// User code
 @Override     public String toString() {return " timeslot start: "+startDate+" end "+endDate;}
-   /**
-* Protege name: length
-   */
-   private float length;
-   public void setLength(float value) { 
-    this.length=value;
-   }
-   public float getLength() {
-     return this.length;
-   }
-
    /**
 * Protege name: endDate
    */
@@ -45,6 +34,17 @@ public class Timeslot implements Concept {
    }
    public String getStartDate() {
      return this.startDate;
+   }
+
+   /**
+* Protege name: length
+   */
+   private float length;
+   public void setLength(float value) { 
+    this.length=value;
+   }
+   public float getLength() {
+     return this.length;
    }
 
 }

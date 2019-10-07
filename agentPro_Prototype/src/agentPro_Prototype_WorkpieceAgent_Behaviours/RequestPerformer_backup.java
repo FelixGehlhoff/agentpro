@@ -116,6 +116,7 @@ public class RequestPerformer_backup extends Behaviour {
 	}
 
 	public void action() {
+		/*
 		switch (step) {
 		
 		case 0:		
@@ -673,6 +674,7 @@ public class RequestPerformer_backup extends Behaviour {
 						//System.out.println("DEBUG_______________"+myAgent.SimpleDateFormat.format(new Date())+" "+myAgent.getLocalName()+logLinePrefix+" test 3");
 						
 						//restart production manager for next production step
+		/*
 						myAgent.getProductionManagerBehaviour().setStep(0);
 						myAgent.getProductionManagerBehaviour().restart();
 						step = 7;
@@ -780,7 +782,8 @@ public class RequestPerformer_backup extends Behaviour {
 				//better handling --> tbd
 			}
 			break;
-		}//switch        
+		}//switch      
+		*/  
 	}
 
 	private void arrangeTransportToWarehouse() {
@@ -805,7 +808,7 @@ public class RequestPerformer_backup extends Behaviour {
 			}
 			
 			if(myAgent.doLocationsMatch(startlocation, myAgent.getOrderPos().getHasTargetWarehouse().getHasLocation())) {
-				myAgent.printoutWorkPlan();
+				//myAgent.printoutWorkPlan();
 				myAgent.getProductionManagerBehaviour().setStep(2);
 				myAgent.getProductionManagerBehaviour().restart();
 				step = 7;
@@ -866,6 +869,7 @@ public class RequestPerformer_backup extends Behaviour {
 		return location;
 	}
 
+	/*
 	private Timeslot determineCFPTimeslot() {
 		Timeslot timeslot = new Timeslot();
 		
@@ -909,6 +913,7 @@ public class RequestPerformer_backup extends Behaviour {
 			 * minus (the estimated duration + puffer)
 			 * the startdate (earliest) can either be NOW or the end of the before last production step scheduled
 			 */
+	/*
 		case "transport":
 			//TBD ---->   Wofür wird LAST_alWS_Production.getIsFInished() gebraucht???
 			if(sizeOfAllWSs == 1 || LAST_alWS_Production.getIsFinished()) {		//if the first Operation was just scheduled or if the last allocatedWStep is already finished, there are no new steps planned which would have to be used as a start and a new planning has started
@@ -927,6 +932,7 @@ public class RequestPerformer_backup extends Behaviour {
 				timeslot.setStartDate(Long.toString(Long.parseLong(LAST_alWS_Production.getHasTimeslot().getStartDate())-myAgent.getTransport_estimation()*2));	//buffer (*2) because its the first operation and the start date is not really important
 				timeslot.setEndDate(LAST_alWS_Production.getHasTimeslot().getStartDate());
 			}*/
+	/*
 			else { //Also for error_handing because the first step gets its start_date at another place. Starting time would be the end of the BEFORE LAST operation because the last operation is the destination	
 				timeslot.setStartDate(BEFORE_LAST_alWS_Production.getHasTimeslot().getEndDate());
 				timeslot.setEndDate(LAST_alWS_Production.getHasTimeslot().getStartDate());	
@@ -940,7 +946,7 @@ public class RequestPerformer_backup extends Behaviour {
 	
 		return timeslot;
 	}
-	
+	*/
 
 	public boolean done() {
 	

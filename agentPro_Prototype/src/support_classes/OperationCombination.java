@@ -7,10 +7,7 @@ import java.util.Iterator;
 
 import agentPro.onto.AllocatedWorkingStep;
 import agentPro.onto.Location;
-import agentPro.onto.Operation;
-import agentPro.onto.Production_Operation;
 import agentPro.onto.Proposal;
-import agentPro.onto.Timeslot;
 import agentPro.onto.WorkPlan;
 import agentPro_Prototype_Agents._Agent_Template;
 
@@ -27,6 +24,7 @@ public class OperationCombination {
 	
 	private ArrayList<OperationCombination_SinglePath> singlePaths = new ArrayList<OperationCombination_SinglePath>();
 	private OperationCombination_SinglePath best_path;
+	private boolean transport_needed;
 	
 	
 	public OperationCombination (Proposal prop_production, AllocatedWorkingStep lastStepAllocated) {
@@ -61,7 +59,7 @@ public class OperationCombination {
 		}*/
 	}
 	//determine the exact and best combination
-	public void calculateValues() {
+	public int calculateValues() {
 		if(buffer_needed) {
 			for(Proposal proposal_buffer : buffer_operations) { //get Transports to each buffer
 				OperationCombination_SinglePath comb = new OperationCombination_SinglePath(lastProductionStepAllocated, initial_proposal_production, proposal_buffer);			
@@ -73,30 +71,39 @@ public class OperationCombination {
 						comb.addTransportToProduction(proposal_transport, _Agent_Template.opimizationCriterion);	//adds the transport if its better than the existing one
 					}
 				}
-				if(comb.getTransport_to_production()!= null) {
-					
-				}
+
 				Location buffer_loc =((AllocatedWorkingStep)proposal_buffer.getConsistsOfAllocatedWorkingSteps().get(0)).getHasResource().getHasLocation();
 				//add the best transport to buffer (earliest)
+				int transport_to_buffer_organized = 0;
 				for(Proposal proposal_transport : proposal_list_transport) {
 					Location end_of_transport = (Location)((AllocatedWorkingStep)proposal_transport.getConsistsOfAllocatedWorkingSteps().get(0)).getHasOperation().getEndState();
 					if(_Agent_Template.doLocationsMatch(end_of_transport, buffer_loc)){
-						comb.addTransportToBuffer(proposal_transport, _Agent_Template.opimizationCriterion);	//adds the transport if its better than the existing one
+						transport_to_buffer_organized += comb.addTransportToBuffer(proposal_transport, _Agent_Template.opimizationCriterion);	//adds the transport if its better than the existing one
 					}				
 				}
-				singlePaths.add(comb);	//here more than one is possible (because we can have multiple buffers
+				if(transport_to_buffer_organized>0 && comb.getTransport_to_production()!= null) {
+					singlePaths.add(comb);	//here more than one is possible (because we can have multiple buffers
+				}else if(transport_to_buffer_organized == 0 && this.transport_needed == false) {
+					singlePaths.add(comb);	
+				}
+				
 			}
-			if(buffer_operations.size()>1) { //if there is more than one path
-				System.out.println("DEBUG___operationCombination__buffer>1 "+singlePaths.get(0).toString());
+			//if(buffer_operations.size()>1) { //if there is more than one path
+				//System.out.println("DEBUG___operationCombination__buffer>1 "+singlePaths.get(0).toString());
+				if(singlePaths.size()>0) {					
 				best_path = determineBestPath(singlePaths);
 				best_path.calculateWorkplan();
-			}else {
-				best_path = singlePaths.get(0); //there should be only one element
-				System.out.println("DEBUG___operationCombination__singepatchs "+singlePaths.get(0).toString());
-				best_path.calculateWorkplan();
+			//}else {
+			//	best_path = singlePaths.get(0); //there should be only one element
+			//	System.out.println("DEBUG___operationCombination__singepatchs "+singlePaths.get(0).toString());
+			//	best_path.calculateWorkplan();
 				if(singlePaths.size()>1) {
 					System.out.println("DEBUG_____OperationCombination "+singlePaths.get(0).toString()+"  and   "+singlePaths.get(1).toString()+" total size is "+singlePaths.size());
-				}				
+				}
+				return 1;
+			}else {
+				System.out.println("DEBUG_____OperationCombination __________NO Path could be completely arranged");
+				return 0;
 			}
 		}else{
 			System.out.println("DEBUG__before constr");
@@ -104,9 +111,19 @@ public class OperationCombination {
 			for(Proposal proposal_transport : proposal_list_transport) {
 					comb.addTransportToProduction(proposal_transport, _Agent_Template.opimizationCriterion);	//adds the transport if its better than the existing one					
 			}
-			//singlePaths.add(comb);	//here there is only one combination possible (the best transport operation is used 
-			best_path = comb; //there should be only one element
-			best_path.calculateWorkplan(); //and sets values
+			if(comb.getTransport_to_production()!=null && this.transport_needed) {	//proposal list > 0 if transport is needed
+				//singlePaths.add(comb);	//here there is only one combination possible (the best transport operation is used 
+				best_path = comb; //there should be only one element
+				best_path.calculateWorkplan(); //and sets values
+				return 1;
+			}else if(!this.transport_needed){	//no transport needed
+				best_path = comb; //there should be only one element
+				best_path.calculateWorkplan(); //and sets values
+				return 1;
+			}else {
+				return 0;
+			}
+			
 		}
 		//singlePaths contains all alternative paths (all = via Buffer 1 or Buffer 2 or with no buffer. For each the best transport operations are used		
 		}
@@ -145,7 +162,11 @@ public class OperationCombination {
 	}
 
 	public long getTimeOfFinish() {
-		return best_path.getTimeOfFinish();
+		if(best_path != null) {
+			return best_path.getTimeOfFinish();	
+		}else {
+			return Long.MAX_VALUE;
+		}		
 	}
 	public long getTimeOfStart() {
 		return best_path.getTimeOfStart();
@@ -154,7 +175,12 @@ public class OperationCombination {
 
 
 	public double getCosts() {
-		return best_path.getCosts();
+		if(best_path != null) {
+			return best_path.getCosts();
+		}else {
+			return Double.MAX_VALUE;
+		}
+		
 	}
 
 
@@ -171,7 +197,12 @@ public class OperationCombination {
 	}
 
 	public long getTotal_duration() {
-		return best_path.getTotal_duration();
+		if(best_path != null) {
+			return best_path.getTotal_duration();	
+		}else {
+			return Long.MAX_VALUE;
+		}
+		
 	}
 
 
@@ -188,6 +219,9 @@ public class OperationCombination {
 	public ArrayList<Proposal>getProposals() {
 		ArrayList<Proposal> new_list = proposal_list_transport;
 		new_list.add(initial_proposal_production);
+		for(Proposal buffer_prop : buffer_operations) {
+			new_list.add(buffer_prop);
+		}	
 		return new_list;
 	}
 
@@ -215,6 +249,14 @@ public class OperationCombination {
 	}
 	public WorkPlan getWorkplan() {
 		return best_path.getWorkplan();
+	}
+
+	public boolean isTransport_needed() {
+		return transport_needed;
+	}
+
+	public void setTransport_needed(boolean transport_needed) {
+		this.transport_needed = transport_needed;
 	}
 	
 }

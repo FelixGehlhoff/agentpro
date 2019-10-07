@@ -6,6 +6,7 @@ import java.util.Iterator;
 import agentPro.onto.AllocatedWorkingStep;
 import agentPro.onto.Request_DatabaseEntry;
 import agentPro.onto._SendRequest_DatabaseEntry;
+import agentPro_Prototype_Agents.WorkpieceAgent;
 import agentPro_Prototype_Agents._Agent_Template;
 import jade.content.lang.Codec.CodecException;
 import jade.content.onto.OntologyException;
@@ -23,11 +24,26 @@ public class RequestDatabaseEntryBehaviour extends OneShotBehaviour{
 	 */
 	private static final long serialVersionUID = 1L;
 	private _Agent_Template myAgent;
+	private long start_coordination;
+	private long end_coordination;
+	private AllocatedWorkingStep edited_step;
 	
 	public RequestDatabaseEntryBehaviour(_Agent_Template myAgent) {
 		super(myAgent);
 		this.myAgent = myAgent;
 	
+	}
+	public RequestDatabaseEntryBehaviour(_Agent_Template myAgent, AllocatedWorkingStep edited_step) {
+		super(myAgent);
+		this.myAgent = myAgent;
+		this.edited_step = edited_step;	
+	}
+	
+	public RequestDatabaseEntryBehaviour(WorkpieceAgent myAgent) {
+		super(myAgent);
+		start_coordination = myAgent.startCoordinationProcess;
+		end_coordination = myAgent.EndCoordinationProcess;
+		this.myAgent = myAgent;
 	}
 
 	@Override
@@ -77,18 +93,29 @@ public class RequestDatabaseEntryBehaviour extends OneShotBehaviour{
 		//create ontology contents
 			_SendRequest_DatabaseEntry send_request_db_entry = new _SendRequest_DatabaseEntry();
 			Request_DatabaseEntry request_db_entry = new Request_DatabaseEntry();
-			@SuppressWarnings("unchecked")
-			Iterator<AllocatedWorkingStep> it = myAgent.getWorkplan().getConsistsOfAllocatedWorkingSteps().iterator();
-			    while(it.hasNext()) {
-			    	AllocatedWorkingStep alloc_WS = it.next();
-			    	//if(myAgent.simulation_mode) {		//in simulation mode only production steps --> 03.12.2018: Send full plan
-			    		//if(alloc_WS.getHasOperation().getType().equals("production")) {
-			    			//request_db_entry.addConsistsOfAllocatedWorkingSteps(alloc_WS);
-			    		//}   		
-			    	//}else {
-			    		request_db_entry.addConsistsOfAllocatedWorkingSteps(alloc_WS);
-			    	//}
+			
+			if(edited_step != null) {
+				request_db_entry.addConsistsOfAllocatedWorkingSteps(edited_step);
+			}else {
+				@SuppressWarnings("unchecked")
+				Iterator<AllocatedWorkingStep> it = myAgent.getWorkplan().getConsistsOfAllocatedWorkingSteps().iterator();
+				    while(it.hasNext()) {
+				    	AllocatedWorkingStep alloc_WS = it.next();
+				    	//if(myAgent.simulation_mode) {		//in simulation mode only production steps --> 03.12.2018: Send full plan
+				    		//if(alloc_WS.getHasOperation().getType().equals("production")) {
+				    			//request_db_entry.addConsistsOfAllocatedWorkingSteps(alloc_WS);
+				    		//}   		
+				    	//}else {
+				    		request_db_entry.addConsistsOfAllocatedWorkingSteps(alloc_WS);
+				    	//}
+			}
+			
 			    }
+			    if(myAgent.getClass().getSimpleName().equals("WorkpieceAgent")) {
+			    	request_db_entry.setStartdate(start_coordination);
+			    	request_db_entry.setEnddate(end_coordination);
+			    }
+			    
 			send_request_db_entry.setHasRequest_DatabaseEntry(request_db_entry);			
 			Action content = new Action(myAgent.getAID(),send_request_db_entry);
 					
@@ -106,10 +133,14 @@ public class RequestDatabaseEntryBehaviour extends OneShotBehaviour{
 				e.printStackTrace();
 			}
 			myAgent.send(request);
-			System.out.println(myAgent.SimpleDateFormat.format(new Date())+" "+myAgent.getLocalName()+myAgent.logLinePrefix+" request database entry sent to receiver "+result[0].getName()+" with content "+request.getContent());
+			if(myAgent.showMessageContent) {
+				System.out.println(System.currentTimeMillis()+" "+_Agent_Template.SimpleDateFormat.format(new Date())+" "+myAgent.getLocalName()+myAgent.logLinePrefix+" request database entry sent to receiver "+result[0].getName()+" with content "+request.getContent());
+			}else {
+				
+			}
 		
 		}else {
-			System.out.println(myAgent.SimpleDateFormat.format(new Date())+" "+myAgent.getLocalName()+myAgent.logLinePrefix+" error. No database agent found.");
+			System.out.println(System.currentTimeMillis()+" "+_Agent_Template.SimpleDateFormat.format(new Date())+" "+myAgent.getLocalName()+myAgent.logLinePrefix+" error. No database agent found.");
 		}
 		
 	}

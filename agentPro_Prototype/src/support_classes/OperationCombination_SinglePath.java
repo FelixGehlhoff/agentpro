@@ -101,26 +101,45 @@ public class OperationCombination_SinglePath {
 		return costs;
 	}
 
-	public void addTransportToBuffer(Proposal proposal_transport, String opimizationCriterion) {
+	public int addTransportToBuffer(Proposal proposal_transport, String opimizationCriterion) {
 		AllocatedWorkingStep allWS_of_proposal = (AllocatedWorkingStep) proposal_transport.getConsistsOfAllocatedWorkingSteps().get(0);
 		if(transport_to_buffer != null) {
 			switch(opimizationCriterion) {
 			case "time_of_finish":
 				if(Long.parseLong(transport_to_buffer.getHasTimeslot().getEndDate())>Long.parseLong(allWS_of_proposal.getHasTimeslot().getEndDate())) {
-					setTransport_to_buffer(allWS_of_proposal); //adjusts the other steps too
-					best_proposal_transport_to_buffer = proposal_transport;
+					if(Long.parseLong(allWS_of_proposal.getHasTimeslot().getEndDate())>(Long.parseLong(startStep.getHasTimeslot().getEndDate())+startStep.getHasOperation().getBuffer_after_operation())) {
+						System.out.println(System.currentTimeMillis()+" OperationCombination: Proposal "+allWS_of_proposal.getID_String()+" violates latest Start of "+startStep.getID_String());
+						return 0;
+					}else {
+						setTransport_to_buffer(allWS_of_proposal); //adjusts the other steps too
+						best_proposal_transport_to_buffer = proposal_transport;	
+						return 1;
+					}
+					
 				}else if(Long.parseLong(transport_to_buffer.getHasTimeslot().getEndDate())==Long.parseLong(allWS_of_proposal.getHasTimeslot().getEndDate())) {
 					if(transport_to_buffer.getHasOperation().getSet_up_time()>allWS_of_proposal.getHasOperation().getSet_up_time()) {
-						setTransport_to_buffer(allWS_of_proposal);
-						best_proposal_transport_to_buffer = proposal_transport;
+						if(Long.parseLong(allWS_of_proposal.getHasTimeslot().getEndDate())>(Long.parseLong(startStep.getHasTimeslot().getEndDate())+startStep.getHasOperation().getBuffer_after_operation())) {
+							System.out.println(System.currentTimeMillis()+" OperationCombination: Proposal "+allWS_of_proposal.getID_String()+" violates latest Start of "+startStep.getID_String());
+							return 0;
+						}else {
+							setTransport_to_buffer(allWS_of_proposal); //adjusts the other steps too
+							best_proposal_transport_to_buffer = proposal_transport;	
+							return 1;
+						}
 					}
 				}
 			}
 		}else {
+			if(Long.parseLong(allWS_of_proposal.getHasTimeslot().getEndDate())>(Long.parseLong(startStep.getHasTimeslot().getEndDate())+startStep.getHasOperation().getBuffer_after_operation())) {
+				System.out.println(System.currentTimeMillis()+" OperationCombination: Proposal "+allWS_of_proposal.getHasOperation().getName()+" violates latest Start of "+startStep.getID_String());
+				return 0;
+			}else {
 			setTransport_to_buffer(allWS_of_proposal);
 			best_proposal_transport_to_buffer = proposal_transport;
-		
-		}	
+			return 1;
+			}
+		}
+		return 0;
 	}
 	//adds the step if it finishes earlier (current criterion) than the current step. If equals look at setup time
 	public void addTransportToProduction(Proposal proposal_transport, String opimizationCriterion) {
@@ -160,7 +179,8 @@ public class OperationCombination_SinglePath {
 	}
 	//also adjusts the other steps
 	public void setTransport_to_production(AllocatedWorkingStep transport_to_production) {
-		this.transport_to_production = transport_to_production;
+		
+		Boolean latest_start_violated = false;
 		if(buffer != null) {
 			buffer.getHasTimeslot().setEndDate(transport_to_production.getHasTimeslot().getStartDate());	//TODO muss hier noch geprüft werden?
 			buffer.getHasOperation().setAvg_PickupTime(transport_to_production.getHasOperation().getAvg_PickupTime());
@@ -168,19 +188,31 @@ public class OperationCombination_SinglePath {
 			if(Long.parseLong(transport_to_production.getHasTimeslot().getStartDate())-Long.parseLong(startStep.getHasTimeslot().getEndDate())>WorkpieceAgent.transport_estimation+_Agent_Template.bufferThreshold*60*1000){
 				System.out.println("OPERATIONCOMBINATION_SINGLEPATH______________________ERROR_____________A BUFFER SHOULD BE ARRANGED!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! Waiting time now: 	"+(Long.parseLong(transport_to_production.getHasTimeslot().getStartDate())-Long.parseLong(startStep.getHasTimeslot().getEndDate())));
 			}
-			startStep.getHasTimeslot().setEndDate(transport_to_production.getHasTimeslot().getStartDate());
-			startStep.getHasOperation().setAvg_PickupTime(transport_to_production.getHasOperation().getAvg_PickupTime());
+			if(Long.parseLong(transport_to_production.getHasTimeslot().getEndDate())>(Long.parseLong(startStep.getHasTimeslot().getEndDate())+startStep.getHasOperation().getBuffer_after_operation())) {
+				System.out.println(System.currentTimeMillis()+" OperationCombination: Proposal "+transport_to_production.getID_String()+" violates latest Start of "+startStep.getID_String());
+				latest_start_violated = true;
+			}else {
+				startStep.getHasTimeslot().setEndDate(transport_to_production.getHasTimeslot().getStartDate());
+				startStep.getHasOperation().setAvg_PickupTime(transport_to_production.getHasOperation().getAvg_PickupTime());
+			}	
 		}
-		long length = (long) nextProductionStep.getHasTimeslot().getLength();
-		//check if the later arrival can be accounted for with the buffer after operation
-		if(Long.parseLong(nextProductionStep.getHasTimeslot().getEndDate())+(long)nextProductionStep.getHasOperation().getBuffer_after_operation()>= Long.parseLong(transport_to_production.getHasTimeslot().getEndDate())+length) {
-			nextProductionStep.getHasTimeslot().setStartDate(transport_to_production.getHasTimeslot().getEndDate());
-			nextProductionStep.getHasTimeslot().setEndDate(Long.toString(Long.parseLong(nextProductionStep.getHasTimeslot().getStartDate())+length));
-			nextProductionStep.getHasOperation().setAvg_PickupTime(transport_to_production.getHasOperation().getAvg_PickupTime());
-		}else {
-			System.out.println("ERROR_______________TRANSPORT IS TOO LATE FOR PRODUCTION STEP"); //TODO ERROR routine, e.g. restart procedure with earliest arrival?
-		}
-		
+				//now check next resource
+				long length = Math.round(nextProductionStep.getHasTimeslot().getLength());
+				System.out.println("DEBUG______________"+(Long.parseLong(nextProductionStep.getHasTimeslot().getEndDate())+(long)nextProductionStep.getHasOperation().getBuffer_after_operation())+" >= "+ (Long.parseLong(transport_to_production.getHasTimeslot().getEndDate())+length));
+				//check if the later arrival can be accounted for with the buffer after operation: Enddate + buffer after muss >= enddate transp +  duration + setup
+				if(Long.parseLong(nextProductionStep.getHasTimeslot().getEndDate())+Math.round(nextProductionStep.getHasOperation().getBuffer_after_operation())>= Long.parseLong(transport_to_production.getHasTimeslot().getEndDate())+length+Math.round(nextProductionStep.getHasOperation().getSet_up_time()*60*1000)) {
+					nextProductionStep.getHasTimeslot().setStartDate(transport_to_production.getHasTimeslot().getEndDate());
+					nextProductionStep.getHasTimeslot().setEndDate(Long.toString(Long.parseLong(nextProductionStep.getHasTimeslot().getStartDate())+length));
+					nextProductionStep.getHasOperation().setAvg_PickupTime(transport_to_production.getHasOperation().getAvg_PickupTime());
+				
+					//if both resources are fin
+					if(!latest_start_violated) {
+						this.transport_to_production = transport_to_production;	
+					}
+				
+				}else {
+					System.out.println("ERROR_______________TRANSPORT IS TOO LATE FOR PRODUCTION STEP"); //TODO ERROR routine, e.g. restart procedure with earliest arrival?
+				}		
 	}
 	public AllocatedWorkingStep getTransport_to_buffer() {
 		return transport_to_buffer;
@@ -190,8 +222,10 @@ public class OperationCombination_SinglePath {
 		this.transport_to_buffer = transport_to_buffer;
 		buffer.getHasTimeslot().setStartDate(transport_to_buffer.getHasTimeslot().getEndDate());
 		buffer.getHasOperation().setAvg_PickupTime(transport_to_buffer.getHasOperation().getAvg_PickupTime());
-		startStep.getHasTimeslot().setEndDate(transport_to_buffer.getHasTimeslot().getStartDate());
-		startStep.getHasOperation().setAvg_PickupTime(transport_to_buffer.getHasOperation().getAvg_PickupTime());
+		
+			startStep.getHasTimeslot().setEndDate(transport_to_buffer.getHasTimeslot().getStartDate());
+			startStep.getHasOperation().setAvg_PickupTime(transport_to_buffer.getHasOperation().getAvg_PickupTime());
+		
 	}
 	
 	public long getTimeOfFinish() {

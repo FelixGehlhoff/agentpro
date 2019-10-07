@@ -8,41 +8,19 @@ import jade.core.*;
 /**
 * Protege name: OrderPosition
 * @author ontology bean generator
-* @version 2019/04/24, 14:43:54
+* @version 2019/09/27, 11:08:18
 */
 public class OrderPosition implements Concept {
 
    /**
-* Protege name: hasTargetWarehouse
+* Protege name: containsProduct
    */
-   private Warehouse_Resource hasTargetWarehouse;
-   public void setHasTargetWarehouse(Warehouse_Resource value) { 
-    this.hasTargetWarehouse=value;
+   private Product containsProduct;
+   public void setContainsProduct(Product value) { 
+    this.containsProduct=value;
    }
-   public Warehouse_Resource getHasTargetWarehouse() {
-     return this.hasTargetWarehouse;
-   }
-
-   /**
-* Protege name: releaseDate
-   */
-   private String releaseDate;
-   public void setReleaseDate(String value) { 
-    this.releaseDate=value;
-   }
-   public String getReleaseDate() {
-     return this.releaseDate;
-   }
-
-   /**
-* Protege name: dueDate
-   */
-   private String dueDate;
-   public void setDueDate(String value) { 
-    this.dueDate=value;
-   }
-   public String getDueDate() {
-     return this.dueDate;
+   public Product getContainsProduct() {
+     return this.containsProduct;
    }
 
    /**
@@ -57,14 +35,36 @@ public class OrderPosition implements Concept {
    }
 
    /**
-* Protege name: containsProduct
+* Protege name: hasTargetWarehouse
    */
-   private Product containsProduct;
-   public void setContainsProduct(Product value) { 
-    this.containsProduct=value;
+   private Warehouse_Resource hasTargetWarehouse;
+   public void setHasTargetWarehouse(Warehouse_Resource value) { 
+    this.hasTargetWarehouse=value;
    }
-   public Product getContainsProduct() {
-     return this.containsProduct;
+   public Warehouse_Resource getHasTargetWarehouse() {
+     return this.hasTargetWarehouse;
+   }
+
+   /**
+* Protege name: dueDate
+   */
+   private String dueDate;
+   public void setDueDate(String value) { 
+    this.dueDate=value;
+   }
+   public String getDueDate() {
+     return this.dueDate;
+   }
+
+   /**
+* Protege name: sequence_Number
+   */
+   private int sequence_Number;
+   public void setSequence_Number(int value) { 
+    this.sequence_Number=value;
+   }
+   public int getSequence_Number() {
+     return this.sequence_Number;
    }
 
    /**
@@ -90,14 +90,14 @@ public class OrderPosition implements Concept {
    }
 
    /**
-* Protege name: sequence_Number
+* Protege name: releaseDate
    */
-   private int sequence_Number;
-   public void setSequence_Number(int value) { 
-    this.sequence_Number=value;
+   private String releaseDate;
+   public void setReleaseDate(String value) { 
+    this.releaseDate=value;
    }
-   public int getSequence_Number() {
-     return this.sequence_Number;
+   public String getReleaseDate() {
+     return this.releaseDate;
    }
 
 }

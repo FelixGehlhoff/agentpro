@@ -7,7 +7,7 @@ import jade.core.*;
 /**
 * Protege name: CFP
 * @author ontology bean generator
-* @version 2019/04/24, 14:43:54
+* @version 2019/09/27, 11:08:18
 */
 public class CFP extends Message{ 
 
@@ -23,17 +23,6 @@ public class CFP extends Message{
    }
 
    /**
-* Protege name: ID_String
-   */
-   private String iD_String;
-   public void setID_String(String value) { 
-    this.iD_String=value;
-   }
-   public String getID_String() {
-     return this.iD_String;
-   }
-
-   /**
 * Protege name: hasTimeslot
    */
    private Timeslot hasTimeslot;
@@ -42,6 +31,17 @@ public class CFP extends Message{
    }
    public Timeslot getHasTimeslot() {
      return this.hasTimeslot;
+   }
+
+   /**
+* Protege name: ID_String
+   */
+   private String iD_String;
+   public void setID_String(String value) { 
+    this.iD_String=value;
+   }
+   public String getID_String() {
+     return this.iD_String;
    }
 
    /**

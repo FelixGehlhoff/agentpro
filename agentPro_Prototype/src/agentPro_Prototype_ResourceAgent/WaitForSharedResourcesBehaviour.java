@@ -208,11 +208,11 @@ public class WaitForSharedResourcesBehaviour extends Behaviour{
 			
 			AllocatedWorkingStep for_schedule = (AllocatedWorkingStep) proposal.getConsistsOfAllocatedWorkingSteps().get(0);	
 			for_schedule.setHasTimeslot(timeslot_for_schedule);	
-		
-			Boolean bool = 	myAgent.bookIntoSchedule(for_schedule, time_increment_or_decrement_to_be_added_for_setup_of_next_task);
-			if(!bool) {
-				System.out.println("ERROR____________Wait For shared res   "+myAgent.getLocalName()+"   step could not be added");
-			}
+		//ausgegraut 27.09.19 um Fehler weg zu machen
+		//	Boolean bool = 	myAgent.bookIntoSchedule(for_schedule, time_increment_or_decrement_to_be_added_for_setup_of_next_task);
+		//	if(!bool) {
+		//		System.out.println("ERROR____________Wait For shared res   "+myAgent.getLocalName()+"   step could not be added");
+		//	}
 			
 			// / ADD BEHAVIOURS
 	        // /////////////////////////////////////////////////////////

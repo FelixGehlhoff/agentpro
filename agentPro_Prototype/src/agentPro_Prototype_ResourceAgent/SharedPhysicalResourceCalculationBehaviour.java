@@ -41,6 +41,7 @@ public class SharedPhysicalResourceCalculationBehaviour extends Behaviour{
 	
 	@Override
 	public void action() {
+		/*
 		switch(step) {
 		case 0:
 			//System.out.println(myAgent.getLocalName()+" DEBUG_____"+myAgent.getLocalName()+"______"+System.currentTimeMillis()+" >= "+ (initialTime+timeToWait+" or "+(Boolean)this.getDataStore().get(0)+" = true"));
@@ -105,6 +106,7 @@ public class SharedPhysicalResourceCalculationBehaviour extends Behaviour{
 					// TODO Auto-generated catch block
 					e.printStackTrace();
 				}*/
+		/*
 				break;
 			}
 
@@ -114,7 +116,7 @@ public class SharedPhysicalResourceCalculationBehaviour extends Behaviour{
 			break;
 		}
 
-	
+	*/
 		
 	}
 

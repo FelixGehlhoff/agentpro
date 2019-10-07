@@ -210,24 +210,31 @@ public class RequestPerformer_transport extends Behaviour {
 			}
 			if(listOfCombinations.size()>0) {
 				//calculate values and sort by criterion
-				combination_best = sortAndDetermineBestCombinationByCriterion();			
-				System.out.println("Best combination = "+combination_best.toString());
+				combination_best = sortAndDetermineBestCombinationByCriterion();	
+				if(combination_best != null) {
+					System.out.println("Best combination = "+combination_best.toString());
 
-				//book best offers
-				acceptProposalsOfCombination(combination_best);	//do not send the proposal itself again			
-				//reject the rest
-				rejectProposals(listOfCombinations);
-				//book into schedule	    
-		    	checkConsistencyAndAddStepsToWorkplan(combination_best);
-		    	//agenten informieren, wann Werkstück abgeholt wird
-		    	if(combination_best.getBest_path().getFirstTransport()!= null) { //is null if there is no transport
-		    		myAgent.addBehaviour(new InformWorkpieceArrivalAndDeparture(myAgent, combination_best.getBest_path().getFirstTransport(), combination_best.getBest_path().getFirstTransportAllWS()));		    		
-		    	}
-		    	
-				myAgent.getProductionManagerBehaviour().setStep(0);
-				myAgent.getProductionManagerBehaviour().restart();
-				step = 4;					
-				break;
+					//book best offers
+					acceptProposalsOfCombination(combination_best);	//do not send the proposal itself again			
+					//reject the rest
+					rejectProposals(listOfCombinations);
+					//book into schedule	    
+			    	checkConsistencyAndAddStepsToWorkplan(combination_best);
+			    	//agenten informieren, wann Werkstück abgeholt wird
+			    	if(combination_best.getBest_path().getFirstTransport()!= null) { //is null if there is no transport
+			    		myAgent.addBehaviour(new InformWorkpieceArrivalAndDeparture(myAgent, combination_best.getBest_path().getFirstTransport(), combination_best.getBest_path().getFirstTransportAllWS()));		    		
+			    	}
+			    	
+					myAgent.getProductionManagerBehaviour().setStep(0);
+					myAgent.getProductionManagerBehaviour().restart();
+					step = 4;					
+					break;
+				}else {
+					System.out.println("ERROR____________________________ no feasible OC could be arranged");
+					step = 4;
+					break;
+				}
+
 			}else {
 				System.out.println("ERROR Operation could not be arranged.");
 				step=4;
@@ -330,7 +337,7 @@ public class RequestPerformer_transport extends Behaviour {
 		Transport_Operation transport_operation = new Transport_Operation();									//
 		transport_operation.setType("transport");
 		
-		transport_operation.setstartStateNeeded(start.getHasResource().getHasLocation());
+		transport_operation.setStartStateNeeded(start.getHasResource().getHasLocation());
 		transport_operation.setEndState(end.getHasResource().getHasLocation());
 		
 		//Name = Start_Ziel in format  X;Y_DestinationResource
@@ -345,13 +352,16 @@ public class RequestPerformer_transport extends Behaviour {
 		Location nextProductionOrBuffer = ((AllocatedWorkingStep)proposal.getConsistsOfAllocatedWorkingSteps().get(0)).getHasResource().getHasLocation();
 		if(myAgent.useCurrentLocationDueToDisturbance || myAgent.getLastProductionStepAllocated() == null) {
 			if(_Agent_Template.doLocationsMatch(myAgent.getLocation(), nextProductionOrBuffer)) {
+				opComb.setTransport_needed(false);
 				return false;
 			}
 		}else if(myAgent.getLastProductionStepAllocated() != null) {
 			if(_Agent_Template.doLocationsMatch(opComb.getLastProductionStepAllocated().getHasResource().getHasLocation(), nextProductionOrBuffer)) {
+				opComb.setTransport_needed(false);
 				return false;
 			}
 		}
+		opComb.setTransport_needed(true);
 		return true;
 	}
 
@@ -432,7 +442,7 @@ public class RequestPerformer_transport extends Behaviour {
 			Production_Operation requested_operation_buffer = new Production_Operation();
 			requested_operation_buffer.setType("buffer");
 			requested_operation_buffer.setAppliedOn(myAgent.getRepresented_Workpiece());
-			requested_operation_buffer.setstartStateNeeded(lastProductionStepAllocated.getHasResource().getHasLocation());
+			requested_operation_buffer.setStartStateNeeded(lastProductionStepAllocated.getHasResource().getHasLocation());
 			requested_operation_buffer.setEndState(((AllocatedWorkingStep)prop.getConsistsOfAllocatedWorkingSteps().get(0)).getHasResource().getHasLocation());	
 			//determine the requested timeslot (earliest start date, latest finish date) of the operation
 			Timeslot cfp_timeslot =  determineCFPTimeslot(prop);	 
@@ -601,26 +611,36 @@ public class RequestPerformer_transport extends Behaviour {
 	}
 
 	private OperationCombination sortAndDetermineBestCombinationByCriterion() {
+		int successful_combination_found = 0;
 
+	    
 		for(OperationCombination combination : listOfCombinations) {				
-			combination.calculateValues();
+			if(combination.calculateValues()==1) {
+				successful_combination_found++;
+			}
 		}
-		Comparator<OperationCombination> comparator = null;
-		switch (_Agent_Template.opimizationCriterion) {
-		case "time_of_finish":
-			comparator = Comparator.comparing(OperationCombination::getTimeOfFinish)
-			.thenComparing(OperationCombination::getCosts)
-			.thenComparing(OperationCombination::getTotal_duration);		
-			break;
-		case "duration_setup":
-			comparator = Comparator.comparing(OperationCombination::getCosts)
-			.thenComparing(OperationCombination::getTimeOfFinish)
-			.thenComparing(OperationCombination::getTotal_duration);	
-			break;
+		
+		if(successful_combination_found>0) {
+			Comparator<OperationCombination> comparator = null;
+			switch (_Agent_Template.opimizationCriterion) {
+			case "time_of_finish":
+				comparator = Comparator.comparing(OperationCombination::getTimeOfFinish)
+				.thenComparing(OperationCombination::getCosts)
+				.thenComparing(OperationCombination::getTotal_duration);		
+				break;
+			case "duration_setup":
+				comparator = Comparator.comparing(OperationCombination::getCosts)
+				.thenComparing(OperationCombination::getTimeOfFinish)
+				.thenComparing(OperationCombination::getTotal_duration);	
+				break;
+			}
+			Collections.sort(listOfCombinations, comparator);	
+			OperationCombination combination_best_from_list = listOfCombinations.get(0);
+			return combination_best_from_list;
+		}else {
+			return null;
 		}
-		Collections.sort(listOfCombinations, comparator);	
-		OperationCombination combination_best_from_list = listOfCombinations.get(0);
-		return combination_best_from_list;
+		
 	}
 
 	private Boolean checkIfBufferPlaceisNeeded(Proposal proposal, AllocatedWorkingStep allocatedWorkingStep) {

@@ -75,6 +75,8 @@ public class ReceiveCFPBehaviour_backup extends Behaviour{
 	@SuppressWarnings("unchecked")
 	@Override
 	public void action() {
+		
+		/*
 		switch (step) {
 		case 0:
 			//receive Message from Inbox
@@ -230,6 +232,7 @@ public class ReceiveCFPBehaviour_backup extends Behaviour{
 			step = 0;
 			break;		
 		}
+		*/
 	}
 	
 	

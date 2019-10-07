@@ -7,10 +7,11 @@ import jade.core.*;
 /**
 * Protege name: Location
 * @author ontology bean generator
-* @version 2019/04/24, 14:43:54
+* @version 2019/09/30, 10:42:56
 */
 public class Location extends State{ 
-////////////////////////////User code
+
+//////////////////////////// User code
 @Override     public String toString() {return "["+coordX+";"+coordY+"]";}
    /**
 * Protege name: coordX

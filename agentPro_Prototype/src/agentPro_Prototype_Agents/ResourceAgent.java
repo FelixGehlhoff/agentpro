@@ -3,7 +3,9 @@ package agentPro_Prototype_Agents;
 
 import java.sql.Connection;
 import java.sql.DriverManager;
+import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
@@ -16,6 +18,7 @@ import agentPro.onto.CFP;
 import agentPro.onto.DetailedOperationDescription;
 import agentPro.onto.Location;
 import agentPro.onto.Operation;
+import agentPro.onto.Production_Operation;
 import agentPro.onto.Proposal;
 import agentPro.onto.Resource;
 import agentPro.onto.Setup_state;
@@ -23,6 +26,7 @@ import agentPro.onto.State;
 import agentPro.onto.Timeslot;
 import agentPro.onto.Transport_Operation;
 import agentPro.onto.WorkPlan;
+import agentPro.onto.Workpiece;
 import agentPro.onto._SendProposal;
 import agentPro_Prototype_ResourceAgent.ReceiveCFPBehaviour;
 import agentPro_Prototype_ResourceAgent.ReceiveCancellationBehaviour;
@@ -107,6 +111,7 @@ public abstract class ResourceAgent extends _Agent_Template{
 		
 		
 		logLinePrefix = getLocalName();
+	
 		//setStartState();
 		// / INITIALISATION
 		// /////////////////////////////////////////////////////////	
@@ -122,6 +127,53 @@ public abstract class ResourceAgent extends _Agent_Template{
        // ReceiveRejectProposalBehaviour = new ReceiveRejectProposalBehaviour(this);
         //addBehaviour(ReceiveRejectProposalBehaviour);
 	}
+
+
+	protected void receiveWorkPlanValuesFromDB(Resource representedResource) {
+		Statement stmt = null;
+	    String query = "";
+
+	    	query = "select "+columnNameStartSoll+" , "+columnNameEndeSoll+" , "+columnNameChangeOfState+" from "+tableNameBetriebskalender+" where "+columnNameResourceName_simulation+" = '"+representedResource.getName()+"'"; 
+	   
+	    try {
+	        stmt = connection.createStatement();
+	        ResultSet rs = stmt.executeQuery(query);
+	      int counter = 1;
+	        while (rs.next()) {
+	        	AllocatedWorkingStep allWS = new AllocatedWorkingStep();
+				allWS.setID_String("Maintenance");
+	        	Timeslot timeslot = new Timeslot();		     
+	        		timeslot.setStartDate(String.valueOf(rs.getTimestamp(columnNameStartSoll).getTime()));
+	        		timeslot.setEndDate(String.valueOf(rs.getTimestamp(columnNameEndeSoll).getTime()));
+	        		timeslot.setLength(rs.getTimestamp(columnNameEndeSoll).getTime()-rs.getTimestamp(columnNameStartSoll).getTime());
+	        		allWS.setHasTimeslot(timeslot);	
+	        		Operation op = setStateAndOperation(rs);
+
+	        		op.setName("maintenance@"+this.getLocalName()+"-operation"+counter);
+	        			Workpiece wp = new Workpiece();
+	        			wp.setID_String("machine");
+	        		op.setAppliedOn(wp);
+	        		allWS.setHasOperation(op);
+	        		allWS.setHasResource(this.getRepresentedResource());
+	        		
+	        		this.getWorkplan().addConsistsOfAllocatedWorkingSteps(allWS);
+	        		Interval timeslot_interval_busy = new Interval (rs.getTimestamp(columnNameStartSoll).getTime(), rs.getTimestamp(columnNameEndeSoll).getTime(), false);
+	        		Boolean booking_successful = adjustIntervals(timeslot_interval_busy, 0, null);
+	        		if(booking_successful) {
+	        			getBusyInterval_array().add(timeslot_interval_busy);	
+	        			sortArrayListIntervalsEarliestFirst(getBusyInterval_array(), "start");
+	        		}
+	        		this.printoutBusyIntervals();
+	        counter++;		
+	        }
+	        
+	    } catch (SQLException e ) {
+	    	e.printStackTrace();
+	    }
+	}
+
+
+	protected abstract Operation setStateAndOperation(ResultSet rs);
 
 
 	protected abstract void setStartState();
@@ -142,9 +194,8 @@ public abstract class ResourceAgent extends _Agent_Template{
 			Storage_element_slot right_slot = null;
 			for(Storage_element_slot slot : this.getReceiveCFPBehav().getProposed_slots()) {
 				if(slot.getID().contentEquals(((AllocatedWorkingStep)proposal.getConsistsOfAllocatedWorkingSteps().get(0)).getHasOperation().getName())) {
-					if(((AllocatedWorkingStep)proposal.getConsistsOfAllocatedWorkingSteps().get(0)).getHasOperation().getName().contentEquals("20.0;5.0_Rollformen")){
-						System.out.println("here");
-					}
+					//if(((AllocatedWorkingStep)proposal.getConsistsOfAllocatedWorkingSteps().get(0)).getHasOperation().getName().contentEquals("20.0;5.0_Rollformen")){
+					//}
 					considerPickup((AllocatedWorkingStep)proposal.getConsistsOfAllocatedWorkingSteps().get(0));	//prod. res adds the pick up at the beginning
 					if(slot.checkNewTimeslot((AllocatedWorkingStep)proposal.getConsistsOfAllocatedWorkingSteps().get(0))) {
 						timeslot_to_add = ((AllocatedWorkingStep)proposal.getConsistsOfAllocatedWorkingSteps().get(0)).getHasTimeslot();
@@ -196,8 +247,8 @@ public abstract class ResourceAgent extends _Agent_Template{
 		
 
 		
-		printoutFreeIntervals();
-		printoutBusyIntervals();
+		//printoutFreeIntervals();
+		//printoutBusyIntervals();
 		return booking_successful;		
 		//create GANTT chart
 		/*
@@ -361,7 +412,7 @@ public abstract class ResourceAgent extends _Agent_Template{
 		    	if(Long.parseLong(a.getHasTimeslot().getStartDate()) == getFree_interval_array().get(counter_free_interval_i).upperBound()) {
 		    		//if yes
 
-		    		State start_next_task_needed = a.getHasOperation().getstartStateNeeded();
+		    		State start_next_task_needed = a.getHasOperation().getStartStateNeeded();
 		    		
 		    		//Location start_next_task = (Location) ((Transport_Operation)a.getHasOperation()).getStartState();
 		    		

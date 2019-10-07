@@ -17,13 +17,17 @@ import org.apache.commons.lang.math.RandomUtils;
 import org.jfree.ui.RefineryUtilities;
 
 import agentPro.onto.AllocatedWorkingStep;
+import agentPro.onto.Location;
 import agentPro.onto.Operation;
 import agentPro.onto.Proposal;
 import agentPro.onto.Resource;
 import agentPro.onto.Timeslot;
+import agentPro.onto.Transport_Operation;
 import agentPro.onto.WorkPlan;
 import agentPro.onto.Workpiece;
 import agentPro_Prototype_Agents._Agent_Template;
+import agentPro_Prototype_InterfaceAgent_Behaviours.ReceiveInformOrderCompletionBehaviour;
+import support_classes.Interval;
 import support_classes.OperationCombination;
 import support_classes.XYTaskDataset_Total;
 
@@ -35,6 +39,12 @@ public class Test_OperationCombination {
 	static double costs = 0;
 	static double utilization = 0;
 	public static void main(String[] args){
+		int quantity = (int) (Math.random()*100);
+		System.out.println(quantity);
+		
+		System.out.println(feasibilityCheckAndDetermineDurationParameters());
+		
+		createGantt();
 		
 		
 	/*
@@ -64,6 +74,38 @@ public class Test_OperationCombination {
 			System.out.println(longNumber+" "+longNumber2);*/
 	}
 	
+	private static void createGantt() {
+		ArrayList <String> orders = new ArrayList<String>();
+		try {
+			orders = ReceiveInformOrderCompletionBehaviour.getOrdersFromDB();
+			System.out.println(orders);
+		} catch (SQLException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		WorkPlan total_wp = ReceiveInformOrderCompletionBehaviour.createWorkPlan(orders);
+
+		 XYTaskDataset_Total demo = new XYTaskDataset_Total("JFreeChart : XYTaskDataset_Total.java", total_wp);
+	        demo.pack();
+	        RefineryUtilities.centerFrameOnScreen(demo);
+	        demo.setVisible(false);	
+		
+	}
+public static boolean feasibilityCheckAndDetermineDurationParameters() {		
+		Interval range = new Interval(25,100, false);
+		
+		boolean return_value = true;
+		
+		//System.out.println("DEBUG___"+this.getName()+" range "+range.toString()+" contains "+end.getCoordX()+" and contains "+ start.getCoordX());
+		
+		if(range.contains((long)35) && range.contains((long)60)) {
+			
+		}else {
+			return_value =  false;
+		}
+	
+		return return_value;
+	}
 	
 	
 	public static void calculateValues(WorkPlan wp) {		

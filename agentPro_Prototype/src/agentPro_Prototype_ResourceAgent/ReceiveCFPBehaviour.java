@@ -228,6 +228,7 @@ public class ReceiveCFPBehaviour extends Behaviour{
 	        myAgent.setOfferNumber(myAgent.getOfferNumber()+1);
 	        step = 0;
 	        sender.clear(); //clears the arraylist of senders for the next message
+	        numberOfRefusals = 0;
 	   
 	        break;
 		case 2:
@@ -237,6 +238,7 @@ public class ReceiveCFPBehaviour extends Behaviour{
 			//TODO TBD shared Resources!!
 			//myAgent.addBehaviour(new WaitForSharedResourcesBehaviour(myAgent, requested_operation, conversationID, proposals, timeslot_for_schedule, time_increment_or_decrement_to_be_added_for_setup_of_next_task, sender, cfp));
 			sender.clear(); //clears the arraylist of senders for the next message
+			numberOfRefusals = 0;
 			step = 0;
 			break;		
 		}

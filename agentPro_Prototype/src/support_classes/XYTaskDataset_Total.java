@@ -163,7 +163,7 @@ public class XYTaskDataset_Total extends ApplicationFrame {
         ChartUtilities.applyCurrentTheme(chart);
         
         try {
-			saveChartToJPG(chart,"C:/Users/Mitarbeiter/Dropbox (HSU_Agent.Pro)/_AgentPro/Prototyp/GANTT_Charts/eclipse/"+SimpleDateFormat.format(System.currentTimeMillis())+"_gantt_RESOURCES.", 700,470);
+			saveChartToJPG(chart,"F:/TeamDrive/Agent.Pro/_AgentPro/Prototyp/GANTT_Charts/eclipse/"+SimpleDateFormat.format(System.currentTimeMillis())+"_gantt_RESOURCES.", 700,470);
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();

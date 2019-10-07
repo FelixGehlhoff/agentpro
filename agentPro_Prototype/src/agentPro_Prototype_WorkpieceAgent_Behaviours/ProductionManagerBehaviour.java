@@ -34,22 +34,26 @@ public class ProductionManagerBehaviour extends Behaviour{
 	//private double average_speed = 1; //m/s
 
 	private boolean backwards_scheduling_activ = false;
+	
 
 	
 
 	public ProductionManagerBehaviour(WorkpieceAgent myAgent) {
 		super(myAgent);
 		this.myAgent = myAgent;	
-		
+		myAgent.startCoordinationProcess = System.currentTimeMillis();
+		System.out.println("@@@@@@@@@@@@@@@@@@@@@@@@@@ START     "+myAgent.startCoordinationProcess);
 		//System.out.println(myAgent.SimpleDateFormat.format(new Date())+" "+myAgent.getLocalName()+logLinePrefix+" started");
 	}
 	
 	@Override
 	public void action() {
+		
 		switch(step){
 		
 		case 0:
-			System.out.println("DEBUG____________prod Manager at step = 0");
+			//System.out.println("DEBUG____________prod Manager at step = 0");
+			
 			int position_next_step = 0;
 			
 			//check which step is needed
@@ -60,7 +64,9 @@ public class ProductionManagerBehaviour extends Behaviour{
 			position_next_step = number_of_finished_production_steps+number_of_planned_production_steps;	// e.g. one finished step and 1 planned step --> size = 2, position in workplan array = 2 (3rd position)
 			String name_of_last_operation = ((OrderedOperation)myAgent.getProdPlan().getConsistsOfOrderedOperations().get(myAgent.getProdPlan().getConsistsOfOrderedOperations().size()-1)).getHasOperation().getName();
 			if(myAgent.getLastProductionStepAllocated() != null && myAgent.getLastProductionStepAllocated().getHasOperation().getName().contentEquals(name_of_last_operation)) {
-				arrangeTransportToWarehouse();
+				if(myAgent.transport_needed) {
+					arrangeTransportToWarehouse();
+				}
 				step = 2;
 				break;
 			}
@@ -127,10 +133,12 @@ public class ProductionManagerBehaviour extends Behaviour{
 			//if(((Transport_Operation) allWS.getHasOperation()).getHasEndLocation().getCoordX() == 100 && ((Transport_Operation) allWS.getHasOperation()).getHasEndLocation().getCoordY() == 100) {
 				//sort workplan
 				//sortWorkplan();
+			myAgent.EndCoordinationProcess = System.currentTimeMillis();
+			System.out.println("@@@@@@@@@@@@@@@@@@@@@@@@@@ END     "+myAgent.EndCoordinationProcess);
 				sortWorkplanChronologically();
 				//TBD what needs to be done when finished
 				 myAgent.addBehaviour(new RequestDatabaseEntryBehaviour(myAgent));   
-				 System.out.println(_Agent_Template.printoutWorkPlan(myAgent.getWorkplan(), "WP1"));
+				 //System.out.println(_Agent_Template.printoutWorkPlan(myAgent.getWorkplan(), "WP1"));
 				 /*
 				try {
 					myAgent.addDataToDatabase("workpiece", myAgent.getWorkplan());
@@ -144,7 +152,7 @@ public class ProductionManagerBehaviour extends Behaviour{
 				
 				ACLMessage inform_done = new ACLMessage(ACLMessage.INFORM);
 				inform_done.addReceiver(myAgent.getOrderAgent());
-				inform_done.setContent("Inform_Done for "+myAgent.getLocalName());	
+				inform_done.setContent(myAgent.getLocalName()+"_"+myAgent.startCoordinationProcess+"_"+myAgent.EndCoordinationProcess+"_"+myAgent.getOrderPos().getQuantity());	
 				inform_done.setConversationId(myAgent.getConversationID_forOrderAgent());			
 				myAgent.send(inform_done);		
 					//AllocatedWorkingStep allWS1 = (AllocatedWorkingStep) myAgent.getWorkplan().getConsistsOfAllocatedWorkingSteps().get(myAgent.getWorkplan().getConsistsOfAllocatedWorkingSteps().size()-1);
@@ -331,7 +339,7 @@ private void arrangeTransportToWarehouse() {
 				myAgent.getProductionManagerBehaviour().setStep(2);
 				myAgent.getProductionManagerBehaviour().restart();
 			}else {
-				transport_operation.setstartStateNeeded(startlocation);
+				transport_operation.setStartStateNeeded(startlocation);
 				transport_operation.setEndState(myAgent.getOrderPos().getHasTargetWarehouse().getHasLocation());
 				
 				

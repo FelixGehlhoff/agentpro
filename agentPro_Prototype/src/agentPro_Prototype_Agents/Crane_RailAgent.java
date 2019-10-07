@@ -4,6 +4,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 
+import agentPro.onto.AllocatedWorkingStep;
 import agentPro.onto.CFP;
 import agentPro.onto.Capability;
 import agentPro.onto.Operation;
@@ -121,6 +122,20 @@ public class Crane_RailAgent extends SharedResourceAgent{
 
 	@Override
 	protected void setStartState() {
+		// TODO Auto-generated method stub
+		
+	}
+
+
+	@Override
+	protected Operation setStateAndOperation(ResultSet rs) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+
+	@Override
+	protected void considerPickup(AllocatedWorkingStep allocatedWorkingStep) {
 		// TODO Auto-generated method stub
 		
 	}

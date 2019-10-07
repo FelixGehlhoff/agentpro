@@ -30,7 +30,7 @@ public class ReceiveIntervalForConnectedResourceBehaviour extends CyclicBehaviou
 	@Override
 	public void action() {
 		// Receive inform if allocated step is scheduled
-
+/*
 					MessageTemplate mt3 = MessageTemplate.MatchPerformative(ACLMessage.INFORM);
 			        MessageTemplate mt4 = MessageTemplate.MatchProtocol("Connected_Resource");
 			        MessageTemplate mt_total2 = MessageTemplate.and(mt3,mt4);
@@ -75,9 +75,11 @@ public class ReceiveIntervalForConnectedResourceBehaviour extends CyclicBehaviou
 							    	myAgent.getBusyInterval_array().add(interval);
 							    	
 								*/
+		/*
 					}else {
 						block();
 					}
+					*/
 		
 	}
 

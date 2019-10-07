@@ -7,7 +7,7 @@ import jade.core.*;
 /**
 * Protege name: Warehouse_Resource
 * @author ontology bean generator
-* @version 2019/04/24, 14:43:54
+* @version 2019/09/27, 11:08:18
 */
 public class Warehouse_Resource extends Resource{ 
 

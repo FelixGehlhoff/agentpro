@@ -91,6 +91,7 @@ public class RequestPerformer_Resource extends Behaviour {
 	}
 	
 	public void action() {
+		/*
 		switch (step) {		
 		case 0:		
 			//find agents with capability X
@@ -506,7 +507,7 @@ public class RequestPerformer_Resource extends Behaviour {
 					//WWWWWWWWWWWWWWWWWWWWWWW
 					//shared_resource_asked[index] = true;
 					//shared_resource_available[index] = false;
-					
+				/*	
 					((Boolean[]) this.getDataStore().get(0))[index] = true;
 					((Boolean[]) this.getDataStore().get(1))[index] = false;
 					
@@ -528,7 +529,7 @@ public class RequestPerformer_Resource extends Behaviour {
 					//((Boolean[]) this.getDataStore().get(0))[index] = true;
 					//System.out.println("DEBUG__________"+ ((Boolean[]) this.getDataStore().get(0))[index]+ " in datastore set to true");
 					//((Boolean[]) this.getDataStore().get(1))[index] = true;
-					
+					/*
 					((Boolean[]) this.getDataStore().get(2))[index] = true;
 					
 				step = 8;
@@ -547,6 +548,7 @@ public class RequestPerformer_Resource extends Behaviour {
 			///block();	
 			}
 		}
+		*/
 	}
 
 	public boolean done() {

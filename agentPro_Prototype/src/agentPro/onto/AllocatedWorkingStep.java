@@ -13,7 +13,7 @@ import jade.core.*;
     </p>
 * Protege name: AllocatedWorkingStep
 * @author ontology bean generator
-* @version 2019/04/29, 14:34:02
+* @version 2019/09/27, 11:08:18
 */
 public class AllocatedWorkingStep implements Concept {
 
@@ -31,17 +31,6 @@ public class AllocatedWorkingStep implements Concept {
    }
 
    /**
-* Protege name: isFinished
-   */
-   private boolean isFinished;
-   public void setIsFinished(boolean value) { 
-    this.isFinished=value;
-   }
-   public boolean getIsFinished() {
-     return this.isFinished;
-   }
-
-   /**
 * Protege name: enddate
    */
    private float enddate;
@@ -50,39 +39,6 @@ public class AllocatedWorkingStep implements Concept {
    }
    public float getEnddate() {
      return this.enddate;
-   }
-
-   /**
-* Protege name: startdate
-   */
-   private float startdate;
-   public void setStartdate(float value) { 
-    this.startdate=value;
-   }
-   public float getStartdate() {
-     return this.startdate;
-   }
-
-   /**
-* Protege name: ID_String
-   */
-   private String iD_String;
-   public void setID_String(String value) { 
-    this.iD_String=value;
-   }
-   public String getID_String() {
-     return this.iD_String;
-   }
-
-   /**
-* Protege name: isErrorStep
-   */
-   private boolean isErrorStep;
-   public void setIsErrorStep(boolean value) { 
-    this.isErrorStep=value;
-   }
-   public boolean getIsErrorStep() {
-     return this.isErrorStep;
    }
 
    /**
@@ -97,6 +53,50 @@ public class AllocatedWorkingStep implements Concept {
    }
 
    /**
+* Protege name: ID_String
+   */
+   private String iD_String;
+   public void setID_String(String value) { 
+    this.iD_String=value;
+   }
+   public String getID_String() {
+     return this.iD_String;
+   }
+
+   /**
+* Protege name: startdate
+   */
+   private float startdate;
+   public void setStartdate(float value) { 
+    this.startdate=value;
+   }
+   public float getStartdate() {
+     return this.startdate;
+   }
+
+   /**
+* Protege name: quantity
+   */
+   private int quantity;
+   public void setQuantity(int value) { 
+    this.quantity=value;
+   }
+   public int getQuantity() {
+     return this.quantity;
+   }
+
+   /**
+* Protege name: isFinished
+   */
+   private boolean isFinished;
+   public void setIsFinished(boolean value) { 
+    this.isFinished=value;
+   }
+   public boolean getIsFinished() {
+     return this.isFinished;
+   }
+
+   /**
 * Protege name: isStarted
    */
    private boolean isStarted;
@@ -105,6 +105,17 @@ public class AllocatedWorkingStep implements Concept {
    }
    public boolean getIsStarted() {
      return this.isStarted;
+   }
+
+   /**
+* Protege name: isErrorStep
+   */
+   private boolean isErrorStep;
+   public void setIsErrorStep(boolean value) { 
+    this.isErrorStep=value;
+   }
+   public boolean getIsErrorStep() {
+     return this.isErrorStep;
    }
 
    /**

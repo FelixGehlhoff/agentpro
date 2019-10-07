@@ -54,7 +54,7 @@ public class TransportResourceAgent extends ResourceAgent{
 		representedResource.setName(this.getLocalName());
 		receiveValuesFromDB(representedResource);
 		setStartState();
-			
+		receiveWorkPlanValuesFromDB(representedResource);	
 		registerAtDF();
 		
 		// / ADD BEHAVIOURS
@@ -96,7 +96,7 @@ public class TransportResourceAgent extends ResourceAgent{
 		
 		boolean return_value = true;
 		Transport_Operation transport_op = (Transport_Operation) operation;
-		Location start = (Location) transport_op.getstartStateNeeded();
+		Location start = (Location) transport_op.getStartStateNeeded();
 		Location end = (Location) transport_op.getEndState();
 		
 		//System.out.println("DEBUG___"+this.getName()+" range "+range.toString()+" contains "+end.getCoordX()+" and contains "+ start.getCoordX());
@@ -256,9 +256,9 @@ public class TransportResourceAgent extends ResourceAgent{
 		 Storage_element_slot slot = null;
 		 
 	for(int i = 0;i<getFree_interval_array().size();i++) {	
-		if(transport_op_to_destination.getName().contains("Fraese")&&transport_op_to_destination.getAppliedOn().getID_String().contains("B")) {
-			System.out.println("here");
-		}	
+		//if(transport_op_to_destination.getName().contains("Fraese")&&transport_op_to_destination.getAppliedOn().getID_String().contains("B")) {
+		//	System.out.println("here");
+		//}	
 			operation_description.clearAllHasRequest_Points();	
 			
 			//dependent parameters
@@ -269,9 +269,9 @@ public class TransportResourceAgent extends ResourceAgent{
 			//time_increment_or_decrement_to_be_added_for_setup_of_next_task = this.calculateTimeIncrement(transport_op_to_destination, avg_speed, i, operation_description); // in min
 
 			time_increment_or_decrement_to_be_added_for_setup_of_next_task = this.calculateTimeIncrement(transport_op_to_destination, i, operation_description); // in min
-				if(operation.getName().contentEquals("20.0;5.0_Rollformen")) {
-					System.out.println("here");
-				}
+				//if(operation.getName().contentEquals("20.0;5.0_Rollformen")) {
+				//	System.out.println("here");
+				//}
 			duration_total_for_schedule = duration_to_get_to_workpiece + duration_eff + buffer + time_increment_or_decrement_to_be_added_for_setup_of_next_task;	// min
 			duration_for_answering_CFP_so_for_Workpiece_schedule 	=  	 duration_eff + buffer;
 		
@@ -360,7 +360,7 @@ public class TransportResourceAgent extends ResourceAgent{
 	}*/
 	
 	private float calculateDurationOfProcessWithoutSetup(Operation operation, int number_of_times_to_be_executed) {
-		float distance_Workpiece_to_ProductionResource = calcDistance((Location)operation.getstartStateNeeded(), (Location)operation.getEndState());	//in m
+		float distance_Workpiece_to_ProductionResource = calcDistance((Location)operation.getStartStateNeeded(), (Location)operation.getEndState());	//in m
 		 float traveling_time  = (distance_Workpiece_to_ProductionResource/this.getRepresentedResource().getAvg_Speed())/60; // in min
 		//System.out.println("DEBUG__TR____number_of_times_to_be_executed "+number_of_times_to_be_executed+" calculated (1+(number_of_times_to_be_executed-1)*2) "+(1+(number_of_times_to_be_executed-1)*2));
 		 float duration_eff = traveling_time*(1+(number_of_times_to_be_executed-1)*2) + 2*this.getRepresentedResource().getAvg_PickupTime()*number_of_times_to_be_executed;
@@ -371,7 +371,7 @@ public class TransportResourceAgent extends ResourceAgent{
 	private float calculateDurationSetup(Interval interval, Operation operation) {
 		Location start_old_idle = (Location) this.getStateAtTime(interval.lowerBound());	
 		operation.setStartState(start_old_idle);
-		Location start_new = (Location) operation.getstartStateNeeded();
+		Location start_new = (Location) operation.getStartStateNeeded();
 		float distance_TransportResource_to_Workpiece = calcDistance(start_old_idle, start_new);			
 		float duration_to_get_to_workpiece = (distance_TransportResource_to_Workpiece/this.getRepresentedResource().getAvg_Speed()) / 60 ;	// in min
 		return duration_to_get_to_workpiece;
@@ -576,6 +576,27 @@ public class TransportResourceAgent extends ResourceAgent{
 	protected void considerPickup(AllocatedWorkingStep allocatedWorkingStep) {
 		// nothing has to happen
 		
+	}
+
+	@Override
+	protected Operation setStateAndOperation(ResultSet rs) {
+		Transport_Operation op = new Transport_Operation();
+		Location loc = new Location();
+		try {
+			if(rs.getBoolean(_Agent_Template.columnNameChangeOfState)) {       		
+				loc.setCoordX(0);
+				loc.setCoordY(0);
+			}else {
+				loc = (Location) this.getRepresentedResource().getStartState();
+			}
+		} catch (SQLException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		op.setStartStateNeeded(loc);//TODO eventuell dynmaiisch bestimmen?
+		op.setStartState(loc);//TODO eventuell dynmaiisch bestimmen?
+		op.setEndState(loc);	
+		return op;
 	}
 
 

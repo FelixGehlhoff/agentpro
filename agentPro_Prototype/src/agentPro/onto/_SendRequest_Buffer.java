@@ -8,7 +8,7 @@ import jade.core.*;
 /**
 * Protege name: _SendRequest_Buffer
 * @author ontology bean generator
-* @version 2019/04/24, 14:43:54
+* @version 2019/09/27, 11:08:18
 */
 public class _SendRequest_Buffer implements AgentAction {
 

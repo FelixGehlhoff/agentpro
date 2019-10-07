@@ -31,7 +31,7 @@ public class BufferAgent_new extends ProductionResourceAgent{
 	
 	@Override
 	public boolean feasibilityCheckAndDetermineDurationParameters(Operation operation) {
-		Location start = (Location) operation.getstartStateNeeded();
+		Location start = (Location) operation.getStartStateNeeded();
 		Location end = (Location) operation.getEndState();	
 		//System.out.println("DEBUG___"+this.getName()+" range "+range.toString()+" contains "+end.getCoordX()+" and contains "+ start.getCoordX());
 		
@@ -64,11 +64,14 @@ public class BufferAgent_new extends ProductionResourceAgent{
 		//this.getReceiveCFPBehav().timeslot_for_schedule.setEndDate(String.valueOf(cfp_timeslot.getEndDate())); //time increment is reduced / put to the other busy interval later
 		//this.getReceiveCFPBehav().timeslot_for_schedule.setStartDate(String.valueOf(cfp_timeslot.getStartDate()));	
 		//this.getReceiveCFPBehav().timeslot_for_schedule.setLength(cfp_timeslot.getLength());
+
 		Storage_element_slot slot = createStorageElement(operation, cfp_timeslot, (long) cfp.getHasOperation().getAvg_PickupTime()*60*1000, 0F);
 		 this.getReceiveCFPBehav().getProposed_slots().add(slot);	
 	proposal = createProposal(price, buffer_operation, cfp_timeslot, cfp.getHasSender(), cfp.getID_String());
 	return proposal;
 	}
+	
+	
 	@Override
 	public Boolean bookIntoSchedule(Accept_Proposal accept_proposal) {
 		Proposal prop = (Proposal) accept_proposal.getHasProposal().get(0);

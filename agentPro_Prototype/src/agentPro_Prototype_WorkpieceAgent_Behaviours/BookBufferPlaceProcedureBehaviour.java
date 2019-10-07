@@ -75,6 +75,7 @@ public class BookBufferPlaceProcedureBehaviour extends Behaviour{
 			}
 		}*/
     	
+		/*
 	    switch (step) {
 	    case 0:
 	    	//schedule next production step
@@ -118,6 +119,7 @@ public class BookBufferPlaceProcedureBehaviour extends Behaviour{
 		    		//check whether we need a buffer place
 		    	
 		    		//interval between now and the start of the next production step
+		/*
 	    		Interval interval_between_now_and_Startdate_production = new Interval();
 	    		
 	    		if(myAgent.simulation_enercon_mode) {
@@ -233,6 +235,8 @@ public class BookBufferPlaceProcedureBehaviour extends Behaviour{
 	    			if(doLocationsmatch_startTransporttoProduction_LocationOfOldProductionStep) {	//correct step found
 	    				this.allWS_transport_to_buffer = allWS_transport_to_buffer;
 	    				//does the buffer have to be rescheduled?
+	    				
+	    				
 	    				if(myAgent.getProductionManagerBehaviour().isBackwards_scheduling_activ()) {
 
 	    		    		Timeslot new_timeslot_to_book_buffer_place = new Timeslot();
@@ -445,6 +449,7 @@ public class BookBufferPlaceProcedureBehaviour extends Behaviour{
 	    	//}    	
 	    	break;
 	    	}//switch case 
+	    	*/
 	}
 
 	@Override

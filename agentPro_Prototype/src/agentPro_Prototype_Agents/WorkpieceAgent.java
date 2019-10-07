@@ -64,8 +64,8 @@ public class WorkpieceAgent extends _Agent_Template{
 	//private int amountOfTimeLeft;
 	private int orderNumber;
 	
-	public static long transport_estimation = (long) 1000*60*25;	//estimated duration of transport = 15 min
-	public int avg_pickUp = 5;
+	public static long transport_estimation = (long) 1000*60*15;	//estimated duration of transport = 15 min
+	//public int avg_pickUp = 5;
 	
 	private OrderPosition orderPos;
 	private ProductionPlan prodPlan;
@@ -73,6 +73,9 @@ public class WorkpieceAgent extends _Agent_Template{
 	//private Location lastLocation;
 	//private Resource nextProductionResource;
 	public boolean useCurrentLocationDueToDisturbance = false;
+	public boolean transport_needed = true;
+	public long startCoordinationProcess;
+	public long EndCoordinationProcess;
 	
 	protected void setup (){
 		logLinePrefix = getLocalName();
@@ -116,6 +119,13 @@ public class WorkpieceAgent extends _Agent_Template{
 		
 		super.setup();
 		registerAtDF();
+		
+		try {
+			Thread.sleep(1000);
+		} catch (InterruptedException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 		// / ADD BEHAVIOURS
         // /////////////////////////////////////////////////////////
 		productionManagerBehaviour = new ProductionManagerBehaviour(this);

@@ -7,9 +7,31 @@ import jade.core.*;
 /**
 * Protege name: Disturbance
 * @author ontology bean generator
-* @version 2019/04/24, 14:43:54
+* @version 2019/09/27, 11:08:18
 */
 public class Disturbance extends Event{ 
+
+   /**
+* Protege name: timeDelta
+   */
+   private float timeDelta;
+   public void setTimeDelta(float value) { 
+    this.timeDelta=value;
+   }
+   public float getTimeDelta() {
+     return this.timeDelta;
+   }
+
+   /**
+* Protege name: localizationDelta
+   */
+   private float localizationDelta;
+   public void setLocalizationDelta(float value) { 
+    this.localizationDelta=value;
+   }
+   public float getLocalizationDelta() {
+     return this.localizationDelta;
+   }
 
    /**
 * Protege name: hasDisturbanceType
@@ -20,6 +42,39 @@ public class Disturbance extends Event{
    }
    public DisturbanceType getHasDisturbanceType() {
      return this.hasDisturbanceType;
+   }
+
+   /**
+* Protege name: detectedBy
+   */
+   private Person detectedBy;
+   public void setDetectedBy(Person value) { 
+    this.detectedBy=value;
+   }
+   public Person getDetectedBy() {
+     return this.detectedBy;
+   }
+
+   /**
+* Protege name: id_workpiece
+   */
+   private int id_workpiece;
+   public void setId_workpiece(int value) { 
+    this.id_workpiece=value;
+   }
+   public int getId_workpiece() {
+     return this.id_workpiece;
+   }
+
+   /**
+* Protege name: processDelta
+   */
+   private float processDelta;
+   public void setProcessDelta(float value) { 
+    this.processDelta=value;
+   }
+   public float getProcessDelta() {
+     return this.processDelta;
    }
 
    /**
@@ -42,61 +97,6 @@ public class Disturbance extends Event{
    }
    public Resource getOccuresAt() {
      return this.occuresAt;
-   }
-
-   /**
-* Protege name: id_workpiece
-   */
-   private int id_workpiece;
-   public void setId_workpiece(int value) { 
-    this.id_workpiece=value;
-   }
-   public int getId_workpiece() {
-     return this.id_workpiece;
-   }
-
-   /**
-* Protege name: timeDelta
-   */
-   private float timeDelta;
-   public void setTimeDelta(float value) { 
-    this.timeDelta=value;
-   }
-   public float getTimeDelta() {
-     return this.timeDelta;
-   }
-
-   /**
-* Protege name: detectedBy
-   */
-   private Person detectedBy;
-   public void setDetectedBy(Person value) { 
-    this.detectedBy=value;
-   }
-   public Person getDetectedBy() {
-     return this.detectedBy;
-   }
-
-   /**
-* Protege name: processDelta
-   */
-   private float processDelta;
-   public void setProcessDelta(float value) { 
-    this.processDelta=value;
-   }
-   public float getProcessDelta() {
-     return this.processDelta;
-   }
-
-   /**
-* Protege name: localizationDelta
-   */
-   private float localizationDelta;
-   public void setLocalizationDelta(float value) { 
-    this.localizationDelta=value;
-   }
-   public float getLocalizationDelta() {
-     return this.localizationDelta;
    }
 
 }

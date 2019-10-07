@@ -50,7 +50,7 @@ public abstract class _Agent_Template extends Agent{
 	public String logLinePrefix;
 	public String ability;
 	public ArrayList <DFAgentDescription> resourceAgents = new ArrayList<DFAgentDescription>();
-	public Boolean showMessageContent = true;
+	public Boolean showMessageContent = false;
 	private WorkPlan workplan;
 	public long time_until_end = (long) 1000*60*60*30*31;// 25 pieces (24+6 buffer) * 31 h 1000*60*60*24; //24 h
 	
@@ -88,7 +88,7 @@ public abstract class _Agent_Template extends Agent{
 	public static String prefix_schema = "agentpro";
 	public static String nameOfMES_Data_Resource = prefix_schema+".total_operations_my";
 	public String nameOfMES_Data = prefix_schema+".productionplan_new";
-	public String nameOfOrderbook = prefix_schema+".orderbook";
+	public static String nameOfOrderbook = prefix_schema+".orderbook";
 	//private String columnNameFinished = "Finished";
 	//private String columnNameOfIstStart = "IstStart";
 	//private String columnNameOfIstEnde = "IstEnde";
@@ -99,7 +99,7 @@ public abstract class _Agent_Template extends Agent{
 	public static String opimizationCriterion = "time_of_finish"; //duration_setup    //TODO receive that from database? TBD
 	public static long bufferThreshold = 30;
 	
-	public static int limit = 2; //number of orders to create
+	public static int limit = 1; //number of orders to create
 	
 	public int duration_repair_workpiece = 20;
 	public int duration_light_disturbance = 2;

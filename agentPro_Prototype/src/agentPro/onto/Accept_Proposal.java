@@ -7,20 +7,9 @@ import jade.core.*;
 /**
 * Protege name: Accept_Proposal
 * @author ontology bean generator
-* @version 2019/04/24, 14:43:54
+* @version 2019/09/27, 11:08:18
 */
 public class Accept_Proposal extends Message{ 
-
-   /**
-* Protege name: iD_Number
-   */
-   private int iD_Number;
-   public void setID_Number(int value) { 
-    this.iD_Number=value;
-   }
-   public int getID_Number() {
-     return this.iD_Number;
-   }
 
    /**
 * Protege name: ID_String
@@ -31,6 +20,17 @@ public class Accept_Proposal extends Message{
    }
    public String getID_String() {
      return this.iD_String;
+   }
+
+   /**
+* Protege name: iD_Number
+   */
+   private int iD_Number;
+   public void setID_Number(int value) { 
+    this.iD_Number=value;
+   }
+   public int getID_Number() {
+     return this.iD_Number;
    }
 
    /**

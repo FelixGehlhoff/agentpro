@@ -81,6 +81,7 @@ public class ReceiveInformWorkpieceDepartureBehaviour extends CyclicBehaviour{
 				//find and increase the allocatedWS and the busy interval accordingly
 				long old_enddate = 0;
 				long new_enddate = 0;
+				AllocatedWorkingStep edited_Step = null;
 				@SuppressWarnings("unchecked")
 				Iterator<AllocatedWorkingStep> it = myAgent.getWorkplan().getConsistsOfAllocatedWorkingSteps().iterator();
 			    while(it.hasNext()) {
@@ -93,6 +94,8 @@ public class ReceiveInformWorkpieceDepartureBehaviour extends CyclicBehaviour{
 			    		if(_Agent_Template.simulation_enercon_mode && (myAgent.getLocalName().equals("Skoda_1_2") || myAgent.getLocalName().equals("Skoda_2_2") || myAgent.getLocalName().equals("Skoda_3_2"))) {
 					    	sendIntervalToOtherAgent(allocWS);
 					    }
+			    		
+			    		edited_Step = allocWS;
 			    	
 			    	}
 			    }
@@ -103,14 +106,16 @@ public class ReceiveInformWorkpieceDepartureBehaviour extends CyclicBehaviour{
 			    	//System.out.println("DEBUG______________myAgent.getBusyInterval_array().get(i).upperBound()_"+myAgent.getBusyInterval_array().get(i).upperBound()+" = old_enddate "+old_enddate);
 			    	if(myAgent.getBusyInterval_array().get(i).upperBound() == old_enddate) {
 			    		//check whether the new busy interval is possible or if the new enddate is within an existing busy interval
-			    		new_busy_interval = new Interval (myAgent.getBusyInterval_array().get(i).lowerBound(), new_enddate, false);
-			    		new_busy_interval.setId(myAgent.getBusyInterval_array().get(i).getId());
+			    		//new_busy_interval = new Interval (myAgent.getBusyInterval_array().get(i).lowerBound(), new_enddate, false);
+			    		//11.06.19 neu: weiteres busy interval für blocked state
+			    		new_busy_interval = new Interval (myAgent.getBusyInterval_array().get(i).upperBound(), new_enddate, false);
+			    		new_busy_interval.setId(myAgent.getBusyInterval_array().get(i).getId()+"_waitingForDeparture");
 			    		//System.out.println("DEBUG_______RECEIVE INFWP ARR__NEW BUSY INTERVAL  "+new_busy_interval.toString());
 			    			//look at the next busy interval that behind in the array and has not been checked yet (if it exists)--> they are sorted chronologically
 			    		if(i+1<myAgent.getBusyInterval_array().size()) {
 			    			Interval interval_to_be_checked = myAgent.getBusyInterval_array().get(i+1);		    			
 		    				if(interval_to_be_checked.intersection(new_busy_interval).getSize()>1) { //more than the Bound is shared
-		    					//System.out.println(myAgent.SimpleDateFormat.format(new Date())+" "+myAgent.getLocalName()+logLinePrefix+" Interval cannot be increased to that size. Busy interval "+interval_to_be_checked.toString()+" conflicts. ");
+		    					System.out.println(_Agent_Template.SimpleDateFormat.format(new Date())+" "+myAgent.getLocalName()+logLinePrefix+" Interval cannot be increased to that size. Busy interval "+interval_to_be_checked.toString()+" conflicts. ");
 		    					//Better ErrorHandling TBD
 		    					//TODO
 		    					//if this is not possible, the resource must inform the workpiece, that it has to leave before X
@@ -124,10 +129,10 @@ public class ReceiveInformWorkpieceDepartureBehaviour extends CyclicBehaviour{
 		    						}
 		    					}
 		    				}else { //no intersection
-		    					replaceOldBusyIntervalAndReduceFreeInterval(i, new_busy_interval, old_enddate);
+		    					addNewBusyIntervalAndReduceFreeInterval(i, new_busy_interval, old_enddate);
 		    				}
 			    		}else { //no intersection because no other element exists
-			    			replaceOldBusyIntervalAndReduceFreeInterval(i, new_busy_interval, old_enddate);
+			    			addNewBusyIntervalAndReduceFreeInterval(i, new_busy_interval, old_enddate);
 			    					
 			    				}		
 			    	}
@@ -151,10 +156,10 @@ public class ReceiveInformWorkpieceDepartureBehaviour extends CyclicBehaviour{
 					
 		     //add to database
 			    
-			    if(myAgent.simulation_enercon_mode) {
+			    if(_Agent_Template.simulation_enercon_mode) {
 			    //}else if(!myAgent.simulation_mode){
 			    }else {
-			    	 myAgent.addBehaviour(new RequestDatabaseEntryBehaviour(myAgent));  
+			    	 myAgent.addBehaviour(new RequestDatabaseEntryBehaviour(myAgent, edited_Step));  
 			    }
 		     
 		     /*
@@ -195,9 +200,10 @@ public class ReceiveInformWorkpieceDepartureBehaviour extends CyclicBehaviour{
 			//find and Decrease / move the allocatedWS and the busy interval accordingly
 			long old_startdate = 0;
 			long old_enddate = 0;
-			AllocatedWorkingStep new_ALLWS = null;
+			//AllocatedWorkingStep new_ALLWS = null;
 			long new_startdate = 0;
 			long new_enddate = 0;
+			AllocatedWorkingStep edited_step = null;
 			@SuppressWarnings("unchecked")
 			Iterator<AllocatedWorkingStep> it = myAgent.getWorkplan().getConsistsOfAllocatedWorkingSteps().iterator();
 		    while(it.hasNext()) {
@@ -213,7 +219,8 @@ public class ReceiveInformWorkpieceDepartureBehaviour extends CyclicBehaviour{
 		    		new_enddate = Long.parseLong(time_of_pick_up_finished_and_Work_can_start)+ lengthOfAllocWSBeforeChange + avg_Pickup*60*1000;
 		    		System.out.println("DEBUG____________allocWS.getHasTimeslot().getLength()  "+allocWS.getHasTimeslot().getLength());
 		    		allocWS.getHasTimeslot().setEndDate(String.valueOf(new_enddate));
-		    		new_ALLWS = allocWS;
+		    		//new_ALLWS = allocWS;
+		    		edited_step = allocWS;
 		    		//System.out.println("DEBUG_____________RECEIVE INF Arrival -----> allocWS.getHasTimeslot().getStartDate()"+allocWS.getHasTimeslot().getStartDate()+" allocWS.getHasTimeslot().getEndDate()  "+allocWS.getHasTimeslot().getEndDate());
 		    	}
 		    }
@@ -276,7 +283,7 @@ public class ReceiveInformWorkpieceDepartureBehaviour extends CyclicBehaviour{
 	     //add to database
 		    if(myAgent.simulation_enercon_mode) {		    	  
 		    }else {
-		    	myAgent.addBehaviour(new RequestDatabaseEntryBehaviour(myAgent));  
+		    	myAgent.addBehaviour(new RequestDatabaseEntryBehaviour(myAgent, edited_step));  
 		    }
 	 
 		/*
@@ -331,8 +338,9 @@ public class ReceiveInformWorkpieceDepartureBehaviour extends CyclicBehaviour{
 		
 	}
 
-	private void replaceOldBusyIntervalAndReduceFreeInterval(int i, Interval new_busy_interval, long old_enddate) {
-		myAgent.getBusyInterval_array().set(i, new_busy_interval); //replace old busy interval
+	private void addNewBusyIntervalAndReduceFreeInterval(int i, Interval new_busy_interval, long old_enddate) {
+		//myAgent.getBusyInterval_array().set(i, new_busy_interval); //replace old busy interval
+		myAgent.getBusyInterval_array().add(i+1, new_busy_interval); //add new busy interval
 		//reduce free interval accordingly
 		for(int j = 0; j<myAgent.getFree_interval_array().size();j++) {
 			Interval free_interval_old = myAgent.getFree_interval_array().get(j);

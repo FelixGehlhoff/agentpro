@@ -249,7 +249,7 @@ public class ReceiveOrderBehaviour extends Behaviour{
 				//Thread thread = new Thread(gantt);
 				//thread.start();
 
-			     //add to database
+			     //add to database		
 				 myAgent.addBehaviour(new RequestDatabaseEntryBehaviour(myAgent));      
 			        //Database_Entry dbe = new Database_Entry(myAgent, wp);
 					//Thread thread2 = new Thread(dbe);

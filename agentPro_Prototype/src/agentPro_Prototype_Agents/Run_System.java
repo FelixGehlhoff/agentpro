@@ -35,6 +35,7 @@ public class Run_System {
 	        //paramList.add("MQTT_DUMMY:agentPro_Prototype_Agents._MQTT_DUMMY;QS1:agentPro_Prototype_Agents.ProductionResourceAgent();Fräsmaschine1:agentPro_Prototype_Agents.ProductionResourceAgent();Pufferplatz1:agentPro_Prototype_Agents.ProductionResourceAgent();DatabaseMonitorAgent:agentPro_Prototype_Agents.DatabaseMonitorAgent();DatabaseConnectorAgent:agentPro_Prototype_Agents.DatabaseConnectorAgent();Kranschiene:agentPro_Prototype_Agents.Crane_RailAgent();Operator_1:agentPro_Prototype_Agents.OperatorAgent();Kran1:agentPro_Prototype_Agents.TransportResourceAgent();Kran2:agentPro_Prototype_Agents.TransportResourceAgent();Kran3:agentPro_Prototype_Agents.TransportResourceAgent();Montageplatz1:agentPro_Prototype_Agents.ProductionResourceAgent();Lackierkabine1:agentPro_Prototype_Agents.ProductionResourceAgent();InterfaceAgent:agentPro_Prototype_Agents.InterfaceAgent;Dummy:agentPro_Prototype_Agents._DUMMY");	//for testing only short time	        
 	        
 	        String paramlist = "DatabaseConnectorAgent:agentPro_Prototype_Agents.DatabaseConnectorAgent();Simulation_Infrastrucutre:agentPro_Prototype_Agents._Simulation_Order_Generator;InterfaceAgent:agentPro_Prototype_Agents.InterfaceAgent()";
+	        
 	        //SIMULATION
 	        if(_Agent_Template.simulation_enercon_mode) {
 	        	paramlist += ";DatabaseMonitorAgent:agentPro_Prototype_Agents.DatabaseMonitorAgent()";

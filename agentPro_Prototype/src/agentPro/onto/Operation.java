@@ -8,22 +8,32 @@ import jade.core.*;
 /**
 * Protege name: Operation
 * @author ontology bean generator
-* @version 2019/04/29, 14:36:43
+* @version 2019/09/27, 11:08:18
 */
 public class Operation implements Concept {
 
 //////////////////////////// User code
 @Override     public String toString() {return " operation  "+name+" set up "+set_up_time;}
    /**
-* Protege name: endState
+* Protege name: isEnabledBy
    */
-   private State endState;
-   public void setEndState(State value) { 
-    this.endState=value;
+   private List isEnabledBy = new ArrayList();
+   public void addIsEnabledBy(Capability elem) { 
+     List oldList = this.isEnabledBy;
+     isEnabledBy.add(elem);
    }
-   public State getEndState() {
-     return this.endState;
+   public boolean removeIsEnabledBy(Capability elem) {
+     List oldList = this.isEnabledBy;
+     boolean result = isEnabledBy.remove(elem);
+     return result;
    }
+   public void clearAllIsEnabledBy() {
+     List oldList = this.isEnabledBy;
+     isEnabledBy.clear();
+   }
+   public Iterator getAllIsEnabledBy() {return isEnabledBy.iterator(); }
+   public List getIsEnabledBy() {return isEnabledBy; }
+   public void setIsEnabledBy(List l) {isEnabledBy = l; }
 
    /**
 * Protege name: appliedOn
@@ -34,17 +44,6 @@ public class Operation implements Concept {
    }
    public Workpiece getAppliedOn() {
      return this.appliedOn;
-   }
-
-   /**
-* Protege name: name
-   */
-   private String name;
-   public void setName(String value) { 
-    this.name=value;
-   }
-   public String getName() {
-     return this.name;
    }
 
    /**
@@ -59,25 +58,36 @@ public class Operation implements Concept {
    }
 
    /**
-* Protege name: buffer_before_operation
+* Protege name: name
    */
-   private float buffer_before_operation;
-   public void setBuffer_before_operation(float value) { 
-    this.buffer_before_operation=value;
+   private String name;
+   public void setName(String value) { 
+    this.name=value;
    }
-   public float getBuffer_before_operation() {
-     return this.buffer_before_operation;
+   public String getName() {
+     return this.name;
    }
 
    /**
-* Protege name: avg_Duration
+* Protege name: endState
    */
-   private float avg_Duration;
-   public void setAvg_Duration(float value) { 
-    this.avg_Duration=value;
+   private State endState;
+   public void setEndState(State value) { 
+    this.endState=value;
    }
-   public float getAvg_Duration() {
-     return this.avg_Duration;
+   public State getEndState() {
+     return this.endState;
+   }
+
+   /**
+* Protege name: startState
+   */
+   private State startState;
+   public void setStartState(State value) { 
+    this.startState=value;
+   }
+   public State getStartState() {
+     return this.startState;
    }
 
    /**
@@ -103,48 +113,26 @@ public class Operation implements Concept {
    }
 
    /**
-* Protege name: isEnabledBy
+* Protege name: startStateNeeded
    */
-   private List isEnabledBy = new ArrayList();
-   public void addIsEnabledBy(Capability elem) { 
-     List oldList = this.isEnabledBy;
-     isEnabledBy.add(elem);
+   private State startStateNeeded;
+   public void setStartStateNeeded(State value) { 
+    this.startStateNeeded=value;
    }
-   public boolean removeIsEnabledBy(Capability elem) {
-     List oldList = this.isEnabledBy;
-     boolean result = isEnabledBy.remove(elem);
-     return result;
+   public State getStartStateNeeded() {
+     return this.startStateNeeded;
    }
-   public void clearAllIsEnabledBy() {
-     List oldList = this.isEnabledBy;
-     isEnabledBy.clear();
-   }
-   public Iterator getAllIsEnabledBy() {return isEnabledBy.iterator(); }
-   public List getIsEnabledBy() {return isEnabledBy; }
-   public void setIsEnabledBy(List l) {isEnabledBy = l; }
 
    /**
-* Protege name: startState
+* Protege name: buffer_before_operation
    */
-   private State startState;
-   public void setStartState(State value) { 
-    this.startState=value;
+   private float buffer_before_operation;
+   public void setBuffer_before_operation(float value) { 
+    this.buffer_before_operation=value;
    }
-   public State getStartState() {
-     return this.startState;
+   public float getBuffer_before_operation() {
+     return this.buffer_before_operation;
    }
-   
-   /**
-   * Protege name: startStateNeeded
-      */
-      private State startStateNeeded;
-      public void setstartStateNeeded(State value) { 
-       this.startStateNeeded=value;
-      }
-      public State getstartStateNeeded() {
-        return this.startStateNeeded;
-      }
-
 
    /**
 * Protege name: avg_PickupTime
@@ -155,6 +143,17 @@ public class Operation implements Concept {
    }
    public int getAvg_PickupTime() {
      return this.avg_PickupTime;
+   }
+
+   /**
+* Protege name: avg_Duration
+   */
+   private float avg_Duration;
+   public void setAvg_Duration(float value) { 
+    this.avg_Duration=value;
+   }
+   public float getAvg_Duration() {
+     return this.avg_Duration;
    }
 
 }

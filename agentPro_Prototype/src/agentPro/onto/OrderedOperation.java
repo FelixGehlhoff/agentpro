@@ -8,7 +8,7 @@ import jade.core.*;
 /**
 * Protege name: OrderedOperation
 * @author ontology bean generator
-* @version 2019/04/24, 14:43:54
+* @version 2019/09/27, 11:08:18
 */
 public class OrderedOperation implements Concept {
 
@@ -21,39 +21,6 @@ public class OrderedOperation implements Concept {
    }
    public Operation getHasOperation() {
      return this.hasOperation;
-   }
-
-   /**
-* Protege name: firstOperation
-   */
-   private boolean firstOperation;
-   public void setFirstOperation(boolean value) { 
-    this.firstOperation=value;
-   }
-   public boolean getFirstOperation() {
-     return this.firstOperation;
-   }
-
-   /**
-* Protege name: hasFollowUpOperation
-   */
-   private boolean hasFollowUpOperation;
-   public void setHasFollowUpOperation(boolean value) { 
-    this.hasFollowUpOperation=value;
-   }
-   public boolean getHasFollowUpOperation() {
-     return this.hasFollowUpOperation;
-   }
-
-   /**
-* Protege name: lastOperation
-   */
-   private boolean lastOperation;
-   public void setLastOperation(boolean value) { 
-    this.lastOperation=value;
-   }
-   public boolean getLastOperation() {
-     return this.lastOperation;
    }
 
    /**
@@ -76,6 +43,39 @@ public class OrderedOperation implements Concept {
    }
    public int getWithOperationInStep() {
      return this.withOperationInStep;
+   }
+
+   /**
+* Protege name: lastOperation
+   */
+   private boolean lastOperation;
+   public void setLastOperation(boolean value) { 
+    this.lastOperation=value;
+   }
+   public boolean getLastOperation() {
+     return this.lastOperation;
+   }
+
+   /**
+* Protege name: hasFollowUpOperation
+   */
+   private boolean hasFollowUpOperation;
+   public void setHasFollowUpOperation(boolean value) { 
+    this.hasFollowUpOperation=value;
+   }
+   public boolean getHasFollowUpOperation() {
+     return this.hasFollowUpOperation;
+   }
+
+   /**
+* Protege name: firstOperation
+   */
+   private boolean firstOperation;
+   public void setFirstOperation(boolean value) { 
+    this.firstOperation=value;
+   }
+   public boolean getFirstOperation() {
+     return this.firstOperation;
    }
 
 }

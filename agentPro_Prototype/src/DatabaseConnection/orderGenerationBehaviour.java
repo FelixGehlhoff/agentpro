@@ -37,12 +37,12 @@ public class orderGenerationBehaviour extends OneShotBehaviour{
 	private String columnNameOfLastOperation = "LastOperation";
 	private String nameOfProduction_Plan_Def_Table = _Agent_Template.prefix_schema+".production_plan_def";
 	private String columnNameOfProductName = "ProductName";
-	private int numberOfProducts = 2;
+	private int numberOfProducts = 3;
 	
 	private String conversationID_forInterfaceAgent = "OrderAgent"; //for directly contacting the interface agent
 	private DFAgentDescription interface_agent;
-	private long initial_wait = 12000;
-	private double wait_between_agent_creation = 3000;
+	private long initial_wait =10000;
+	private double wait_between_agent_creation = 1500;
 	private String columnNameOfFollowUpConstraint = "hasFollowUpOperationConstraint";
 	private String columnNameOfWithStep = "withStep";
 	private String columnNameLocationX = "locationX";
@@ -71,9 +71,129 @@ public class orderGenerationBehaviour extends OneShotBehaviour{
 			}
 		 
 		//receive all data from sheet orderbook
-		ArrayList<OrderPosition> orders = new ArrayList<OrderPosition>();
-		receiveOrderDataFromDB(orders);
+		//ArrayList<OrderPosition> orders = new ArrayList<OrderPosition>();
+		//receiveOrderDataFromDB(orders);
 		
+		simluateOrder();
+		
+	}
+
+	private void simluateOrder() {
+		
+		Statement stmt = null;
+		//String query = "select "+myAgent.columnNameID+" , "+columnNameProduct+" , "+columnNameNumber+" , "+columnNameTargetWarehouse+" from "+nameOfOrderbook; 	    
+		String query = "select * from agentpro.betriebskalender where Bezeichnung = 'Fraese_2'"; 
+		//SELECT * FROM People ORDER BY FirstName DESC, YearOfBirth ASC
+		OrderPosition orderPos = new OrderPosition();
+	    try {
+	        stmt = myAgent.getConnection().createStatement(ResultSet.TYPE_SCROLL_SENSITIVE, ResultSet.CONCUR_UPDATABLE);	   
+	        ResultSet rs = stmt.executeQuery(query);
+	        while (rs.next()) {
+	        	
+	        	orderPos.setDueDate(_Agent_Template.SimpleDateFormat.format(rs.getTime("StartSoll")));
+	        	orderPos.setReleaseDate(_Agent_Template.SimpleDateFormat.format(rs.getTime("StartSoll")));        	
+    			orderPos.setStartDate(_Agent_Template.SimpleDateFormat.format(rs.getTimestamp("StartSoll")));
+	        	orderPos.setEndDate_String(_Agent_Template.SimpleDateFormat.format(rs.getTimestamp("StartSoll")));
+	        }
+	    }catch (SQLException e ) {
+	    	e.printStackTrace();
+	    } 
+	    _Agent_Template.limit = 25;
+		int number_of_orders = _Agent_Template.limit;						//create x orders
+		double proportion_AvsB = 0.5;
+		
+
+    	String prod_name = "";
+    	Product product = new Product();
+		for(int i = 1; i<=number_of_orders;i++) {
+			double rand = Math.random();
+			int quantity = Math.max(5, (int) (Math.random()*20));
+			if(rand>proportion_AvsB) {
+				prod_name = "A";
+			}else {
+				prod_name = "B";
+			}	
+			product.setName(prod_name);
+			orderPos.setContainsProduct(product);
+			orderPos.setQuantity(quantity);
+	    	for(ProductionPlan pP : productionPlans) {
+	    		
+	    		if(pP.getDefinesProduct().getName().equals(prod_name)) {
+	    			 orderPos.getContainsProduct().setHasProductionPlan(pP);    			
+	    				orderPos.setSequence_Number(i);   			
+	    				Warehouse_Resource warehouse = new Warehouse_Resource();
+						Location loc = new Location();
+						//loc.setCoordX(100);
+						//loc.setCoordY(100);
+						//warehouse.setHasLocation(loc);
+						warehouse.setName("Exit");
+						//warehouse.setID_Number(rs.getInt(myAgent.columnNameID));
+						//name_of_exit = rs.getString(myAgent.columnNameOfTargetWarehouse);
+						
+				        		loc.setCoordX((float)60);
+				        		loc.setCoordY((float)5);
+				        	 
+							 warehouse.setHasLocation(loc);
+	    			 orderPos.setHasTargetWarehouse(warehouse);    
+	    			
+	    			 
+	    			 break;
+	    		}
+	    	}
+ 		    //create Workpiece Agent
+ 		    //for(int j = 1; j <= quantity ; j++){
+ 				ContainerController cc = myAgent.getContainerController();
+ 				AgentController ac;
+ 				Object [] args_WorkpieceAgent = new Object [5];
+ 				args_WorkpieceAgent[0] = orderPos;		
+ 				//System.out.println("DEBUG_____"+orderPos.getHasTargetWarehouse().getHasLocation().getCoordX());
+ 				args_WorkpieceAgent[1] = interface_agent.getName();
+ 				args_WorkpieceAgent[2] = conversationID_forInterfaceAgent;
+ 				args_WorkpieceAgent[3] = orderPos.getSequence_Number();
+ 				//args_WorkpieceAgent[4] = orderPos;
+
+ 				//TBD: StartLocation might have to be dynamically determined	--> now = Coordinates of Wickelfertigung
+ 				
+ 				Location location = new Location();
+ 				float startx = 5;
+ 				float starty = 5;
+ 				location.setCoordX(startx);
+ 				location.setCoordY(starty);
+ 				
+ 				args_WorkpieceAgent[4] = location ;
+ 				
+ 				try {
+ 					//ac = cc.createNewAgent("WorkpieceAgentNo_"+orderPos.getSequence_Number(), "agentPro_Prototype_Agents.WorkpieceAgent", args_WorkpieceAgent);
+ 					ac = cc.createNewAgent(orderPos.getContainsProduct().getName()+"_"+orderPos.getSequence_Number()+"_Order", "agentPro_Prototype_Agents.WorkpieceAgent", args_WorkpieceAgent);
+ 					
+ 					ac.start();
+ 				} catch (StaleProxyException e) {
+ 					// TODO Auto-generated catch block
+ 					e.printStackTrace();
+ 				}
+ 				//Random r = new Random();
+ 				//double d = r.nextDouble();
+ 				/*double d = 0;
+ 				if(i ==1) {
+ 					d = initial_wait;
+ 				}else {
+ 					d = i*a + initial_wait ;	
+ 				}*/
+ 				
+ 				try {
+ 					Thread.sleep((long) wait_between_agent_creation);
+ 				} catch (InterruptedException e) {
+ 					// TODO Auto-generated catch block
+ 					e.printStackTrace();
+ 				}   	
+		} 	
+
+    	
+    	
+    	
+
+		
+
 		
 	}
 
