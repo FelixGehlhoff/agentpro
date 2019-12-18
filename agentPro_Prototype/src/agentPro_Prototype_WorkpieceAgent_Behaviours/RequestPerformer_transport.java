@@ -155,6 +155,9 @@ public class RequestPerformer_transport extends Behaviour {
 			
 			//send CFPs
 			_SendCFP sendCFP = new _SendCFP();
+			if(receivedProposals_production == null) {
+				System.out.println("DEBUG___ERROR null element");
+			}
 			for(Proposal proposal : receivedProposals_production) {
 				OperationCombination opcomb = new OperationCombination(proposal, myAgent.getLastProductionStepAllocated());	//last step as the starting point		
 				listOfCombinations.add(opcomb);
@@ -179,7 +182,13 @@ public class RequestPerformer_transport extends Behaviour {
 		case 1:	
 			//deadline	
 			//if deadline expired or all proposals are received --> book best offer
-			if(System.currentTimeMillis()>reply_by_date_CFP || numberOfAnswers == resourceAgents.size()) {
+			if(System.currentTimeMillis()>reply_by_date_CFP) {
+				System.out.println("DEBUG_________________   @@@@@@@@@@@@@@@@@@@@@@@@@@@@@  WWWWWWWWWWWWWWWW   TIME EXPIRED");
+				step = 3;
+				break;
+			}else if(numberOfAnswers == resourceAgents.size()) {
+				System.out.println("DEBUG_________________   @@@@@@@@@@@@@@@@@@@@@@@@@@@@@  WWWWWWWWWWWWWWWW   ALL ANSWERS THERE");
+				
 				step = 3;
 				break;
 			}else if(System.currentTimeMillis()<=reply_by_date_CFP){ 
@@ -361,8 +370,8 @@ public class RequestPerformer_transport extends Behaviour {
 				return false;
 			}
 		}
-		opComb.setTransport_needed(true);
-		return true;
+		opComb.setTransport_needed(myAgent.transport_needed);	//true oder false für Anwendungsfall
+		return WorkpieceAgent.transport_needed;						//true
 	}
 
 	//arranges a buffer operation / proposal for a production operation and adds it to the list of buffer proposals
@@ -384,7 +393,7 @@ public class RequestPerformer_transport extends Behaviour {
 		int step1 = 0;
 		Boolean finished = false;
 		int number_of_answers = 0;
-		long reply_by_date_long = 0;
+		//long reply_by_date_long = 0;
 		//String conversationID_buffer = prop_production.getID_String();
 		while(!finished) {
 		switch (step1) {
@@ -402,7 +411,8 @@ public class RequestPerformer_transport extends Behaviour {
 		case 1:	
 			//deadline	
 			//if deadline expired or all proposals are received --> get transport proposals
-			if(System.currentTimeMillis()>reply_by_date_CFP || number_of_answers == resourceAgents.size()) {
+			if(System.currentTimeMillis()>reply_by_date_CFP) {
+				System.out.println("DEBUG_______________________________ARRANGE BUFFER__________________________ALL TIME EXPIRED");
 				finished = true;
 				for(Proposal prop_buffer : proposals_buffer) {
 					//receivedProposals_buffer.add(prop_buffer);
@@ -413,7 +423,20 @@ public class RequestPerformer_transport extends Behaviour {
 					}				
 				}
 				break;
-			}else if(System.currentTimeMillis()<=reply_by_date_long){ 
+			//}else if(System.currentTimeMillis()<=reply_by_date_long){ 
+			}else if(number_of_answers == resourceAgents.size()) {
+				System.out.println("DEBUG_______________________________ARRANGE BUFFER __________________________ALL ANSWERS THERE");
+				finished = true;
+				for(Proposal prop_buffer : proposals_buffer) {
+					//receivedProposals_buffer.add(prop_buffer);
+					for(OperationCombination comb : list) {
+						if(prop_buffer.getID_String().contentEquals(comb.getIdenticiation_string())) {
+							comb.getBuffer_operations().add(prop_buffer);
+						}
+					}				
+				}
+				break;
+			}else if(System.currentTimeMillis()<=reply_by_date_CFP){ 
 				step1 = 2;				
 				//block(10);
 				break;

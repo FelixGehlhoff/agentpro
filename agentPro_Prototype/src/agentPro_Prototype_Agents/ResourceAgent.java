@@ -1,6 +1,10 @@
 package agentPro_Prototype_Agents;
 
 
+import java.net.http.HttpClient;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
+import java.net.http.HttpResponse.BodyHandlers;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.ResultSet;
@@ -11,6 +15,7 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.Date;
 import java.util.Iterator;
+import java.util.concurrent.ExecutionException;
 
 import agentPro.onto.Accept_Proposal;
 import agentPro.onto.AllocatedWorkingStep;
@@ -18,6 +23,7 @@ import agentPro.onto.CFP;
 import agentPro.onto.DetailedOperationDescription;
 import agentPro.onto.Location;
 import agentPro.onto.Operation;
+import agentPro.onto.ProductionResource;
 import agentPro.onto.Production_Operation;
 import agentPro.onto.Proposal;
 import agentPro.onto.Resource;
@@ -41,6 +47,11 @@ import jade.lang.acl.ACLMessage;
 //import agentPro_Prototype_ResourceAgent.ReceiveRejectProposalBehaviour;
 import support_classes.Interval;
 import support_classes.Storage_element_slot;
+import webservice.ManufacturingOrder;
+import webservice.ManufacturingOrderList;
+import webservice.OperationPlan;
+import webservice.TimeSlot;
+import webservice.Webservice_agentPro;
 
 /* 
  * Models a resource.
@@ -67,7 +78,7 @@ public abstract class ResourceAgent extends _Agent_Template{
 	public long reply_by_time = 350; //ms KRAN_WS
 	public long reply_by_time_shared_resources = 150;
 	public int numberOfResourcesPossibleForCalculationOfSharedResourceProposal = 0;
-	protected Resource representedResource;
+	//protected Resource representedResource;
 	//Datenbankverbindung
 		
 		protected String nameOfResource_Definitions_Table = "Resource_Definitions";
@@ -88,10 +99,15 @@ public abstract class ResourceAgent extends _Agent_Template{
 		protected String columnNameOfTimeConsumption = "TimeConsumption";
 		
 		public ThreadedBehaviourFactory tbf = new ThreadedBehaviourFactory();
+		public Resource representedResource;
 
 	protected void setup (){
 		super.setup();
 		//representedResource = new Resource();
+		representedResource = createResource();
+		representedResource.setName(this.getLocalName());
+		receiveValuesFromDB(representedResource);
+		
 		setWorkplan(new WorkPlan());
 		Interval free_starting_interval = new Interval();
 		if(simulation_enercon_mode) {		
@@ -103,10 +119,33 @@ public abstract class ResourceAgent extends _Agent_Template{
 					free_starting_interval = new Interval (this.start_simulation-24*60*60*1000, this.start_simulation+time_until_end, false);
 					free_interval_array.add(free_starting_interval);
 				//}
+		}else if(_Agent_Template.webservice_mode){
+			HttpClient client = HttpClient.newBuilder()	
+					.version(HttpClient.Version.HTTP_1_1)			
+					  .build();
+			String body = Webservice_agentPro.buildSOAPBodyGetOperationPlan(this.getRepresentedResource().getID_Number());
+			HttpRequest request = Webservice_agentPro.buildRequest(Webservice_agentPro.soapAction_getOperationPlan, body);
+			String return_string = null;
+			try {
+				return_string = client.sendAsync(request, BodyHandlers.ofString())
+						.thenApply(HttpResponse::body).get();
+			} catch (InterruptedException | ExecutionException e1) {			
+				e1.printStackTrace();
+			}
+			
+			OperationPlan opPlan = Webservice_agentPro.unmarshallStringToOperationPlan(return_string);
+			for(TimeSlot ts : opPlan.TimeSlots) {
+				Interval i = new Interval(ts.Start.getTime(), ts.End.getTime());
+				free_interval_array.add(i);
+			}
 		}else {
 			free_starting_interval = new Interval (1556632800000L, 1556632800000L+time_until_end, false); //30.04. 16 Uhr = start
 			//System.out.println("Starting interval = "+_Agent_Template.SimpleDateFormat.format(1556632800000L)+" ; "+_Agent_Template.SimpleDateFormat.format(1556632800000L+time_until_end));
 			free_interval_array.add(free_starting_interval);
+			//project
+			Interval free_starting_interval2 = new Interval (System.currentTimeMillis(), System.currentTimeMillis()+time_until_end*24, false); //30.04. 16 Uhr = start
+			
+			free_interval_array.add(free_starting_interval2);
 		}
 		
 		
@@ -127,6 +166,9 @@ public abstract class ResourceAgent extends _Agent_Template{
        // ReceiveRejectProposalBehaviour = new ReceiveRejectProposalBehaviour(this);
         //addBehaviour(ReceiveRejectProposalBehaviour);
 	}
+
+
+	protected abstract Resource createResource();
 
 
 	protected void receiveWorkPlanValuesFromDB(Resource representedResource) {
@@ -249,6 +291,9 @@ public abstract class ResourceAgent extends _Agent_Template{
 		
 		//printoutFreeIntervals();
 		//printoutBusyIntervals();
+	    if(!booking_successful) {
+	    	System.out.println("DEBUG");
+	    }
 		return booking_successful;		
 		//create GANTT chart
 		/*
@@ -365,6 +410,9 @@ public abstract class ResourceAgent extends _Agent_Template{
 			}
 			//break;
 			
+		}
+		if(!booking_successful) {
+			System.out.println("DEBUG__");
 		}
 		return booking_successful;
 	}

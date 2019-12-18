@@ -52,13 +52,14 @@ public class InterfaceAgent extends _Agent_Template{
 		
 	
 	protected void setup (){
-		//super.setup();
+		super.setup();
 		logLinePrefix = " InterfaceAgent ";
 		// / INITIALISATION
 		// /////////////////////////////////////////////////////////
 		//System.out.println("InterfaceAgent startet...");
 		registerAtDF();
 		//Datenbank
+		/*
 				Connection con;			
 				
 				try {			
@@ -69,7 +70,7 @@ public class InterfaceAgent extends _Agent_Template{
 			    } catch (SQLException e ) {
 			        e.printStackTrace();
 			    }
-				
+		*/		
 		
 		//Ontology
 		//getContentManager().registerOntology(ontology);

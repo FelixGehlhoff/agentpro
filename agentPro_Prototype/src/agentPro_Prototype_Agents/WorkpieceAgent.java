@@ -40,6 +40,7 @@ import jade.lang.acl.ACLMessage;
 import jade.lang.acl.MessageTemplate;
 import support_classes.Interval;
 import support_classes.OperationCombination;
+import webservice.ManufacturingOrder;
 
 /*
  * Models a workpiece. Is created by order agent. Sends CFPs, receives PROPOSALS, sends ACCEPT_PROPOSALs and receives
@@ -64,7 +65,7 @@ public class WorkpieceAgent extends _Agent_Template{
 	//private int amountOfTimeLeft;
 	private int orderNumber;
 	
-	public static long transport_estimation = (long) 1000*60*15;	//estimated duration of transport = 15 min
+	public static long transport_estimation = (long) 1000*60*15;//(long) 1000*60*15;	//estimated duration of transport = 15 min
 	//public int avg_pickUp = 5;
 	
 	private OrderPosition orderPos;
@@ -73,9 +74,10 @@ public class WorkpieceAgent extends _Agent_Template{
 	//private Location lastLocation;
 	//private Resource nextProductionResource;
 	public boolean useCurrentLocationDueToDisturbance = false;
-	public boolean transport_needed = true;
+	public static boolean transport_needed = true;
 	public long startCoordinationProcess;
 	public long EndCoordinationProcess;
+	private ManufacturingOrder mo;
 	
 	protected void setup (){
 		logLinePrefix = getLocalName();
@@ -86,7 +88,7 @@ public class WorkpieceAgent extends _Agent_Template{
 		//get OrderPosition and ProductionPlan(ontology)
 		setOrderPos((OrderPosition) args[0]);
 		setProductionPlan(orderPos.getContainsProduct().getHasProductionPlan());
-		System.out.println(((OrderedOperation)orderPos.getContainsProduct().getHasProductionPlan().getConsistsOfOrderedOperations().get(0)).getHasOperation().getName());
+		System.out.println(((OrderedOperation)orderPos.getContainsProduct().getHasProductionPlan().getConsistsOfOrderedOperations().get(0)).getHasProductionOperation().getName());
 		setTypeOfOperationsToProduction();												//sets the Type of all production operations to production --> needed in RequestPerformer line 367
 		//createWorkplan
 		setWorkplan(new WorkPlan());
@@ -116,6 +118,10 @@ public class WorkpieceAgent extends _Agent_Template{
 		// TBD determine start location --> from loc component?
 		setLocation((Location) args[4]);
 		setLocationOfStartingWarehouse((Location) args[4]);	
+		
+		if(_Agent_Template.webservice_mode) {
+			this.setMo((ManufacturingOrder) args[5]);
+		}
 		
 		super.setup();
 		registerAtDF();
@@ -203,7 +209,7 @@ public class WorkpieceAgent extends _Agent_Template{
 		Iterator<OrderedOperation> it = prodPlan.getConsistsOfOrderedOperations().iterator();
 	    while(it.hasNext()) {
 	    	OrderedOperation orderedOp = it.next();	  
-	    	orderedOp.getHasOperation().setType("production");
+	    	orderedOp.getHasProductionOperation().setType("production");
 	    }		
 	}
 	public ProductionManagerBehaviour getProductionManagerBehaviour() {
@@ -286,7 +292,7 @@ public class WorkpieceAgent extends _Agent_Template{
 		return transport_estimation;
 	}
 	public void setTransport_estimation(long transport_estimation) {
-		this.transport_estimation = transport_estimation;
+		WorkpieceAgent.transport_estimation = transport_estimation;
 	}
 	public AllocatedWorkingStep getLastProductionStepAllocated() {
 		//counts down from the last object in the allocated WS and tries to find the last production step
@@ -358,7 +364,9 @@ public class WorkpieceAgent extends _Agent_Template{
 		    	getWorkplan().addConsistsOfAllocatedWorkingSteps(allocWorkingstep_toBeAdded); 		//allocWorkingStep is added to workplan	
 		    	//System.out.println("DEBUG________________WP allocWorkingstep_toBeAdded.Timeslot.getStartdate() "+allocWorkingstep_toBeAdded.getHasTimeslot().getStartDate()+" allocWorkingstep_toBeAdded.Timeslot.getEnddate() "+allocWorkingstep_toBeAdded.getHasTimeslot().getEndDate());
 		    }
-		
+		if(!no_conflicting_interval) {
+			System.out.println("DEBUG");
+		}
 		return no_conflicting_interval;
 	}
 	
@@ -376,7 +384,7 @@ public class WorkpieceAgent extends _Agent_Template{
 			Iterator<OrderedOperation> it = getProdPlan().getAllConsistsOfOrderedOperations();
 		    while(it.hasNext()) {
 		    	OrderedOperation orOp = it.next();			
-		    	if(orOp.getHasOperation().getName().equals(allocWorkingstep.getHasOperation().getName())){
+		    	if(orOp.getHasProductionOperation().getName().equals(allocWorkingstep.getHasOperation().getName())){
 		    		found = true;
 		    	}
 		    	
@@ -490,6 +498,14 @@ public class WorkpieceAgent extends _Agent_Template{
 	public boolean checkConsistencyAndAddStepsToWorkplan(OperationCombination combination_best) {
 		// TODO Auto-generated method stub
 		return false;
+	}
+
+	public ManufacturingOrder getMo() {
+		return mo;
+	}
+
+	public void setMo(ManufacturingOrder mo) {
+		this.mo = mo;
 	}
 
 }

@@ -39,7 +39,7 @@ public class TransportResourceAgent extends ResourceAgent{
 	
 	private String dependency_crane_name_in_database = "Kran";
 	public float buffer = 0;	//5 minutes 
-	protected TransportResource representedResource = new TransportResource();
+	//protected TransportResource representedResource = new TransportResource();
 	private boolean consider_shared_resources = false;
 	private Interval range = new Interval();
 	private String enabled_operation = "";
@@ -54,7 +54,7 @@ public class TransportResourceAgent extends ResourceAgent{
 		representedResource.setName(this.getLocalName());
 		receiveValuesFromDB(representedResource);
 		setStartState();
-		receiveWorkPlanValuesFromDB(representedResource);	
+		//receiveWorkPlanValuesFromDB(representedResource);	
 		registerAtDF();
 		
 		// / ADD BEHAVIOURS
@@ -398,7 +398,7 @@ public class TransportResourceAgent extends ResourceAgent{
 		 				if(slot.getID().contentEquals(id_string)) {
 		 					Timeslot already_promised_for_this_id = slot.getTimeslot();
 		 					Interval interval = new Interval(Long.parseLong(already_promised_for_this_id.getStartDate()), Long.parseLong(already_promised_for_this_id.getEndDate()), false);
-		 					if(i.contains(interval)) {
+		 					if(i.intersection(interval).getSize()>0) {
 		 						it.remove();
 		 						//TODO better handling!
 		 					}
@@ -510,7 +510,7 @@ public class TransportResourceAgent extends ResourceAgent{
 		
 		float distance_TransportResource_fromResourceAtDestination_toStart_next_Job = calcDistance((Location)start_next_task, (Location)end_new);
 		
-		float duration_of_reaching_next_target_new = (distance_TransportResource_fromResourceAtDestination_toStart_next_Job/representedResource.getAvg_Speed())/60;
+		float duration_of_reaching_next_target_new = (distance_TransportResource_fromResourceAtDestination_toStart_next_Job/this.getRepresentedResource().getAvg_Speed())/60;
 		float duration_of_reaching_next_target_current = getDurationOfNextSetupStartingAt(getFree_interval_array().get(busy_interval_i).upperBound()); // in min		
 		float difference = duration_of_reaching_next_target_new-duration_of_reaching_next_target_current;
 		//System.out.println("DEBUG___"+logLinePrefix+" time_increment_or_decrement_to_be_added = "+difference+" __START NEXT TASK___location found: "+start_next_task.getCoordX()+";"+start_next_task.getCoordY()+" location end new "+end_new.getCoordX()+";"+end_new.getCoordY()+"  distance   = "+distance_TransportResource_fromResourceAtDestination_toStart_next_Job+" duration_of_reaching_next_target_new "+duration_of_reaching_next_target_new+" duration_of_reaching_next_target_current "+duration_of_reaching_next_target_current);
@@ -563,7 +563,7 @@ public class TransportResourceAgent extends ResourceAgent{
 
 	@Override
 	public TransportResource getRepresentedResource() {
-		return representedResource;
+		return (TransportResource) representedResource;
 	}
 
 	@Override
@@ -597,6 +597,12 @@ public class TransportResourceAgent extends ResourceAgent{
 		op.setStartState(loc);//TODO eventuell dynmaiisch bestimmen?
 		op.setEndState(loc);	
 		return op;
+	}
+
+	@Override
+	protected Resource createResource() {
+		TransportResource tr = new TransportResource();
+		return tr;
 	}
 
 

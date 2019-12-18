@@ -8,52 +8,19 @@ import jade.core.*;
 /**
 * Protege name: OrderPosition
 * @author ontology bean generator
-* @version 2019/09/27, 11:08:18
+* @version 2019/11/11, 09:45:55
 */
 public class OrderPosition implements Concept {
 
    /**
-* Protege name: containsProduct
+* Protege name: quantity
    */
-   private Product containsProduct;
-   public void setContainsProduct(Product value) { 
-    this.containsProduct=value;
+   private int quantity;
+   public void setQuantity(int value) { 
+    this.quantity=value;
    }
-   public Product getContainsProduct() {
-     return this.containsProduct;
-   }
-
-   /**
-* Protege name: endDate_String
-   */
-   private String endDate_String;
-   public void setEndDate_String(String value) { 
-    this.endDate_String=value;
-   }
-   public String getEndDate_String() {
-     return this.endDate_String;
-   }
-
-   /**
-* Protege name: hasTargetWarehouse
-   */
-   private Warehouse_Resource hasTargetWarehouse;
-   public void setHasTargetWarehouse(Warehouse_Resource value) { 
-    this.hasTargetWarehouse=value;
-   }
-   public Warehouse_Resource getHasTargetWarehouse() {
-     return this.hasTargetWarehouse;
-   }
-
-   /**
-* Protege name: dueDate
-   */
-   private String dueDate;
-   public void setDueDate(String value) { 
-    this.dueDate=value;
-   }
-   public String getDueDate() {
-     return this.dueDate;
+   public int getQuantity() {
+     return this.quantity;
    }
 
    /**
@@ -68,25 +35,14 @@ public class OrderPosition implements Concept {
    }
 
    /**
-* Protege name: startDate
+* Protege name: endDate_String
    */
-   private String startDate;
-   public void setStartDate(String value) { 
-    this.startDate=value;
+   private String endDate_String;
+   public void setEndDate_String(String value) { 
+    this.endDate_String=value;
    }
-   public String getStartDate() {
-     return this.startDate;
-   }
-
-   /**
-* Protege name: quantity
-   */
-   private int quantity;
-   public void setQuantity(int value) { 
-    this.quantity=value;
-   }
-   public int getQuantity() {
-     return this.quantity;
+   public String getEndDate_String() {
+     return this.endDate_String;
    }
 
    /**
@@ -98,6 +54,50 @@ public class OrderPosition implements Concept {
    }
    public String getReleaseDate() {
      return this.releaseDate;
+   }
+
+   /**
+* Protege name: hasTargetWarehouse
+   */
+   private Warehouse_Resource hasTargetWarehouse;
+   public void setHasTargetWarehouse(Warehouse_Resource value) { 
+    this.hasTargetWarehouse=value;
+   }
+   public Warehouse_Resource getHasTargetWarehouse() {
+     return this.hasTargetWarehouse;
+   }
+
+   /**
+* Protege name: containsProduct
+   */
+   private Product containsProduct;
+   public void setContainsProduct(Product value) { 
+    this.containsProduct=value;
+   }
+   public Product getContainsProduct() {
+     return this.containsProduct;
+   }
+
+   /**
+* Protege name: dueDate
+   */
+   private String dueDate;
+   public void setDueDate(String value) { 
+    this.dueDate=value;
+   }
+   public String getDueDate() {
+     return this.dueDate;
+   }
+
+   /**
+* Protege name: startDate
+   */
+   private String startDate;
+   public void setStartDate(String value) { 
+    this.startDate=value;
+   }
+   public String getStartDate() {
+     return this.startDate;
    }
 
 }

@@ -7,9 +7,20 @@ import jade.core.*;
 /**
 * Protege name: CFP
 * @author ontology bean generator
-* @version 2019/09/27, 11:08:18
+* @version 2019/11/11, 09:45:55
 */
 public class CFP extends Message{ 
+
+   /**
+* Protege name: quantity
+   */
+   private int quantity;
+   public void setQuantity(int value) { 
+    this.quantity=value;
+   }
+   public int getQuantity() {
+     return this.quantity;
+   }
 
    /**
 * Protege name: hasOperation
@@ -42,17 +53,6 @@ public class CFP extends Message{
    }
    public String getID_String() {
      return this.iD_String;
-   }
-
-   /**
-* Protege name: quantity
-   */
-   private int quantity;
-   public void setQuantity(int value) { 
-    this.quantity=value;
-   }
-   public int getQuantity() {
-     return this.quantity;
    }
 
 }

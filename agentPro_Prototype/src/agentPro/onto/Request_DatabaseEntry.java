@@ -7,19 +7,19 @@ import jade.core.*;
 /**
 * Protege name: Request_DatabaseEntry
 * @author ontology bean generator
-* @version 2019/09/27, 11:08:18
+* @version 2019/11/11, 09:45:55
 */
 public class Request_DatabaseEntry extends Message{ 
 
    /**
-* Protege name: enddate
+* Protege name: startdate
    */
-   private float enddate;
-   public void setEnddate(float value) { 
-    this.enddate=value;
+   private float startdate;
+   public void setStartdate(float value) { 
+    this.startdate=value;
    }
-   public float getEnddate() {
-     return this.enddate;
+   public float getStartdate() {
+     return this.startdate;
    }
 
    /**
@@ -44,14 +44,14 @@ public class Request_DatabaseEntry extends Message{
    public void setConsistsOfAllocatedWorkingSteps(List l) {consistsOfAllocatedWorkingSteps = l; }
 
    /**
-* Protege name: startdate
+* Protege name: enddate
    */
-   private float startdate;
-   public void setStartdate(float value) { 
-    this.startdate=value;
+   private float enddate;
+   public void setEnddate(float value) { 
+    this.enddate=value;
    }
-   public float getStartdate() {
-     return this.startdate;
+   public float getEnddate() {
+     return this.enddate;
    }
 
 }

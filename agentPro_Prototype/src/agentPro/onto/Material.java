@@ -6,22 +6,11 @@ import jade.util.leap.*;
 import jade.core.*;
 
 /**
-* Protege name: Topic
+* Protege name: Material
 * @author ontology bean generator
 * @version 2019/11/11, 09:45:55
 */
-public class Topic implements Concept {
-
-   /**
-* Protege name: iD_Number
-   */
-   private int iD_Number;
-   public void setID_Number(int value) { 
-    this.iD_Number=value;
-   }
-   public int getID_Number() {
-     return this.iD_Number;
-   }
+public class Material implements Concept {
 
    /**
 * Protege name: name

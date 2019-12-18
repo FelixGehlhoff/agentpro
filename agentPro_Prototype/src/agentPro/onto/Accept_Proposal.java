@@ -7,31 +7,9 @@ import jade.core.*;
 /**
 * Protege name: Accept_Proposal
 * @author ontology bean generator
-* @version 2019/09/27, 11:08:18
+* @version 2019/11/11, 09:45:55
 */
 public class Accept_Proposal extends Message{ 
-
-   /**
-* Protege name: ID_String
-   */
-   private String iD_String;
-   public void setID_String(String value) { 
-    this.iD_String=value;
-   }
-   public String getID_String() {
-     return this.iD_String;
-   }
-
-   /**
-* Protege name: iD_Number
-   */
-   private int iD_Number;
-   public void setID_Number(int value) { 
-    this.iD_Number=value;
-   }
-   public int getID_Number() {
-     return this.iD_Number;
-   }
 
    /**
 * Protege name: hasProposal
@@ -53,5 +31,27 @@ public class Accept_Proposal extends Message{
    public Iterator getAllHasProposal() {return hasProposal.iterator(); }
    public List getHasProposal() {return hasProposal; }
    public void setHasProposal(List l) {hasProposal = l; }
+
+   /**
+* Protege name: iD_Number
+   */
+   private int iD_Number;
+   public void setID_Number(int value) { 
+    this.iD_Number=value;
+   }
+   public int getID_Number() {
+     return this.iD_Number;
+   }
+
+   /**
+* Protege name: ID_String
+   */
+   private String iD_String;
+   public void setID_String(String value) { 
+    this.iD_String=value;
+   }
+   public String getID_String() {
+     return this.iD_String;
+   }
 
 }

@@ -6,14 +6,15 @@ import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.Date;
 import agentPro.onto.Location;
-import agentPro.onto.Operation;
 import agentPro.onto.OrderPosition;
 import agentPro.onto.OrderedOperation;
 import agentPro.onto.Product;
 import agentPro.onto.ProductionPlan;
+import agentPro.onto.Production_Operation;
 import agentPro.onto.Warehouse_Resource;
 import agentPro_Prototype_Agents._Agent_Template;
 import agentPro_Prototype_Agents._Simulation_Order_Generator;
+import jade.core.Agent;
 import jade.core.behaviours.OneShotBehaviour;
 import jade.domain.DFService;
 import jade.domain.FIPAException;
@@ -22,6 +23,7 @@ import jade.domain.FIPAAgentManagement.ServiceDescription;
 import jade.wrapper.AgentController;
 import jade.wrapper.ContainerController;
 import jade.wrapper.StaleProxyException;
+import webservice.ManufacturingOrder;
 
 public class orderGenerationBehaviour extends OneShotBehaviour{
 	/**
@@ -39,10 +41,10 @@ public class orderGenerationBehaviour extends OneShotBehaviour{
 	private String columnNameOfProductName = "ProductName";
 	private int numberOfProducts = 3;
 	
-	private String conversationID_forInterfaceAgent = "OrderAgent"; //for directly contacting the interface agent
-	private DFAgentDescription interface_agent;
-	private long initial_wait =10000;
-	private double wait_between_agent_creation = 1500;
+	public static String conversationID_forInterfaceAgent = "OrderAgent"; //for directly contacting the interface agent
+	public static DFAgentDescription interface_agent;
+	private long initial_wait =1000;
+	private double wait_between_agent_creation = 2500;
 	private String columnNameOfFollowUpConstraint = "hasFollowUpOperationConstraint";
 	private String columnNameOfWithStep = "withStep";
 	private String columnNameLocationX = "locationX";
@@ -59,7 +61,7 @@ public class orderGenerationBehaviour extends OneShotBehaviour{
 	@Override
 	public void action() {
 		//find interface agent
-		searchDFForInterfaceAgent();
+		searchDFForInterfaceAgent(myAgent);
 		//receive Production Plans from DB
 		 receiveProductionPlansFromDB(productionPlans);
 		
@@ -71,11 +73,12 @@ public class orderGenerationBehaviour extends OneShotBehaviour{
 			}
 		 
 		//receive all data from sheet orderbook
-		//ArrayList<OrderPosition> orders = new ArrayList<OrderPosition>();
-		//receiveOrderDataFromDB(orders);
-		
-		simluateOrder();
-		
+		if(_Agent_Template.simulate_order_generation) {
+			simluateOrder();
+		}else {
+			ArrayList<OrderPosition> orders = new ArrayList<OrderPosition>();
+			receiveOrderDataFromDB(orders);
+		}	
 	}
 
 	private void simluateOrder() {
@@ -98,16 +101,17 @@ public class orderGenerationBehaviour extends OneShotBehaviour{
 	    }catch (SQLException e ) {
 	    	e.printStackTrace();
 	    } 
-	    _Agent_Template.limit = 25;
+	    _Agent_Template.limit = 2;
 		int number_of_orders = _Agent_Template.limit;						//create x orders
-		double proportion_AvsB = 0.5;
+		double proportion_AvsB = 1;
 		
 
     	String prod_name = "";
     	Product product = new Product();
 		for(int i = 1; i<=number_of_orders;i++) {
 			double rand = Math.random();
-			int quantity = Math.max(5, (int) (Math.random()*20));
+			//int quantity = Math.max(5, (int) (Math.random()*20));
+			int quantity = 10;
 			if(rand>proportion_AvsB) {
 				prod_name = "A";
 			}else {
@@ -197,7 +201,7 @@ public class orderGenerationBehaviour extends OneShotBehaviour{
 		
 	}
 
-	private void searchDFForInterfaceAgent() {
+	public static void searchDFForInterfaceAgent(Agent myAgent) {
 			DFAgentDescription template = new DFAgentDescription();
 			ServiceDescription sd = new ServiceDescription();
 			String service_type = "interface";
@@ -240,12 +244,12 @@ public class orderGenerationBehaviour extends OneShotBehaviour{
 	           		Product product = new Product();
 	    	        while (rs.next()) {
 	    	        	 OrderedOperation orderedOp = new OrderedOperation();
-	    				    Operation op = new Operation();
+	    				    Production_Operation op = new Production_Operation();
 	    				    op.setName(rs.getString(columnNameOfOperation));
 	    				    op.setType("production");
 	    				    orderedOp.setFirstOperation(rs.getBoolean(columnNameOfFirstOperation));
 	    				    orderedOp.setLastOperation(rs.getBoolean(columnNameOfLastOperation));
-	    				    orderedOp.setHasOperation(op);
+	    				    orderedOp.setHasProductionOperation(op);
 	    		        	orderedOp.setSequence_Number(rs.getInt(columnNameOfStep)); 
 	    		        	orderedOp.setHasFollowUpOperation(rs.getBoolean(columnNameOfFollowUpConstraint));
 	    		        	orderedOp.setWithOperationInStep(rs.getInt(columnNameOfWithStep));
@@ -270,7 +274,7 @@ public class orderGenerationBehaviour extends OneShotBehaviour{
 		Statement stmt = null;
 		Statement stmt2 = null;
 		//String query = "select "+myAgent.columnNameID+" , "+columnNameProduct+" , "+columnNameNumber+" , "+columnNameTargetWarehouse+" from "+nameOfOrderbook; 	    
-		String query = "select * from "+myAgent.nameOfOrderbook+" ORDER BY "+myAgent.columnNameOfDueDate+", "+myAgent.columnNameOfProduct+", "+myAgent.columnNameOfPriority+", "+myAgent.columnNameOfNumber+" DESC"; 
+		String query = "select * from "+_Agent_Template.nameOfOrderbook+" ORDER BY "+myAgent.columnNameOfDueDate+", "+myAgent.columnNameOfProduct+", "+myAgent.columnNameOfPriority+", "+myAgent.columnNameOfNumber+" DESC"; 
 		//SELECT * FROM People ORDER BY FirstName DESC, YearOfBirth ASC
 		
 	    try {
@@ -333,53 +337,15 @@ public class orderGenerationBehaviour extends OneShotBehaviour{
 	        	}
 	        	
 	        	 
+	        	createAgent(myAgent, orderPos);
 	        	
-	 		    //create Workpiece Agent
-	 		    //for(int j = 1; j <= quantity ; j++){
-	 				ContainerController cc = myAgent.getContainerController();
-	 				AgentController ac;
-	 				Object [] args_WorkpieceAgent = new Object [5];
-	 				args_WorkpieceAgent[0] = orderPos;		
-	 				//System.out.println("DEBUG_____"+orderPos.getHasTargetWarehouse().getHasLocation().getCoordX());
-	 				args_WorkpieceAgent[1] = interface_agent.getName();
-	 				args_WorkpieceAgent[2] = conversationID_forInterfaceAgent;
-	 				args_WorkpieceAgent[3] = orderPos.getSequence_Number();
-	 				//args_WorkpieceAgent[4] = orderPos;
-
-	 				//TBD: StartLocation might have to be dynamically determined	--> now = Coordinates of Wickelfertigung
-	 				
-	 				Location location = new Location();
-	 				float startx = 5;
-	 				float starty = 5;
-	 				location.setCoordX(startx);
-	 				location.setCoordY(starty);
-	 				
-	 				args_WorkpieceAgent[4] = location ;
-	 				
-	 				try {
-	 					//ac = cc.createNewAgent("WorkpieceAgentNo_"+orderPos.getSequence_Number(), "agentPro_Prototype_Agents.WorkpieceAgent", args_WorkpieceAgent);
-	 					ac = cc.createNewAgent(orderPos.getContainsProduct().getName()+"_"+orderPos.getSequence_Number()+"_Order", "agentPro_Prototype_Agents.WorkpieceAgent", args_WorkpieceAgent);
-	 					
-	 					ac.start();
-	 				} catch (StaleProxyException e) {
-	 					// TODO Auto-generated catch block
-	 					e.printStackTrace();
-	 				}
-	 				//Random r = new Random();
-	 				//double d = r.nextDouble();
-	 				/*double d = 0;
-	 				if(i ==1) {
-	 					d = initial_wait;
-	 				}else {
-	 					d = i*a + initial_wait ;	
-	 				}*/
-	 				
-	 				try {
-	 					Thread.sleep((long) wait_between_agent_creation);
-	 				} catch (InterruptedException e) {
-	 					// TODO Auto-generated catch block
-	 					e.printStackTrace();
-	 				}
+	        	try {
+					Thread.sleep((long) wait_between_agent_creation);
+				} catch (InterruptedException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}   	
+	         		 
 	 				i++;
 	        }
 	       
@@ -390,6 +356,70 @@ public class orderGenerationBehaviour extends OneShotBehaviour{
 		
 	}
 	
+	public static void createAgent(Agent myAgent, OrderPosition orderPos) {
+		ContainerController cc = myAgent.getContainerController();
+			AgentController ac;
+			Object [] args_WorkpieceAgent = new Object [5];
+			args_WorkpieceAgent[0] = orderPos;		
+			//System.out.println("DEBUG_____"+orderPos.getHasTargetWarehouse().getHasLocation().getCoordX());
+			args_WorkpieceAgent[1] = interface_agent.getName();
+			args_WorkpieceAgent[2] = conversationID_forInterfaceAgent;
+			args_WorkpieceAgent[3] = orderPos.getSequence_Number();
+			//args_WorkpieceAgent[4] = orderPos;
+
+			//TBD: StartLocation might have to be dynamically determined	--> now = Coordinates of Wickelfertigung
+			
+			Location location = new Location();
+			float startx = 5;
+			float starty = 5;
+			location.setCoordX(startx);
+			location.setCoordY(starty);
+			
+			args_WorkpieceAgent[4] = location ;
+			
+			try {
+				//ac = cc.createNewAgent("WorkpieceAgentNo_"+orderPos.getSequence_Number(), "agentPro_Prototype_Agents.WorkpieceAgent", args_WorkpieceAgent);
+				ac = cc.createNewAgent(orderPos.getContainsProduct().getName()+"_"+orderPos.getSequence_Number()+"_Order", "agentPro_Prototype_Agents.WorkpieceAgent", args_WorkpieceAgent);
+				
+				ac.start();
+			} catch (StaleProxyException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}	
+	}
+	
+	public static void createAgent(Agent myAgent, OrderPosition orderPos, ManufacturingOrder mo) {
+		ContainerController cc = myAgent.getContainerController();
+			AgentController ac;
+			Object [] args_WorkpieceAgent = new Object [6];
+			args_WorkpieceAgent[0] = orderPos;		
+			//System.out.println("DEBUG_____"+orderPos.getHasTargetWarehouse().getHasLocation().getCoordX());
+			args_WorkpieceAgent[1] = interface_agent.getName();
+			args_WorkpieceAgent[2] = conversationID_forInterfaceAgent;
+			args_WorkpieceAgent[3] = orderPos.getSequence_Number();
+			//args_WorkpieceAgent[4] = orderPos;
+
+			//TBD: StartLocation might have to be dynamically determined	--> now = Coordinates of Wickelfertigung
+			
+			Location location = new Location();
+			float startx = 5;
+			float starty = 5;
+			location.setCoordX(startx);
+			location.setCoordY(starty);
+			
+			args_WorkpieceAgent[4] = location ;
+			args_WorkpieceAgent[5] = mo;
+			
+			try {
+				//ac = cc.createNewAgent("WorkpieceAgentNo_"+orderPos.getSequence_Number(), "agentPro_Prototype_Agents.WorkpieceAgent", args_WorkpieceAgent);
+				ac = cc.createNewAgent(orderPos.getContainsProduct().getName()+"_"+orderPos.getSequence_Number()+"_Order", "agentPro_Prototype_Agents.WorkpieceAgent", args_WorkpieceAgent);
+				
+				ac.start();
+			} catch (StaleProxyException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}	
+	}
 	public void receiveValuesFromDB(ProductionPlan p, Product product) {
 		
 		String product_name = product.getName();	//name is needed to find the right production plan in the database
@@ -405,11 +435,11 @@ public class orderGenerationBehaviour extends OneShotBehaviour{
        		
 	        while (rs.next()) {
 			    OrderedOperation orderedOp = new OrderedOperation();
-			    Operation op = new Operation();
+			    Production_Operation op = new Production_Operation();
 			    op.setName(rs.getString(columnNameOfOperation));
 			    orderedOp.setFirstOperation(rs.getBoolean(columnNameOfFirstOperation));
 			    orderedOp.setLastOperation(rs.getBoolean(columnNameOfLastOperation));
-			    orderedOp.setHasOperation(op);
+			    orderedOp.setHasProductionOperation(op);
 	        	orderedOp.setSequence_Number(rs.getInt(columnNameOfStep)); 
 	        	p.addConsistsOfOrderedOperations(orderedOp);		   
 	        }

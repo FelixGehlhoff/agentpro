@@ -3,7 +3,7 @@ package webservice;
 
 
 
-import javax.xml.bind.annotation.XmlElement;
+import java.util.Date;
 
 import javax.xml.bind.annotation.XmlRootElement;
 
@@ -14,9 +14,10 @@ public class ManufacturingOrder {
 	//@XmlElement
 	public String Name;
 	//@XmlElement
-	public String DeliveryDate;
+	public Date DeliveryDate;
 	//@XmlElement
 	public Article Article;
+	public int Quantity;
 	
     //@XmlElement
 		public ActualProcess ActualProcess;

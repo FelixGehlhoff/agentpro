@@ -1,12 +1,18 @@
 package agentPro_Prototype_WorkpieceAgent_Behaviours;
 
 
+import java.net.http.HttpClient;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
+import java.net.http.HttpResponse.BodyHandlers;
 import java.text.ParseException;
 import java.util.Date;
 import java.util.Iterator;
+import java.util.concurrent.ExecutionException;
+
 import agentPro.onto.AllocatedWorkingStep;
-import agentPro.onto.Operation;
 import agentPro.onto.OrderedOperation;
+import agentPro.onto.Production_Operation;
 import agentPro.onto.Transport_Operation;
 import agentPro.onto.WorkPlan;
 import agentPro.onto.Location;
@@ -16,6 +22,8 @@ import agentPro_Prototype_ResourceAgent.RequestDatabaseEntryBehaviour;
 import jade.core.behaviours.Behaviour;
 import jade.lang.acl.ACLMessage;
 import support_classes.GanttDemo1;
+import webservice.ManufacturingOrderList;
+import webservice.Webservice_agentPro;
 
 import org.jfree.ui.RefineryUtilities;
 
@@ -28,12 +36,12 @@ public class ProductionManagerBehaviour extends Behaviour{
 	private String logLinePrefix = ".ProductionManager ";
 	private WorkpieceAgent myAgent;
 	private int step = 0;
-	public long reply_by_time = 450; //reply within 0,5 seconds
+	public long reply_by_time = 1250; //reply within 450 ms
 	
 	//private JSONObject workpiece;	
 	//private double average_speed = 1; //m/s
 
-	private boolean backwards_scheduling_activ = false;
+	//private boolean backwards_scheduling_activ = false;
 	
 
 	
@@ -62,17 +70,17 @@ public class ProductionManagerBehaviour extends Behaviour{
 			int number_of_planned_production_steps = determine_number_of_planned_production_steps();		//allocated but not finished
 			
 			position_next_step = number_of_finished_production_steps+number_of_planned_production_steps;	// e.g. one finished step and 1 planned step --> size = 2, position in workplan array = 2 (3rd position)
-			String name_of_last_operation = ((OrderedOperation)myAgent.getProdPlan().getConsistsOfOrderedOperations().get(myAgent.getProdPlan().getConsistsOfOrderedOperations().size()-1)).getHasOperation().getName();
+			String name_of_last_operation = ((OrderedOperation)myAgent.getProdPlan().getConsistsOfOrderedOperations().get(myAgent.getProdPlan().getConsistsOfOrderedOperations().size()-1)).getHasProductionOperation().getName();
 			if(myAgent.getLastProductionStepAllocated() != null && myAgent.getLastProductionStepAllocated().getHasOperation().getName().contentEquals(name_of_last_operation)) {
-				if(myAgent.transport_needed) {
-					arrangeTransportToWarehouse();
+				if(WorkpieceAgent.transport_needed) {
+					//arrangeTransportToWarehouse();
 				}
 				step = 2;
 				break;
 			}
 			
 			//determine needed operation
-			Operation requested_operation = determineRequestedOperation(position_next_step);
+			Production_Operation requested_operation = determineRequestedOperation(position_next_step);
 			//System.out.println("DEBUG_________________requestedOperation = "+requested_operation.getName()+" position_next_step = "+position_next_step+" = number_of_finished_production_steps "+number_of_finished_production_steps+" number_of_planned_production_steps "+number_of_planned_production_steps);
 			requested_operation.setAppliedOn(myAgent.getRepresented_Workpiece());
 			//is it the last operation?
@@ -164,6 +172,26 @@ public class ProductionManagerBehaviour extends Behaviour{
 			        demo.pack();
 			        RefineryUtilities.centerFrameOnScreen(demo);
 			        demo.setVisible(false);
+			        
+			        if(_Agent_Template.webservice_mode) {
+			        	
+			        	
+			        	HttpClient client = HttpClient.newBuilder()	
+								.version(HttpClient.Version.HTTP_1_1)			
+								  .build();
+			        	ManufacturingOrderList mol = Webservice_agentPro.addToManufacturingOrderList(myAgent.getWorkplan(), myAgent.getMo());		        	
+						String body = Webservice_agentPro.buildSOAPBodyUpdateManufacturingOrder(mol);
+						HttpRequest request = Webservice_agentPro.buildRequest(Webservice_agentPro.soapAction_updateOrder, body);
+						//System.out.println("body WS "+body);
+						String return_string = "Return String after Update Order:  ";
+						try {
+							return_string = return_string + client.sendAsync(request, BodyHandlers.ofString())
+									.thenApply(HttpResponse::body).get();
+						} catch (InterruptedException | ExecutionException e1) {			
+							e1.printStackTrace();
+						}
+						//System.out.println(return_string);
+			        }
 				
 				step = 3;
 			//}
@@ -186,7 +214,7 @@ public class ProductionManagerBehaviour extends Behaviour{
 				Iterator<OrderedOperation> it = myAgent.getProdPlan().getAllConsistsOfOrderedOperations();
 			    while(it.hasNext()) {
 			    	OrderedOperation orOp = it.next();			
-			    	if(orOp.getHasOperation().getName().equals(allWS.getHasOperation().getName())){		//find the operation in question and check for follow up constraint
+			    	if(orOp.getHasProductionOperation().getName().equals(allWS.getHasOperation().getName())){		//find the operation in question and check for follow up constraint
 			    		if(orOp.getHasFollowUpOperation()) {
 			    			value = orOp.getWithOperationInStep();										// if there is one, set the return value to the step number
 			    		}
@@ -281,13 +309,9 @@ public class ProductionManagerBehaviour extends Behaviour{
 		return lastOperation;
 	}
 
-	private Operation determineRequestedOperation(int position_next_step) {
-		
-		Operation reqOp = new Operation();
-		
-		OrderedOperation orOp = (OrderedOperation) myAgent.getProdPlan().getConsistsOfOrderedOperations().get(position_next_step);
-		reqOp = orOp.getHasOperation();	
-		return reqOp;
+	private Production_Operation determineRequestedOperation(int position_next_step) {		
+		OrderedOperation orOp = (OrderedOperation) myAgent.getProdPlan().getConsistsOfOrderedOperations().get(position_next_step);		
+		return orOp.getHasProductionOperation();
 	}
 
 	private int determine_number_of_finished_production_steps() {

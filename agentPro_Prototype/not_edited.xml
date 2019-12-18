@@ -1,0 +1,294 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<ManufacturingOrderList>
+    <ManufacturingOrders>
+        <ManufacturingOrder>
+            <ID>9</ID>
+            <Name>
+FA_D534-78834-200-16 Rev. A (#5)</Name>
+            <DeliveryDate>2028-05-10T00:00:00+02:00</DeliveryDate>
+            <Article>
+                <ID>1</ID>
+                <Name>D534-78834-200-16</Name>
+            </Article>
+            <Quantity>10</Quantity>
+            <ActualProcess>
+                <ID>9</ID>
+                <PlannedEndLatest>2019-05-09T00:00:00+02:00</PlannedEndLatest>
+                <ActualProcessSteps>
+                    <ActualProcessStep>
+                        <ActualEnd></ActualEnd>
+                        <ActualStart></ActualStart>
+                        <ID>19</ID>
+                        <Order>1</Order>
+                        <PlannedEndDispatch>2019-08-16T16:45:00</PlannedEndDispatch>
+                        <PlannedStart>2019-11-18T23:45:00+01:00</PlannedStart>
+                        <PlannedEnd>2019-11-18T23:55:00+01:00</PlannedEnd>
+                        <PlannedStartDispatch>2019-08-14T16:25:00</PlannedStartDispatch>
+                        <Ressource>
+                            <Resource>
+<ID>5</ID>
+<Name>
+Kappsäge</Name>
+<QuantityOfAllocations>1</QuantityOfAllocations>
+<Status>1</Status>
+                            </Resource>
+                            <Resource>
+<ID>5</ID>
+<Name>Kappsäge</Name>
+<QuantityOfAllocations>1</QuantityOfAllocations>
+<Status>1</Status>
+                            </Resource>
+                        </Ressource>
+                    </ActualProcessStep>
+                    <ActualProcessStep>
+                        <ActualEnd></ActualEnd>
+                        <ActualStart></ActualStart>
+                        <ID>20</ID>
+                        <Order>2</Order>
+                        <PlannedEndDispatch>2019-05-08T19:20:00</PlannedEndDispatch>
+                        <PlannedStart>2019-11-21T12:24:00+01:00</PlannedStart>
+                        <PlannedEnd>2019-11-21T14:24:00+01:00</PlannedEnd>
+                        <PlannedStartDispatch>2019-05-08T16:45:00</PlannedStartDispatch>
+                        <Ressource>
+                            <Resource>
+<ID>3</ID>
+<Name>
+Unima</Name>
+<QuantityOfAllocations>1</QuantityOfAllocations>
+<Status>1</Status>
+                            </Resource>
+                            <Resource>
+<ID>3</ID>
+<Name>Unima</Name>
+<QuantityOfAllocations>1</QuantityOfAllocations>
+<Status>1</Status>
+                            </Resource>
+                        </Ressource>
+                    </ActualProcessStep>
+                    <ActualProcessStep>
+                        <ActualEnd></ActualEnd>
+                        <ActualStart></ActualStart>
+                        <ID>21</ID>
+                        <Order>3</Order>
+                        <PlannedEndDispatch>2019-05-08T21:10:00</PlannedEndDispatch>
+                        <PlannedStart>2019-11-21T18:48:00+01:00</PlannedStart>
+                        <PlannedEnd>2019-11-21T20:18:00+01:00</PlannedEnd>
+                        <PlannedStartDispatch>2019-05-08T19:20:00</PlannedStartDispatch>
+                        <Ressource>
+                            <Resource>
+<ID>6</ID>
+<Name>
+Rollformanlage</Name>
+<QuantityOfAllocations>1</QuantityOfAllocations>
+<Status>1</Status>
+                            </Resource>
+                            <Resource>
+<ID>6</ID>
+<Name>Rollformanlage</Name>
+<QuantityOfAllocations>1</QuantityOfAllocations>
+<Status>1</Status>
+                            </Resource>
+                        </Ressource>
+                    </ActualProcessStep>
+                    <ActualProcessStep>
+                        <ActualEnd></ActualEnd>
+                        <ActualStart></ActualStart>
+                        <ID>22</ID>
+                        <Order>4</Order>
+                        <PlannedEndDispatch>2019-05-08T21:55:00</PlannedEndDispatch>
+                        <PlannedStart>2019-11-22T08:08:00+01:00</PlannedStart>
+                        <PlannedEnd>2019-11-22T08:48:00+01:00</PlannedEnd>
+                        <PlannedStartDispatch>2019-05-08T21:10:00</PlannedStartDispatch>
+                        <Ressource>
+                            <Resource>
+<ID>2</ID>
+<Name>
+Stribo</Name>
+<QuantityOfAllocations>1</QuantityOfAllocations>
+<Status>1</Status>
+                            </Resource>
+                            <Resource>
+<ID>2</ID>
+<Name>Stribo</Name>
+<QuantityOfAllocations>1</QuantityOfAllocations>
+<Status>1</Status>
+                            </Resource>
+                        </Ressource>
+                    </ActualProcessStep>
+                    <ActualProcessStep>
+                        <ActualEnd></ActualEnd>
+                        <ActualStart></ActualStart>
+                        <ID>23</ID>
+                        <Order>5</Order>
+                        <PlannedEndDispatch>2019-05-08T22:05:00</PlannedEndDispatch>
+                        <PlannedStart>2019-05-08T21:55:00+02:00</PlannedStart>
+                        <PlannedEnd>2019-05-08T22:05:00+02:00</PlannedEnd>
+                        <PlannedStartDispatch>2019-05-08T21:55:00</PlannedStartDispatch>
+                        <Ressource/>
+                    </ActualProcessStep>
+                    <ActualProcessStep>
+                        <ActualEnd></ActualEnd>
+                        <ActualStart></ActualStart>
+                        <ID>24</ID>
+                        <Order>6</Order>
+                        <PlannedEndDispatch>2019-05-08T22:15:00</PlannedEndDispatch>
+                        <PlannedStart>2019-05-08T22:05:00+02:00</PlannedStart>
+                        <PlannedEnd>2019-05-08T22:15:00+02:00</PlannedEnd>
+                        <PlannedStartDispatch>2019-05-08T22:05:00</PlannedStartDispatch>
+                        <Ressource/>
+                    </ActualProcessStep>
+                    <ActualProcessStep>
+                        <ActualEnd></ActualEnd>
+                        <ActualStart></ActualStart>
+                        <ID>25</ID>
+                        <Order>7</Order>
+                        <PlannedEndDispatch>2019-05-08T22:55:00</PlannedEndDispatch>
+                        <PlannedStart>2019-05-08T22:15:00+02:00</PlannedStart>
+                        <PlannedEnd>2019-05-08T22:55:00+02:00</PlannedEnd>
+                        <PlannedStartDispatch>2019-05-08T22:15:00</PlannedStartDispatch>
+                        <Ressource/>
+                    </ActualProcessStep>
+                    <ActualProcessStep>
+                        <ActualEnd></ActualEnd>
+                        <ActualStart></ActualStart>
+                        <ID>26</ID>
+                        <Order>8</Order>
+                        <PlannedEndDispatch>2019-05-08T23:30:00</PlannedEndDispatch>
+                        <PlannedStart>2019-05-08T22:55:00+02:00</PlannedStart>
+                        <PlannedEnd>2019-05-08T23:30:00+02:00</PlannedEnd>
+                        <PlannedStartDispatch>2019-05-08T22:55:00</PlannedStartDispatch>
+                        <Ressource/>
+                    </ActualProcessStep>
+                    <ActualProcessStep>
+                        <ActualEnd></ActualEnd>
+                        <ActualStart></ActualStart>
+                        <ID>27</ID>
+                        <Order>9</Order>
+                        <PlannedEndDispatch>2019-05-08T23:50:00</PlannedEndDispatch>
+                        <PlannedStart>2019-05-08T23:30:00+02:00</PlannedStart>
+                        <PlannedEnd>2019-05-08T23:50:00+02:00</PlannedEnd>
+                        <PlannedStartDispatch>2019-05-08T23:30:00</PlannedStartDispatch>
+                        <Ressource/>
+                    </ActualProcessStep>
+                    <ActualProcessStep>
+                        <ActualEnd></ActualEnd>
+                        <ActualStart></ActualStart>
+                        <ID>28</ID>
+                        <Order>10</Order>
+                        <PlannedEndDispatch>2019-05-09T00:00:00</PlannedEndDispatch>
+                        <PlannedStart>2019-05-08T23:50:00+02:00</PlannedStart>
+                        <PlannedEnd>2019-05-09T00:00:00+02:00</PlannedEnd>
+                        <PlannedStartDispatch>2019-05-08T23:50:00</PlannedStartDispatch>
+                        <Ressource/>
+                    </ActualProcessStep>
+                </ActualProcessSteps>
+                <ProcessSchedule>
+                    <ID>1</ID>
+                    <Name>Fertigungsprozess für D534-78834-200-16</Name>
+                    <ProcessSteps>
+                        <ProcessStep>
+                            <BufferTimeMinutes>0.0</BufferTimeMinutes>
+                            <ID>1</ID>
+                            <JobTimeMinutes>12.0</JobTimeMinutes>
+                            <Order>2</Order>
+                            <SetUpTimeMinutes>35.0</SetUpTimeMinutes>
+                            <Name>Durchsetzen Unima</Name>
+                            <ConsumableMaterials/>
+                        </ProcessStep>
+                        <ProcessStep>
+                            <BufferTimeMinutes>0.0</BufferTimeMinutes>
+                            <ID>2</ID>
+                            <JobTimeMinutes>1.0</JobTimeMinutes>
+                            <Order>12</Order>
+                            <SetUpTimeMinutes>0.0</SetUpTimeMinutes>
+                            <Name>Einlagerung MWZ</Name>
+                            <ConsumableMaterials/>
+                        </ProcessStep>
+                        <ProcessStep>
+                            <BufferTimeMinutes>0.0</BufferTimeMinutes>
+                            <ID>3</ID>
+                            <JobTimeMinutes>2.5</JobTimeMinutes>
+                            <Order>7</Order>
+                            <SetUpTimeMinutes>15.0</SetUpTimeMinutes>
+                            <Name>Entgraten</Name>
+                            <ConsumableMaterials/>
+                        </ProcessStep>
+                        <ProcessStep>
+                            <BufferTimeMinutes>0.0</BufferTimeMinutes>
+                            <ID>6</ID>
+                            <JobTimeMinutes>2.5</JobTimeMinutes>
+                            <Order>10</Order>
+                            <SetUpTimeMinutes>10.0</SetUpTimeMinutes>
+                            <Name>QS- Prüfung Serie</Name>
+                            <ConsumableMaterials/>
+                        </ProcessStep>
+                        <ProcessStep>
+                            <BufferTimeMinutes>0.0</BufferTimeMinutes>
+                            <ID>7</ID>
+                            <JobTimeMinutes>1.0</JobTimeMinutes>
+                            <Order>1</Order>
+                            <SetUpTimeMinutes>10.0</SetUpTimeMinutes>
+                            <Name>Zuschnitt</Name>
+                            <ConsumableMaterials>
+<ConsumableMaterial>
+    <ID>1</ID>
+    <Article>
+        <ID>4</ID>
+        <Name>DAN50B11</Name>
+    </Article>
+    <Unit>Meter</Unit>
+    <Amount>8.5</Amount>
+</ConsumableMaterial>
+                            </ConsumableMaterials>
+                        </ProcessStep>
+                        <ProcessStep>
+                            <BufferTimeMinutes>0.0</BufferTimeMinutes>
+                            <ID>8</ID>
+                            <JobTimeMinutes>9.0</JobTimeMinutes>
+                            <Order>3</Order>
+                            <SetUpTimeMinutes>20.0</SetUpTimeMinutes>
+                            <Name>Rollformen &amp;amp; Richten</Name>
+                            <ConsumableMaterials/>
+                        </ProcessStep>
+                        <ProcessStep>
+                            <BufferTimeMinutes>0.0</BufferTimeMinutes>
+                            <ID>9</ID>
+                            <JobTimeMinutes>1.0</JobTimeMinutes>
+                            <Order>6</Order>
+                            <SetUpTimeMinutes>0.0</SetUpTimeMinutes>
+                            <Name>Schleifen</Name>
+                            <ConsumableMaterials/>
+                        </ProcessStep>
+                        <ProcessStep>
+                            <BufferTimeMinutes>0.0</BufferTimeMinutes>
+                            <ID>10</ID>
+                            <JobTimeMinutes>1.0</JobTimeMinutes>
+                            <Order>5</Order>
+                            <SetUpTimeMinutes>0.0</SetUpTimeMinutes>
+                            <Name>Unterflursäge</Name>
+                            <ConsumableMaterials/>
+                        </ProcessStep>
+                        <ProcessStep>
+                            <BufferTimeMinutes>0.0</BufferTimeMinutes>
+                            <ID>11</ID>
+                            <JobTimeMinutes>4.0</JobTimeMinutes>
+                            <Order>4</Order>
+                            <SetUpTimeMinutes>5.0</SetUpTimeMinutes>
+                            <Name>Zerspanung 2</Name>
+                            <ConsumableMaterials/>
+                        </ProcessStep>
+                        <ProcessStep>
+                            <BufferTimeMinutes>0.0</BufferTimeMinutes>
+                            <ID>12</ID>
+                            <JobTimeMinutes>1.0</JobTimeMinutes>
+                            <Order>11</Order>
+                            <SetUpTimeMinutes>10.0</SetUpTimeMinutes>
+                            <Name>Versand an PAG</Name>
+                            <ConsumableMaterials/>
+                        </ProcessStep>
+                    </ProcessSteps>
+                </ProcessSchedule>
+            </ActualProcess>
+        </ManufacturingOrder>
+    </ManufacturingOrders>
+</ManufacturingOrderList>

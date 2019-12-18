@@ -1,46 +1,35 @@
 package webservice;
 
-import java.io.BufferedReader;
-import java.io.DataOutputStream;
 import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.io.InputStreamReader;
 import java.io.StringReader;
-import java.net.Authenticator;
-import java.net.HttpURLConnection;
-import java.net.MalformedURLException;
+import java.io.StringWriter;
 import java.net.URI;
-import java.net.URL;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpRequest.BodyPublishers;
 import java.net.http.HttpResponse;
-import java.net.http.HttpResponse.BodyHandler;
 import java.net.http.HttpResponse.BodyHandlers;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Base64;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.function.Consumer;
-
-import javax.net.ssl.HttpsURLConnection;
+import java.util.Date;
+import java.util.Iterator;
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBException;
 import javax.xml.bind.Marshaller;
 import javax.xml.bind.Unmarshaller;
 
-import org.json.JSONArray;
-import org.json.JSONObject;
+import agentPro.onto.AllocatedWorkingStep;
+import agentPro.onto.Resource;
+import agentPro.onto.WorkPlan;
 
 
 public class Webservice_agentPro {
 	
-	private final static String USER_AGENT = "Mozilla/5.0";
-	private static String soap_getById = "<soapenv:Envelope xmlns:soapenv=\"http://schemas.xmlsoap.org/soap/envelope/\" xmlns:tem=\"http://tempuri.org/\">\r\n" + 
+	//private static ManufacturingOrderList mol;
+	
+	//private final static String USER_AGENT = "Mozilla/5.0";
+	private static String soap_getById1 = "<soapenv:Envelope xmlns:soapenv=\"http://schemas.xmlsoap.org/soap/envelope/\" xmlns:tem=\"http://tempuri.org/\">\r\n" + 
 			"   <soapenv:Header/>\r\n" + 
 			"   <soapenv:Body>\r\n" + 
 			"      <tem:GetManufacturingOdersById>\r\n" + 
@@ -49,7 +38,9 @@ public class Webservice_agentPro {
 			"         	&lt;ManufacturingOrderList xmlns:xsd=\"http://www.w3.org/2001/XMLSchema\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\"&gt;&#xD;\r\n" + 
 			"  &lt;ManufacturingOrders&gt;&#xD;\r\n" + 
 			"    &lt;ManufacturingOrder&gt;&#xD;\r\n" + 
-			"      &lt;ID&gt;9&lt;/ID&gt;&#xD;\r\n" + 
+			"      &lt;ID&gt;";
+
+	private static String soap_getById2 = "&lt;/ID&gt;&#xD;\r\n" + 
 			"        &lt;/ManufacturingOrder&gt;&#xD;\r\n" + 
 			"         &lt;/ManufacturingOrders&gt;&#xD;\r\n" + 
 			"         &lt;/ManufacturingOrderList&gt;\r\n" + 
@@ -58,7 +49,7 @@ public class Webservice_agentPro {
 			"   </soapenv:Body>\r\n" + 
 			"</soapenv:Envelope>";
 	
-	private static String soap_getAll = "<soapenv:Envelope xmlns:soapenv=\"http://schemas.xmlsoap.org/soap/envelope/\" xmlns:tem=\"http://tempuri.org/\">\r\n" + 
+	public static String soap_getAll = "<soapenv:Envelope xmlns:soapenv=\"http://schemas.xmlsoap.org/soap/envelope/\" xmlns:tem=\"http://tempuri.org/\">\r\n" + 
      		"   <soapenv:Header/>\r\n" + 
      		"   <soapenv:Body>\r\n" + 
      		"      <tem:GetAllManufacturingOrders>\r\n" + 
@@ -67,12 +58,15 @@ public class Webservice_agentPro {
      		"   </soapenv:Body>\r\n" + 
      		"</soapenv:Envelope>\r\n" + 
      		"";
-	private static String soap_updateOrder = "<soapenv:Envelope xmlns:soapenv=\"http://schemas.xmlsoap.org/soap/envelope/\" xmlns:tem=\"http://tempuri.org/\">\r\n" + 
+	private static String soap_updateOrder1 = "<soapenv:Envelope xmlns:soapenv=\"http://schemas.xmlsoap.org/soap/envelope/\" xmlns:tem=\"http://tempuri.org/\">\r\n" + 
 			"   <soapenv:Header/>\r\n" + 
 			"   <soapenv:Body>\r\n" + 
 			"      <tem:UpdateManufacturingOrder>\r\n" + 
 			"         <tem:serviceId>9A79D9D5-9270-42CA-BFCB-7D34D88937D2</tem:serviceId>\r\n" + 
-			"         <tem:updatedManufacturingOrder>&lt;ManufacturingOrderList xmlns:xsd=\"http://www.w3.org/2001/XMLSchema\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\"&gt;&#xD;\r\n" + 
+			"         <tem:updatedManufacturingOrder>"; 
+	/*
+	private static String soap_updateOrder_notused =	
+			" &lt;ManufacturingOrderList xmlns:xsd=\"http://www.w3.org/2001/XMLSchema\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\"&gt;&#xD;\r\n"+
 			"  &lt;ManufacturingOrders&gt;&#xD;\r\n" + 
 			"    &lt;ManufacturingOrder&gt;&#xD;\r\n" + 
 			"      &lt;ID&gt;9&lt;/ID&gt;&#xD;\r\n" + 
@@ -283,32 +277,57 @@ public class Webservice_agentPro {
 			"      &lt;/ActualProcess&gt;&#xD;\r\n" + 
 			"    &lt;/ManufacturingOrder&gt;&#xD;\r\n" + 
 			"  &lt;/ManufacturingOrders&gt;&#xD;\r\n" + 
-			"&lt;/ManufacturingOrderList&gt;\r\n" + 
+			"&lt;/ManufacturingOrderList&gt;\r\n";
+	*/
+			private static String soap_updateOrder2 =
 			"		 </tem:updatedManufacturingOrder>\r\n" + 
 			"      </tem:UpdateManufacturingOrder>\r\n" + 
 			"   </soapenv:Body>\r\n" + 
 			"</soapenv:Envelope>";
 	
-	private static String soapAction_getAll = "http://tempuri.org/IWebService/GetAllManufacturingOrders";
-	private static String soapAction_getById = "http://tempuri.org/IWebService/GetManufacturingOdersById";
-	private static String soapAction_updateOrder = "http://tempuri.org/IWebService/UpdateManufacturingOrder";
+	public static String soapAction_getAll = "http://tempuri.org/IWebService/GetAllManufacturingOrders";
+	public static String soapAction_getById = "http://tempuri.org/IWebService/GetManufacturingOdersById";
+	public static String soapAction_updateOrder = "http://tempuri.org/IWebService/UpdateManufacturingOrder";
+	public static String soapAction_getOperationPlan = "http://tempuri.org/IWebService/GetOperationPlan";
 	private static String password_getAll = "1xIZPL6f0ejppjp0OPBR";
+	private static String address_Webservice = "https://move.a-t-solution.de/Move_AgentPro/Webservice/WebService.svc";
+	private static String username_Webservice = "Move_AgentPro";
 
+	private static String soap_OperationPlan1 = "<soapenv:Envelope xmlns:soapenv=\"http://schemas.xmlsoap.org/soap/envelope/\" xmlns:tem=\"http://tempuri.org/\">\r\n" + 
+			"   <soapenv:Header/>\r\n" + 
+			"   <soapenv:Body>\r\n" + 
+			"      <tem:GetOperationPlan>\r\n" + 
+			"         <tem:serviceId>9A79D9D5-9270-42CA-BFCB-7D34D88937D2</tem:serviceId>\r\n" + 
+			"         <tem:ressourceId>";
+
+	private static String soap_getOperationPlan2 = "</tem:ressourceId>\r\n" + 
+			"      </tem:GetOperationPlan>\r\n" + 
+			"   </soapenv:Body>\r\n" + 
+			"</soapenv:Envelope>";
+	
 	public static void main(String[] args) throws Exception {
+		
+		
+		
 		
 		HttpClient client = HttpClient.newBuilder()	
 				.version(HttpClient.Version.HTTP_1_1)
 				
 				  .build();
+		//HttpRequest request = buildRequest(soapAction_getAll, soap_getAll);	
+		//HttpRequest request = buildRequest(soapAction_getById, buildSOAPBodyGetByID(9));
+		HttpRequest request = buildRequest(soapAction_getOperationPlan, buildSOAPBodyGetOperationPlan(3));
+		
+		
 		  // HttpRequest request = HttpRequest.newBuilder()
 		    //     .uri(URI.create("http://foo.com/"))
 		      //   .build();
-
+/*
 		HttpRequest request = HttpRequest.newBuilder()
 			
 			     //.uri(URI.create("http://openjdk.java.net/"))
-			     .uri(URI.create("https://move.a-t-solution.de/Move_AgentPro/Webservice/WebService.svc"))
-			     .header("Authorization", basicAuth("Move_AgentPro", password_getAll))
+			     .uri(URI.create(address_Webservice))
+			     .header("Authorization", basicAuth(username_Webservice, password_getAll))
 			     //.header("serviceId", "9A79D9D5-9270-42CA-BFCB-7D34D88937D2")
 			     .header("Content-Type", "text/xml")
 			     .header("SOAPAction", soapAction_getAll)
@@ -317,16 +336,13 @@ public class Webservice_agentPro {
 			     .POST(BodyPublishers.ofString(soap_getAll))
 			     //.GET()
 			     .build();
-		
+		*/
 		//HttpResponse<String> response = client.send(request, BodyHandlers.ofString()); //send uses blocking mode --> synchronous
 
 		//System.out.println("Response status code: " + response.statusCode());
 		//System.out.println("Response headers: " + response.headers());
 		//System.out.println("Response body: " + response.body());
 		
-		
-		
-		//client.sendAsync(request, BodyHandlers.ofString())
 		
 		
 		//client.sendAsync(request, BodyHandlers.ofString())
@@ -339,9 +355,15 @@ public class Webservice_agentPro {
 
 		String a = client.sendAsync(request, BodyHandlers.ofString())
 		.thenApply(HttpResponse::body).get();
-		//System.out.println(a+" QQQQQQQQQQQQQQQQQQQQQQQQQQ");
+		System.out.println(a+" QQQQQQQQQQQQQQQQQQQQQQQQQQ");
 	
+		OperationPlan opPlan = unmarshallStringToOperationPlan(a);
+		System.out.println(opPlan.Ressource_Name+" "+opPlan.Ressource_ID);
+		for(TimeSlot ts : opPlan.TimeSlots) {
+			System.out.println(ts.Start+":"+ts.End);
+		}
 		
+		/*
         System.out.println("Access file using absolute path: ");
         String absolutePath = "C://Users/Gehlhoff/eclipse-workspace/testing/orders.xml";
         File file = new File(absolutePath);
@@ -351,12 +373,19 @@ public class Webservice_agentPro {
 		client.sendAsync(request, BodyHandlers.ofFile(Paths.get("C://Users/Gehlhoff/eclipse-workspace/testing/orders.xml")))
         .thenApply(HttpResponse::body)
         .get(); 
+        
 		//client.sendAsync(request, BodyHandlers.ofFile(Paths.get("webservice_Get.json")))
 
 		
 		
-		tryJaxb(a);
+		mol = unmarshallStringToManufacturingOrderList(a);
+		mol.manufacturingorders.get(0).DeliveryDate = "2028-05-10T00:00:00";
 		
+		HttpRequest request2 = buildRequest(soapAction_updateOrder, buildSOAPBodyUpdateManufacturingOrder(mol));
+		String b = client.sendAsync(request2, BodyHandlers.ofString())
+				.thenApply(HttpResponse::body).get();
+		System.out.println(b+" QQQQQQQQQQQQQQQQQQQQQQQQQQ");
+		*/
 /*
 		HttpRequest request2 = HttpRequest.newBuilder()
 			
@@ -378,69 +407,123 @@ public class Webservice_agentPro {
 		*/
 		//tryJaxb(b);
 		
-		/*
-		
-		Map<String, String> parameters = new HashMap<>();		
-		parameters.put("Username", "Move_AgentPro");
-		parameters.put("Password", "1xIZPL6f0ejppjp0OPBR");
-		ParameterStringBuilder.getParamsString(parameters);
-		
-		String url_endpoint = "https://move.a-t-solution.de/Move_AgentPro/Webservice/WebService.svc?";
-		
-		//URL url = new URL(url_endpoint+ParameterStringBuilder.getParamsString(parameters));
-		URL url = new URL("https://move.a-t-solution.de/Move_AgentPro/Webservice/WebService.svc");
-		HttpsURLConnection con = (HttpsURLConnection) url.openConnection();
-		con.setRequestMethod("GET");
-		con.setRequestProperty("Content-Type", "application/xml");
-		con.setRequestProperty("User-Agent", USER_AGENT);
-		//con.setRequestProperty("serviceId", "9A79D9D5-9270-42CA-BFCB-7D34D88937D2");
-		con.setRequestProperty("serviceId", "9A79D9D5-9270-42CA-BFCB-7D34D88937D2");
-
-		//con.setConnectTimeout(8000);
-		//con.setReadTimeout(8000);
-			
-		/*
-		con.setDoOutput(true);
-		DataOutputStream out = new DataOutputStream(con.getOutputStream());
-		
-		out.writeBytes(ParameterStringBuilder.getParamsString(parameters));	//param1=value&param2=value
-		out.flush();
-		out.close();
-		System.out.println(ParameterStringBuilder.getParamsString(parameters));
-		
-		
-		//get response
-		int status = con.getResponseCode();
-		System.out.println("Sent GET to "+url_endpoint+ParameterStringBuilder.getParamsString(parameters)+" status "+status);
-		
-		
-		BufferedReader in = new BufferedReader(
-				  new InputStreamReader(con.getInputStream()));
-				String inputLine;
-				StringBuffer content = new StringBuffer();
-				while ((inputLine = in.readLine()) != null) {
-				    content.append(inputLine);
-				}
-				in.close();
-				
-				System.out.println(content.toString());
-				JSONArray array = new JSONArray(content.toString());
-				for(int i = 0; i<array.length();i++	) {
-					JSONObject obj = (JSONObject)array.get(i);
-					System.out.println("text = "+obj.getString("text"));
-				}
-				//JSONObject myResponse = new JSONObject(content.toString());
-				
-				
-*/
-
-	
-			//sendPost();
 
 	}
+	public static OperationPlan unmarshallStringToOperationPlan(String a) {
+		OperationPlan opPlan = new OperationPlan();
+		String b = a.replace("<s:Envelope xmlns:s=\"http://schemas.xmlsoap.org/soap/envelope/\"><s:Body><GetOperationPlanResponse xmlns=\"http://tempuri.org/\"><GetOperationPlanResult>&lt;?xml version=\"1.0\" encoding=\"utf-16\"?&gt;&#xD;", "");
+		b = b.replace("&lt;", "<");
+		b = b.replace("&gt;", ">");
+		b = b.replace("&#xD;", "");
+		b = b.replace("</GetOperationPlanResult></GetOperationPlanResponse></s:Body></s:Envelope>", "");
+		//System.out.println("start printout \n"+b);
+		JAXBContext jaxbContext;
+		try
+		{
+		    jaxbContext = JAXBContext.newInstance(OperationPlan.class);             
+		 
+		    Unmarshaller jaxbUnmarshaller = jaxbContext.createUnmarshaller();
+		    //Marshaller marshaller = jaxbContext.createMarshaller();
+		 
+		    opPlan = (OperationPlan) jaxbUnmarshaller.unmarshal(new StringReader(b));
 
-	private static void tryJaxb(String a) {
+		    //marshaller.marshal(opPlan, new File("edited.xml"));
+
+		}
+		catch (JAXBException e)
+		{
+		    e.printStackTrace();
+		}	
+		return opPlan;
 		
+	}
+	public static String buildSOAPBodyGetByID(int id) {
+		String body = soap_getById1+id+soap_getById2;
+		return body;
+	}
+	
+	public static ManufacturingOrderList addToManufacturingOrderList(WorkPlan wp, ManufacturingOrder mo) {
+		ManufacturingOrderList mol = new ManufacturingOrderList();
+
+		   @SuppressWarnings("unchecked")
+			Iterator<AllocatedWorkingStep> it = wp.getConsistsOfAllocatedWorkingSteps().iterator();
+		   int i = 1;
+		    while(it.hasNext()) {
+		    	AllocatedWorkingStep allWS = it.next();
+		    	if(!allWS.getHasResource().getName().contains("Puffer")) {
+			    	
+			    	for(ActualProcessStep aps : mo.ActualProcess.ActualProcessSteps) {
+			    		if(aps.Order == i) {
+			    			if(aps.Ressource == null) {
+			    				aps.Ressource = new ArrayList<webservice.Resource>();
+			    			}
+			    			aps.Ressource.add(Webservice_agentPro.convertResource(allWS.getHasResource()));
+			    			//aps.Ressource.set(0, Webservice_agentPro.convertResource(allWS.getHasResource()));
+			    			aps.PlannedStart = (Date) new Date(Long.parseLong(allWS.getHasTimeslot().getStartDate()));
+			    			aps.PlannedEnd = (Date) new Date(Long.parseLong(allWS.getHasTimeslot().getEndDate()));
+			    		}
+			    	}
+			    	i++;
+		    	}	    
+		    }
+		    mol.manufacturingorders.add(mo);
+		return mol;
+	}
+
+	private static webservice.Resource convertResource(Resource hasResource) {
+		webservice.Resource res = new webservice.Resource();
+		res.Name = hasResource.getName();
+		res.ID = hasResource.getID_Number();
+		res.Status = 1;
+		res.QuantityOfAllocations = 1;
+		
+		return res;
+	}
+	public static String buildSOAPBodyUpdateManufacturingOrder(ManufacturingOrderList mo) {		
+		String mo_string = marshallToString(mo);
+		String mo_1 = mo_string.replace("<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?>", "");
+		String mo_2 = mo_1.replace("<ManufacturingOrderList>", "&lt;ManufacturingOrderList xmlns:xsd=\"http://www.w3.org/2001/XMLSchema\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\"&gt;&#xD;");
+		String mo_3 = mo_2.replace("<", "&lt;");
+		String mo_4 = mo_3.replace(">", "&gt;&#xD;");
+		String mo_5 = mo_4.replace("&lt;ActualStart&gt;&#xD;&lt;/ActualStart&gt;&#xD;", "&lt;ActualStart xsi:nil=\"true\" /&gt;&#xD;");
+		String mo_6 = mo_5.replace("&lt;ActualEnd&gt;&#xD;&lt;/ActualEnd&gt;&#xD;", "&lt;ActualEnd xsi:nil=\"true\" /&gt;&#xD;");
+		String mo_7 = mo_6.replace("&lt;PlannedStartEarliest&gt;&#xD;&lt;/PlannedStartEarliest&gt;&#xD;", "&lt;PlannedStartEarliest xsi:nil=\"true\" /&gt;&#xD;");
+		//String mo_8	= mo_7.replace("&lt;ID&gt;&#xD;9&lt;/ID&gt;&#xD;", "&lt;ID&gt;9&lt;/ID&gt;&#xD;\r\n");
+		String body = soap_updateOrder1+mo_7+soap_updateOrder2;
+		//String body = soap_updateOrder1+soap_updateOrder_notused+soap_updateOrder2;
+		System.out.println("PRINT OUT BODY /n"+body);
+		//String body1 = body.replace("<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?>", "");
+		//String body2 = body1.replace("<ManufacturingOrderList>", "&lt;ManufacturingOrderList xmlns:xsd=\"http://www.w3.org/2001/XMLSchema\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\"&gt;&#xD;");
+		//System.out.println("QQQQQQQQQQQQQQQQQQ NEW BODY "+body);
+		return body;
+	} 
+	
+	public static HttpRequest buildRequest(String soapAction, String soap_body) {
+
+		HttpRequest request = HttpRequest.newBuilder()
+				
+			     //.uri(URI.create("http://openjdk.java.net/"))
+			     .uri(URI.create(address_Webservice))
+			     .header("Authorization", basicAuth(username_Webservice, password_getAll))
+			     //.header("serviceId", "9A79D9D5-9270-42CA-BFCB-7D34D88937D2")
+			     .header("Content-Type", "text/xml")
+			     .header("SOAPAction", soapAction)
+			     .timeout(Duration.ofMinutes(1))
+
+			     .POST(BodyPublishers.ofString(soap_body))
+			     //.GET()
+			     .build();
+		return request;
+	}
+	
+	public static String buildSOAPBodyGetOperationPlan(int id) {
+		String body = soap_OperationPlan1+id+soap_getOperationPlan2;
+		return body;
+		
+	}
+
+	public static ManufacturingOrderList unmarshallStringToManufacturingOrderList(String a) {
+		ManufacturingOrderList mo = new ManufacturingOrderList();
 		String b = a.replace("<s:Envelope xmlns:s=\"http://schemas.xmlsoap.org/soap/envelope/\"><s:Body><GetAllManufacturingOrdersResponse xmlns=\"http://tempuri.org/\"><GetAllManufacturingOrdersResult>", "");
 		b = b.replace("<s:Envelope xmlns:s=\"http://schemas.xmlsoap.org/soap/envelope/\"><s:Body><GetManufacturingOdersByIdResponse xmlns=\"http://tempuri.org/\"><GetManufacturingOdersByIdResult>", "");
 		String b1 = b.replace("&lt;?xml version=\"1.0\" encoding=\"utf-16\"?&gt;&#xD;", "");
@@ -449,9 +532,7 @@ public class Webservice_agentPro {
 		String f = d.replace("&#xD;", "");
 		String g = f.replace("</GetAllManufacturingOrdersResult></GetAllManufacturingOrdersResponse></s:Body></s:Envelope>", "");
 		g = g.replace("</GetManufacturingOdersByIdResult></GetManufacturingOdersByIdResponse></s:Body></s:Envelope>", "");
-		//System.out.println(f.subSequence(0, 350));
-		System.out.println("start printout \n"+g);
-		//System.out.println(a.contains("<s:Envelope xmlns:s=\"http://schemas.xmlsoap.org/soap/envelope/\"><s:Body><GetAllManufacturingOrdersResponse xmlns=\"http://tempuri.org/\"><GetAllManufacturingOrdersResult>"));
+		//System.out.println("start printout \n"+g);
 		JAXBContext jaxbContext;
 		try
 		{
@@ -460,9 +541,9 @@ public class Webservice_agentPro {
 		    Unmarshaller jaxbUnmarshaller = jaxbContext.createUnmarshaller();
 		    Marshaller marshaller = jaxbContext.createMarshaller();
 		 
-		    ManufacturingOrderList mo = (ManufacturingOrderList) jaxbUnmarshaller.unmarshal(new StringReader(g));
-		    marshaller.marshal(mo, new File("not_edited.xml"));
-		     
+		    mo = (ManufacturingOrderList) jaxbUnmarshaller.unmarshal(new StringReader(g));
+    
+		    /*
 		    for(ManufacturingOrder order : mo.manufacturingorders) {
 		    	System.out.println("Article: "+order.Article.Name	+ " ID: "+order.ID);
 		    	if(order.ID == 9) {
@@ -483,8 +564,9 @@ public class Webservice_agentPro {
 		    		
 		    	}
 		    }
-		    
+		    */
 		    marshaller.marshal(mo, new File("edited.xml"));
+		    
 		    /*
 		    System.out.println(mo.getManufacturingorders().get(0).getID());
 		    System.out.println(mo.getManufacturingorders().get(0).getActualProcess().getPlannedEndLatest());
@@ -495,85 +577,68 @@ public class Webservice_agentPro {
 		catch (JAXBException e)
 		{
 		    e.printStackTrace();
+		}	
+		return mo;
+	}
+	
+	public static String marshallToString (ManufacturingOrderList mo) {
+		JAXBContext jaxbContext;
+		try
+		{
+		    jaxbContext = JAXBContext.newInstance(ManufacturingOrderList.class);             		 
+		    Marshaller marshaller = jaxbContext.createMarshaller();
+		    marshaller.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, Boolean.TRUE);
+		    StringWriter sw = new StringWriter();
+		    marshaller.marshal(mo, new File("not_edited.xml"));	  
+		    marshaller.marshal(mo, sw);	 
+		    String result = sw.toString();
+		    return result;
+		    
+		    /*
+		    for(ManufacturingOrder order : mo.manufacturingorders) {
+		    	System.out.println("Article: "+order.Article.Name	+ " ID: "+order.ID);
+		    	if(order.ID == 9) {
+		    		for(ProcessStep ps : order.ActualProcess.ProcessSchedule.ProcessSteps) {
+		    			System.out.println(ps.Order+" "+ps.Name + " "+ps.JobTimeMinutes);
+		    			
+		    		}
+		    	
+		    		for(ActualProcessStep aps : order.ActualProcess.ActualProcessSteps) {
+		    			System.out.println(aps.Order+"  "+" "+aps.PlannedStart);
+		    			
+		    			Resource r = new Resource("Unima");
+		    			ArrayList<Resource>list = new ArrayList<Resource>();
+		    			list.add(r);
+		    		aps.Ressource = list;
+		    		System.out.println(aps.Ressource.get(0).Name);	    		
+		    		}
+		    		
+		    	}
+		    }
+		    */
+		    //marshaller.marshal(mo, new File("edited.xml"));
+		    
+		    /*
+		    System.out.println(mo.getManufacturingorders().get(0).getID());
+		    System.out.println(mo.getManufacturingorders().get(0).getActualProcess().getPlannedEndLatest());
+		    System.out.println(((ActualProcessStep)mo.getManufacturingorders().get(0).getActualProcess().getActualProcessSteps().get(0)).getID());
+		    System.out.println(((ActualProcessStep)mo.getManufacturingorders().get(0).getActualProcess().getActualProcessSteps().get(0)).getPlannedStart());
+			*/
 		}
-		
-		
-		
+		catch (JAXBException e)
+		{
+		    e.printStackTrace();
+		}	
+		return null;
 	}
 
 	private static String basicAuth(String username, String password) {
 	    return "Basic " + Base64.getEncoder().encodeToString((username + ":" + password).getBytes());
 	}
 
-	private static void sendPost() throws Exception {
 
-		String url = "https://selfsolve.apple.com/wcResults.do";
-		URL obj = new URL(url);
-		HttpsURLConnection con = (HttpsURLConnection) obj.openConnection();
 
-		//add reuqest header
-		con.setRequestMethod("POST");
-		con.setRequestProperty("User-Agent", USER_AGENT);
-		con.setRequestProperty("Accept-Language", "en-US,en;q=0.5");
-
-		String urlParameters = "sn=C02G8416DRJM&cn=&locale=&caller=&num=12345";
-		
-		// Send post request
-		con.setDoOutput(true);
-		DataOutputStream wr = new DataOutputStream(con.getOutputStream());
-		wr.writeBytes(urlParameters);
-		wr.flush();
-		wr.close();
-
-		int responseCode = con.getResponseCode();
-		System.out.println("\nSending 'POST' request to URL : " + url);
-		System.out.println("Post parameters : " + urlParameters);
-		System.out.println("Response Code : " + responseCode);
-
-		BufferedReader in = new BufferedReader(
-		        new InputStreamReader(con.getInputStream()));
-		String inputLine;
-		StringBuffer response = new StringBuffer();
-
-		while ((inputLine = in.readLine()) != null) {
-			response.append(inputLine);
-		}
-		in.close();
-		
-		//print result
-		System.out.println(response.toString());
-
-	}
-	public static void sendGet() throws IOException {
-		String url2 = "http://www.google.com/search?q=mkyong";
-		
-		URL obj = new URL(url2);
-		HttpURLConnection con2 = (HttpURLConnection) obj.openConnection();
-
-		// optional default is GET
-		con2.setRequestMethod("GET");
-
-		//add request header
-		con2.setRequestProperty("User-Agent", USER_AGENT);
-
-		int responseCode = con2.getResponseCode();
-		System.out.println("\nSending 'GET' request to URL : " + url2);
-		System.out.println("Response Code : " + responseCode);
-
-		BufferedReader in = new BufferedReader(
-		        new InputStreamReader(con2.getInputStream()));
-		String inputLine;
-		StringBuffer response = new StringBuffer();
-
-		while ((inputLine = in.readLine()) != null) {
-			response.append(inputLine);
-		}
-		in.close();
-
-		//print result
-		System.out.println(response.toString());
-	}
-	
+	/*
 	private static void printPaths(File file)
     {
         try
@@ -587,5 +652,5 @@ public class Webservice_agentPro {
         {
             ex.printStackTrace();
         }
-    }
+    }*/
 }

@@ -43,7 +43,7 @@ import support_classes.OperationCombination;
  */
 
 public abstract class _Agent_Template extends Agent{
-	
+	//Other attributes
 	private static final long serialVersionUID = 1L;
 	private static String DateFormat = "yyyy-MM-dd HH:mm:ss";
 	public static SimpleDateFormat SimpleDateFormat = new SimpleDateFormat(DateFormat);
@@ -52,19 +52,30 @@ public abstract class _Agent_Template extends Agent{
 	public ArrayList <DFAgentDescription> resourceAgents = new ArrayList<DFAgentDescription>();
 	public Boolean showMessageContent = false;
 	private WorkPlan workplan;
-	public long time_until_end = (long) 1000*60*60*30*31;// 25 pieces (24+6 buffer) * 31 h 1000*60*60*24; //24 h
-	
-	
+	protected Connection connection;			//Connection to database
 	//Ontology
 	private Ontology ontology = AgentPro_ProductionOntology.getInstance();
 	private Codec codec = new SLCodec();
 	
-	//database
-	protected Connection connection;			//Connection to database
-	//public final String dbaddress = "jdbc:ucanaccess://C:/Users/Mitarbeiter/Dropbox (HSU_Agent.Pro)/_AgentPro/Prototyp/Database.accdb";	//Address od database
-	//public final String dbaddress = "jdbc:mysql://localhost/feedback?"+"user=root&password=SQL_0518";	//Address od database
-	public static String dbaddress_sim = "jdbc:mysql://localhost:3306/MySQL?"+"user=root&password=SQL_0518&useUnicode=true&useJDBCCompliantTimezoneShift=true&useLegacyDatetimeCode=false&serverTimezone=UTC&useSSL=false";	//Address od database   serverTimezone=UTC
 	
+	//Orders and Interfaces
+	public static int limit = 10; //number of orders to create	
+	public static boolean webservice_mode = false;
+	public static boolean simulate_order_generation = true;
+	public static Boolean simulation_enercon_mode = false;
+	
+	//Agent System Cofiguration
+	public int duration_repair_workpiece = 20;
+	public int duration_light_disturbance = 2;
+	public int duration_severe_disturbance = 8;
+	public static long bufferThreshold = 15;
+	public long start_simulation = 1533074400000L; //01.08.2018 00:00
+	public long start_simulation_agentpto = 1556632800000L; //Tue Apr 30 2019 16:00:00 GMT+0200 1556632800000L
+	public long time_until_end = (long) 1000*60*60*30*31;// 25 pieces (24+6 buffer) * 31 h 1000*60*60*24; //24 h
+	public static String opimizationCriterion = "time_of_finish"; //duration_setup    //TODO receive that from database? TBD
+	
+	//Table names etc.
+	public static String dbaddress_sim = "jdbc:mysql://localhost:3306/MySQL?"+"user=root&password=SQL_0518&useUnicode=true&useJDBCCompliantTimezoneShift=true&useLegacyDatetimeCode=false&serverTimezone=UTC&useSSL=false";	//Address od database   serverTimezone=UTC
 	public static String columnNameChangeOfState = "changeOfState";
 	public static String columnNameChangedState = "ChangedState";
 	public static String columnNameOfOperation = "Operation"; //Operation
@@ -86,26 +97,14 @@ public abstract class _Agent_Template extends Agent{
 	public static String columnNameOfStarted = "Started";
 	public static String columnNameOfFinished = "Finished";
 	public static String prefix_schema = "agentpro";
-	public static String nameOfMES_Data_Resource = prefix_schema+".total_operations_my";
+	//public static String prefix_schema = "flexsimdata";
+	//public static String nameOfMES_Data_Resource = prefix_schema+".total_operations_my";
+	public static String nameOfMES_Data_Resource = prefix_schema+".transporte";
 	public String nameOfMES_Data = prefix_schema+".productionplan_new";
 	public static String nameOfOrderbook = prefix_schema+".orderbook";
 	//private String columnNameFinished = "Finished";
 	//private String columnNameOfIstStart = "IstStart";
 	//private String columnNameOfIstEnde = "IstEnde";
-	
-	public static Boolean simulation_enercon_mode = false;
-	//public static String prefix_schema = "flexsimdata";
-	
-	public static String opimizationCriterion = "time_of_finish"; //duration_setup    //TODO receive that from database? TBD
-	public static long bufferThreshold = 30;
-	
-	public static int limit = 1; //number of orders to create
-	
-	public int duration_repair_workpiece = 20;
-	public int duration_light_disturbance = 2;
-	public int duration_severe_disturbance = 8;
-	public long start_simulation = 1533074400000L; //01.08.2018 00:00
-	public long start_simulation_agentpto = 1556632800000L; //Tue Apr 30 2019 16:00:00 GMT+0200 1556632800000L
 	public String columnNameStartSimulation = "PlanStart_Simulation";
 	public String columnNameEndSimulation = "PlanEnd_Simulation";
 	public String columnNameResourceName_simulation = "Bezeichnung";
@@ -123,11 +122,12 @@ public abstract class _Agent_Template extends Agent{
 	public String columnNameEndeSoll = "EndeSoll";
 	public String tableNameBetriebskalender = prefix_schema+".betriebskalender";
 	public String tableNameResource = prefix_schema+".resources";
+	//public String tableNameResource = prefix_schema+".resources_project";
 	public String tableNameProductionPlan = prefix_schema+".productionplan";
 	public String tableNameResourceSetupMatrix = prefix_schema+".resources_setupmatrix";
 	public String columnNameColumnInProductionPlan = "columninproductionplan";
-	public String columnNameLocationX = "locationX";
-	public String columnNameLocationY = "locationY";
+	public static String columnNameLocationX = "locationX";
+	public static String columnNameLocationY = "locationY";
 	public String columNameColumnNameInProductionPlan = "columnnameinproductionplan";
 	public String columnNameorderid = "orderid";
 	
@@ -135,6 +135,9 @@ public abstract class _Agent_Template extends Agent{
 	
 	
 	protected void setup (){
+		if(webservice_mode) {
+			tableNameResource = tableNameResource+"_project";
+		}
 		System.out.println(SimpleDateFormat.format(new Date())+ " Agent " + getAID().getLocalName() + " started...");
 		
 		// / INITIALISATION

@@ -1,11 +1,5 @@
 package agentPro_Prototype_Agents;
 
-import java.sql.Connection;
-import java.sql.DriverManager;
-
-import java.sql.SQLException;
-
-
 import DatabaseConnection.CreateAgentsAccordingToDatabase;
 
 
@@ -17,8 +11,8 @@ import DatabaseConnection.CreateAgentsAccordingToDatabase;
 public class _Simulation_Order_Generator extends _Agent_Template{
 	private static final long serialVersionUID = 1L;
 	//private double initial_wait = 2000;
-	double a = 4000;
-	public Connection connection;
+	//double a = 4000;
+	//public Connection connection;
 	
 	//private String dbaddress = "jdbc:mysql://localhost:3306/MySQL?"+"user=root&password=SQL_0518&useUnicode=true&useJDBCCompliantTimezoneShift=true&useLegacyDatetimeCode=false&serverTimezone=UTC";	//Address od database;
 	
@@ -30,6 +24,7 @@ public class _Simulation_Order_Generator extends _Agent_Template{
 		super.setup();
 		
 		//Datenbank
+		/*
 				Connection con;			
 				
 				try {
@@ -45,13 +40,15 @@ public class _Simulation_Order_Generator extends _Agent_Template{
 					// TODO Auto-generated catch block
 					e.printStackTrace();
 				}
-
-		
+*/
+	
 		CreateAgentsAccordingToDatabase setup_agents = new CreateAgentsAccordingToDatabase(this);
 		this.addBehaviour(setup_agents);
 		
+		
+		
 	}
-
+/*
 	public Connection getConnection() {
 		return connection;
 	}
@@ -60,6 +57,6 @@ public class _Simulation_Order_Generator extends _Agent_Template{
 		this.connection = connection;
 	}
 
-	
+	*/
 
 }

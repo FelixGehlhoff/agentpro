@@ -8,31 +8,9 @@ import jade.core.*;
 /**
 * Protege name: OrderedOperation
 * @author ontology bean generator
-* @version 2019/09/27, 11:08:18
+* @version 2019/11/11, 09:45:55
 */
 public class OrderedOperation implements Concept {
-
-   /**
-* Protege name: hasOperation
-   */
-   private Operation hasOperation;
-   public void setHasOperation(Operation value) { 
-    this.hasOperation=value;
-   }
-   public Operation getHasOperation() {
-     return this.hasOperation;
-   }
-
-   /**
-* Protege name: sequence_Number
-   */
-   private int sequence_Number;
-   public void setSequence_Number(int value) { 
-    this.sequence_Number=value;
-   }
-   public int getSequence_Number() {
-     return this.sequence_Number;
-   }
 
    /**
 * Protege name: withOperationInStep
@@ -57,17 +35,6 @@ public class OrderedOperation implements Concept {
    }
 
    /**
-* Protege name: hasFollowUpOperation
-   */
-   private boolean hasFollowUpOperation;
-   public void setHasFollowUpOperation(boolean value) { 
-    this.hasFollowUpOperation=value;
-   }
-   public boolean getHasFollowUpOperation() {
-     return this.hasFollowUpOperation;
-   }
-
-   /**
 * Protege name: firstOperation
    */
    private boolean firstOperation;
@@ -76,6 +43,39 @@ public class OrderedOperation implements Concept {
    }
    public boolean getFirstOperation() {
      return this.firstOperation;
+   }
+
+   /**
+* Protege name: sequence_Number
+   */
+   private int sequence_Number;
+   public void setSequence_Number(int value) { 
+    this.sequence_Number=value;
+   }
+   public int getSequence_Number() {
+     return this.sequence_Number;
+   }
+
+   /**
+* Protege name: hasProductionOperation
+   */
+   private Production_Operation hasProductionOperation;
+   public void setHasProductionOperation(Production_Operation value) { 
+    this.hasProductionOperation=value;
+   }
+   public Production_Operation getHasProductionOperation() {
+     return this.hasProductionOperation;
+   }
+
+   /**
+* Protege name: hasFollowUpOperation
+   */
+   private boolean hasFollowUpOperation;
+   public void setHasFollowUpOperation(boolean value) { 
+    this.hasFollowUpOperation=value;
+   }
+   public boolean getHasFollowUpOperation() {
+     return this.hasFollowUpOperation;
    }
 
 }

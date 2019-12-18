@@ -1,6 +1,10 @@
 package webservice;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import javax.xml.bind.annotation.XmlElement;
+import javax.xml.bind.annotation.XmlElementWrapper;
 
 public class ProcessStep {
 	@XmlElement
@@ -15,6 +19,12 @@ public class ProcessStep {
 	public double SetUpTimeMinutes;
 	//@XmlElement
 	public String Name;
+	
+	@XmlElementWrapper(name = "ConsumableMaterials")
+    // XmlElement sets the name of the entities
+  
+    @XmlElement(name = "ConsumableMaterial")
+		public List  <ConsumableMaterial> ConsumableMaterial = new ArrayList<ConsumableMaterial>();
 	
 	/*
 	@XmlElement (name = "BufferTimeMinutes")

@@ -19,7 +19,6 @@ import agentPro.onto.Resource;
 import agentPro.onto.Setup_state;
 import agentPro.onto.State;
 import agentPro.onto.Timeslot;
-import agentPro.onto.Workpiece;
 import agentPro_Prototype_ResourceAgent.ReceiveInformWorkpieceDepartureBehaviour;
 import agentPro_Prototype_ResourceAgent.ReceiveIntervalForConnectedResourceBehaviour;
 import jade.domain.DFService;
@@ -43,17 +42,18 @@ public class ProductionResourceAgent extends ResourceAgent{
 
 	private static final long serialVersionUID = 1L;
 	//private String production_capability;				//for testing only one capability
-	private int duration_of_process;
+	//private int duration_of_process;
 	//private ReceiveCFPBehaviour ReceiveCFPBehav;
 	//private int offerNumber = 1;
 	private ReceiveInformWorkpieceDepartureBehaviour ReceiveInformWorkpieceDepartureBehav;
-	protected ProductionResource representedResource = new ProductionResource();
-	private int avg_pickUp = 10; 
+	//protected ProductionResource representedResource = new ProductionResource();
+	private int avg_pickUp = 0;//10; 
 	//private int avg_setUp = 0;
 	private String columnNameOfEnablesWPType = "enables_wp_type";
 	private ArrayList<String> enabledWorkpieces = new ArrayList<>();
 	private HashMap<String, Double> setup_matrix = new HashMap<String, Double>();
 	private String startState = "B";
+	//private String startState = "DAN50B23_5400mm";
 	public Boolean parallel_processing_pick_and_setup_possible = false;
 	
 	public HashMap<String, Double> getSetup_matrix() {
@@ -67,6 +67,9 @@ public class ProductionResourceAgent extends ResourceAgent{
 	protected void setup (){		
 			
 		super.setup();
+		if(WorkpieceAgent.transport_needed) {
+			avg_pickUp = 10;
+		}
 		// / INITIALISATION
 		// /////////////////////////////////////////////////////////
 		logLinePrefix = logLinePrefix+".ProductionRessourceAgent.";						
@@ -76,14 +79,16 @@ public class ProductionResourceAgent extends ResourceAgent{
 			
 		 // Register the service in the yellow pages
 		//registerAtDF();
+		/*
 		representedResource = new ProductionResource();
 		representedResource.setName(this.getLocalName());
 		receiveValuesFromDB(representedResource);
+		*/
 		setStartState();
 
 		
 		receiveCapabilityOperationsValuesFromDB(representedResource);
-		receiveWorkPlanValuesFromDB(representedResource);
+		//receiveWorkPlanValuesFromDB(representedResource);
 		createSetupMatrix(representedResource);
 		
 		//logLinePrefix = "ProductionRessourceAgent."+production_capability;
@@ -105,14 +110,14 @@ public class ProductionResourceAgent extends ResourceAgent{
 		this.getRepresentedResource().setStartState(start);
 	}
 	
-
+/*
 	public int getDuration_of_process() {
 		return duration_of_process;
 	}
 
 	public void setDuration_of_process(int duration_of_process) {
 		this.duration_of_process = duration_of_process;
-	}
+	}*/
 	/*
 	public String getProduction_capability() {
 		return production_capability;
@@ -133,24 +138,49 @@ public class ProductionResourceAgent extends ResourceAgent{
 	void registerAtDF() {
 		DFAgentDescription dfd = new DFAgentDescription();
 		dfd.setName(getAID());		
-		ServiceDescription sd = new ServiceDescription();
-		sd.setType(this.getRepresentedResource().getDetailed_Type());
-			String capability = this.getRepresentedResource().getHasCapability().getName();
-			String[] parts = capability.split("_");			
-			if(parts.length > 1) {
-				sd.setName(parts[0]);
-			}else {
-				sd.setName(capability);
-			}
-		sd.addProtocols(this.getLocalName());		//to enable search for a specific agent
-		dfd.addServices(sd);
-		try {
-			DFService.register(this, dfd);
-		}
-		catch (FIPAException fe) {
-			fe.printStackTrace();
-		}
 		
+		if(_Agent_Template.webservice_mode) {
+			//for Webserivce
+			@SuppressWarnings("unchecked")
+			Iterator<Operation> it = representedResource.getHasCapability().getEnables().iterator();
+			while(it.hasNext()) {
+				Operation possible_op = it.next();
+			
+				ServiceDescription sd2 = new ServiceDescription();
+				sd2.setType(this.getRepresentedResource().getDetailed_Type());
+					String op = possible_op.getName();
+					sd2.setName(op);
+				sd2.addProtocols(this.getLocalName());		//to enable search for a specific agent
+				dfd.addServices(sd2);
+				
+			}
+		    	
+			try {
+				DFService.register(this, dfd);
+			}
+			catch (FIPAException fe) {
+				fe.printStackTrace();
+			}
+		}else {
+			ServiceDescription sd = new ServiceDescription();
+			sd.setType(this.getRepresentedResource().getDetailed_Type());
+				String capability = this.getRepresentedResource().getHasCapability().getName();
+				String[] parts = capability.split("_");			
+				if(parts.length > 1) {
+					sd.setName(parts[0]);
+				}else {
+					sd.setName(capability);
+				}
+			sd.addProtocols(this.getLocalName());		//to enable search for a specific agent
+			dfd.addServices(sd);
+			
+			try {
+				DFService.register(this, dfd);
+			}
+			catch (FIPAException fe) {
+				fe.printStackTrace();
+			}
+		}
 	}
 
 	@Override
@@ -166,7 +196,7 @@ public class ProductionResourceAgent extends ResourceAgent{
 	    	Operation possible_op = it.next();
 	    	if(possible_op.getName().equals(operation.getName()) && type_enabled) {
 	    		if(operation.getAvg_Duration() > 0) {	//When does this happen??
-	    			System.out.println("DEBUG_________________"+this.getLocalName()+"____________________________WHY IS OPERATION DURATION NOT 0?");
+	    			//System.out.println("DEBUG_________________"+this.getLocalName()+"____________________________WHY IS OPERATION DURATION NOT 0?");
 	    		}else {	    			
 	    			operation.setAvg_Duration(possible_op.getAvg_Duration());
 	    			//System.out.println("DEBUG_____possible_op.getName() "+possible_op.getName()+possible_op.getAvg_Duration()+"___Duration set "+possible_op.getAvg_Duration());	
@@ -187,7 +217,7 @@ public void receiveValuesFromDB(Resource r) {
 		
 	    Statement stmt = null;
 	    String query = "";
-
+	    
 	    	query = "select "+columnNameResourceName_simulation+" , "+columnNameOfSetupTime+" , "+columnNameOfID+" , "+columnNameOfLocationX+" , "+columnNameOfLocationY+" , "+columnNameOfCapability+" , "+columnNameOfResource_Type+" , "+columnNameResourceDetailedType+" from "+tableNameResource+" where "+columnNameResourceName_simulation+" = '"+representedResource.getName()+"'"; 
 	   
 	    try {
@@ -214,10 +244,19 @@ public void receiveValuesFromDB(Resource r) {
 	    }
 	    
 	    //create setup matrix
+	    /*
 	    if(!r.getDetailed_Type().contentEquals("buffer")) {
 		    String query2 = "";
+		    String name_to_search= "";
+		    String [] split = representedResource.getName().split("_");
+		   
+		    if(!representedResource.getName().contains("Puffer") && split.length>1 && Integer.parseInt(split[1]) > 2) {
+		    	name_to_search = split[0];
+		    }else {
+		    	name_to_search = representedResource.getName();
+		    }
 
-	    	query2 = "select "+columnNameOfChangeover+" , `"+this.getRepresentedResource().getName()+"` from "+tableNameResourceSetupMatrix; 
+	    	query2 = "select "+columnNameOfChangeover+" , `"+name_to_search+"` from "+tableNameResourceSetupMatrix; 
 	   
 	    
 	    	
@@ -226,24 +265,33 @@ public void receiveValuesFromDB(Resource r) {
 	    		ResultSet rs2 = stmt.executeQuery(query2);
 	            HashMap<String, Double> matrix = new  HashMap<String, Double>();
 	            while (rs2.next()) {
-	            	matrix.put(rs2.getString(columnNameOfChangeover), rs2.getDouble(this.getRepresentedResource().getName()));
+	            	matrix.put(rs2.getString(columnNameOfChangeover), rs2.getDouble(name_to_search));
 	            }
 	            setSetup_matrix(matrix);
 	    	    } catch (SQLException e ) {
 	    	    	e.printStackTrace();
 	    	    }
 	    	}
-	    }
+	    }*/
 
 	    
 	}
     
     //create setup matrix
  public void createSetupMatrix(Resource r) {
+	 Statement stmt = null;
     if(!r.getDetailed_Type().contentEquals("buffer")) {
-	    String query2 = "";
-	    Statement stmt = null;
-    	query2 = "select "+columnNameOfChangeover+" , `"+this.getRepresentedResource().getName()+"` from "+tableNameResourceSetupMatrix; 
+    	  String query2 = "";
+		    String name_to_search= "";
+		    String [] split = representedResource.getName().split("_");
+		   
+		    if(!representedResource.getName().contains("Puffer") && split.length>1 && Integer.parseInt(split[1]) > 2) {
+		    	name_to_search = split[0];
+		    }else {
+		    	name_to_search = representedResource.getName();
+		    }
+
+	    	query2 = "select "+columnNameOfChangeover+" , `"+name_to_search+"` from "+tableNameResourceSetupMatrix; 
    
     
     	
@@ -255,7 +303,7 @@ public void receiveValuesFromDB(Resource r) {
     		ResultSet rs2 = stmt.executeQuery(query2);
             HashMap<String, Double> matrix = new  HashMap<String, Double>();
             while (rs2.next()) {
-            	matrix.put(rs2.getString(columnNameOfChangeover), rs2.getDouble(this.getRepresentedResource().getName()));
+            	matrix.put(rs2.getString(columnNameOfChangeover), rs2.getDouble(name_to_search));
             }
             setSetup_matrix(matrix);
     	    } catch (SQLException e ) {
@@ -343,7 +391,8 @@ public Proposal checkScheduleDetermineTimeslotAndCreateProposal(CFP cfp) {
 			}else {
 				setup_and_pickup_to_consider = (long)duration_setup+(long)avg_pickUp;
 			}
-		operation.setSet_up_time((float)setup_and_pickup_to_consider);
+		//operation.setSet_up_time((float)setup_and_pickup_to_consider);
+		operation.setSet_up_time((float)duration_setup);
 		operation.setAvg_PickupTime(avg_pickUp);
 		//System.out.println("DEBUG_________duration_setup "+duration_setup+" setup_and_pickup_to_consider "+setup_and_pickup_to_consider);
 		float buffer = 0;
@@ -523,9 +572,16 @@ private float calculateDurationOfProcessWithoutSetup(Operation operation, int nu
 
 //defines also the operation start and end states
 public double calculateDurationSetup(Interval free_interval, Operation operation) {
+	Production_Operation prod_op = (Production_Operation) operation;
+	String wp_type = "";
+	if(prod_op.getRequiresMaterial() != null) {
+		wp_type = prod_op.getRequiresMaterial().getName();
+	}else {
+		String id_String_workpiece = operation.getAppliedOn().getID_String();
+		wp_type = id_String_workpiece.split("_")[0];
+	}
 	
-	String id_String_workpiece = operation.getAppliedOn().getID_String();
-	String wp_type = id_String_workpiece.split("_")[0];
+	
 		//System.out.println("wp_type "+wp_type+" id_String_workpiece "+id_String_workpiece+" free_interval.lowerBound() "+free_interval.lowerBound()+ " "+((Setup_state)getRepresentedResource().getStartState()).getID_String());
 	String wp_startstate_nextStep = ((Setup_state) this.getStateAtTime(free_interval.lowerBound())).getID_String();
 		//System.out.println("wp_state_nextStep "+wp_startstate_nextStep);
@@ -603,7 +659,7 @@ private String getStateAtTime(long lowerBound) {
 */
 @Override
 public ProductionResource getRepresentedResource() {
-	return representedResource;
+	return (ProductionResource) representedResource;
 }
 
 @Override
@@ -642,6 +698,12 @@ protected Operation setStateAndOperation(ResultSet rs) {
 	op.setStartState(state);//TODO eventuell dynmaiisch bestimmen?
 	op.setEndState(state);	
 	return op;
+}
+
+@Override
+protected Resource createResource() {
+	ProductionResource res = new ProductionResource();
+	return res;
 }
 
 

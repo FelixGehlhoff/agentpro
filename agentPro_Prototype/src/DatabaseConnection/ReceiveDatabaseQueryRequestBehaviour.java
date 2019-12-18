@@ -2,18 +2,14 @@ package DatabaseConnection;
 
 
 import java.sql.SQLException;
-import java.util.ArrayList;
-import java.util.Date;
 import java.util.Iterator;
-
-import org.jfree.ui.RefineryUtilities;
 
 import agentPro.onto.AllocatedWorkingStep;
 
 import agentPro.onto.WorkPlan;
 import agentPro.onto._SendRequest_DatabaseEntry;
 import agentPro_Prototype_Agents.DatabaseConnectorAgent;
-import agentPro_Prototype_InterfaceAgent_Behaviours.ReceiveInformOrderCompletionBehaviour;
+import agentPro_Prototype_Agents._Agent_Template;
 import jade.content.lang.Codec.CodecException;
 import jade.content.onto.OntologyException;
 import jade.content.onto.UngroundedException;
@@ -21,7 +17,6 @@ import jade.content.onto.basic.Action;
 import jade.core.behaviours.CyclicBehaviour;
 import jade.lang.acl.ACLMessage;
 import jade.lang.acl.MessageTemplate;
-import support_classes.XYTaskDataset_Total;
 
 /*
  * Listens for OrderCompletion messages and sends INFORM to the ERP system (dummy agent)
@@ -31,7 +26,7 @@ public class ReceiveDatabaseQueryRequestBehaviour extends CyclicBehaviour{
 
 	private static final long serialVersionUID = 1L;
 	private DatabaseConnectorAgent myAgent;
-	private String logLinePrefix = ".ReceiveDatabaseQueryRequestBehaviour ";
+	//private String logLinePrefix = ".ReceiveDatabaseQueryRequestBehaviour ";
 	
 	//database
 		public String nameOfMES_Data_Resource_Veiw = "MES_Data_Resource_View";
@@ -51,12 +46,15 @@ public class ReceiveDatabaseQueryRequestBehaviour extends CyclicBehaviour{
 	public ReceiveDatabaseQueryRequestBehaviour(DatabaseConnectorAgent myAgent) {
 		super(myAgent);
 		this.myAgent = myAgent;
-	try {
-		Thread.sleep(45000);
-	} catch (InterruptedException e) {
-		// TODO Auto-generated catch block
-		e.printStackTrace();
-	}
+		if(_Agent_Template.simulate_order_generation) {
+			try {
+				Thread.sleep(10000);
+			} catch (InterruptedException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		}
+	
 	}
 	
 	@Override

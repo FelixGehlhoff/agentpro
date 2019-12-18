@@ -1,7 +1,6 @@
 package agentPro_Prototype_Agents;
 
 import java.sql.Connection;
-import java.sql.DriverManager;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
@@ -13,13 +12,12 @@ import org.json.JSONObject;
 
 
 import agentPro.onto.Location;
-import agentPro.onto.Operation;
 import agentPro.onto.Order;
 import agentPro.onto.OrderPosition;
 import agentPro.onto.OrderedOperation;
 import agentPro.onto.Product;
 import agentPro.onto.ProductionPlan;
-
+import agentPro.onto.Production_Operation;
 import agentPro_Prototype_OrderAgent_Behaviours.ReceiveInformWorkpieceCompletionBehaviour;
 import jade.core.AID;
 import jade.domain.DFService;
@@ -60,13 +58,14 @@ public class OrderAgent extends _Agent_Template{
 	private String columnNameOfLastOperation = "LastOperation";
 		
 	protected void setup (){
-		
+		super.setup();
 		
          
 		// / INITIALISATION
 		// /////////////////////////////////////////////////////////
 		
 		//Datenbank
+		/*
 		Connection con;			
 		
 		try {
@@ -76,7 +75,7 @@ public class OrderAgent extends _Agent_Template{
 	    } catch (SQLException e ) {
 	        e.printStackTrace();
 	    }
-		
+		*/
 		//Weiteres
 		
 		Object[] args = getArguments();							//arguments of agent
@@ -102,7 +101,7 @@ public class OrderAgent extends _Agent_Template{
 	    	 */
 	    	
 	    	//int quantity = orderPos.getQuantity();
-	    	int orderPos_Sequence_number = orderPos.getSequence_Number();
+	    	//int orderPos_Sequence_number = orderPos.getSequence_Number();
 
 		    ProductionPlan pP = new ProductionPlan();	    
 		    receiveValuesFromDB(pP, orderPos.getContainsProduct());					//production Plan for specified product is filled out with data from the database	
@@ -139,7 +138,7 @@ public class OrderAgent extends _Agent_Template{
 				}
 		    //}
 	    }			    
-		super.setup();
+		
 		System.out.println(printOut);
 		 
 		
@@ -212,11 +211,11 @@ public class OrderAgent extends _Agent_Template{
        		
 	        while (rs.next()) {
 			    OrderedOperation orderedOp = new OrderedOperation();
-			    Operation op = new Operation();
+			    Production_Operation op = new Production_Operation();
 			    op.setName(rs.getString(columnNameOfOperation));
 			    orderedOp.setFirstOperation(rs.getBoolean(columnNameOfFirstOperation));
 			    orderedOp.setLastOperation(rs.getBoolean(columnNameOfLastOperation));
-			    orderedOp.setHasOperation(op);
+			    orderedOp.setHasProductionOperation(op);
 	        	orderedOp.setSequence_Number(rs.getInt(columnNameOfStep)); 
 	        	p.addConsistsOfOrderedOperations(orderedOp);		   
 	        }

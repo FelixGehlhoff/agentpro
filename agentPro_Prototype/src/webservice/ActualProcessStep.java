@@ -1,6 +1,7 @@
 package webservice;
 
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 import javax.xml.bind.annotation.XmlElement;
@@ -10,7 +11,7 @@ import javax.xml.bind.annotation.XmlRootElement;
 @XmlRootElement
 public class ActualProcessStep {
 	
-	@XmlElement
+	//@XmlElement
 	public String ActualEnd;
 	//@XmlElement
 	public String ActualStart;
@@ -21,13 +22,14 @@ public class ActualProcessStep {
 	//@XmlElement
 	public String PlannedEndDispatch;
 	//@XmlElement
-	public String PlannedStart;
+	public Date PlannedStart;
+	public Date PlannedEnd;
 	//@XmlElement
 	public String PlannedStartDispatch;
 	
 	@XmlElementWrapper(name = "Ressource")
     // XmlElement sets the name of the entities 
-    //@XmlElement(name = "Ressource")
+    @XmlElement(name = "Resource")
 	public List  <Resource> Ressource = new ArrayList<Resource>();
 	
 	/*

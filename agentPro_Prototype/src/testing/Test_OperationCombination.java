@@ -13,6 +13,7 @@ import java.util.Iterator;
 import java.util.Random;
 import java.util.TimeZone;
 
+import org.apache.commons.collections4.comparators.ComparatorChain;
 import org.apache.commons.lang.math.RandomUtils;
 import org.jfree.ui.RefineryUtilities;
 
@@ -30,6 +31,7 @@ import agentPro_Prototype_InterfaceAgent_Behaviours.ReceiveInformOrderCompletion
 import support_classes.Interval;
 import support_classes.OperationCombination;
 import support_classes.XYTaskDataset_Total;
+import webservice.ManufacturingOrder;
 
 public class Test_OperationCombination {
 	public static long timeOfFinish = 0;
@@ -38,8 +40,67 @@ public class Test_OperationCombination {
 	static double durationSetup = 0;
 	static double costs = 0;
 	static double utilization = 0;
+	static Comparator<Helper> comparatorDuedate = new Comparator<Helper>() {  
+        @Override  
+        public int compare(Helper m1, Helper m2) {  
+        	return m1.number.compareTo(m2.number); 
+        	//return o1.name.compareToIgnoreCase(o2.name);  
+        }  
+   };  
+   static Comparator<Helper> comparatorMaterial = new Comparator<Helper>() {  
+       @Override  
+       public int compare(Helper m1, Helper m2) {  
+       	return m1.name.compareToIgnoreCase(m2.name);
+       	//return o1.name.compareToIgnoreCase(o2.name);  
+       }  
+  };  
+  public class Helper{
+	  Long number;
+	  String name;
+  }
+  
+	@SuppressWarnings("unchecked")
 	public static void main(String[] args){
-		int quantity = (int) (Math.random()*100);
+		String xx = "A_B_C";
+		String [] split = xx.split("_", 2);
+		System.out.println(split[0]);
+		System.out.println(split[1]);
+		Test_OperationCombination b = new Test_OperationCombination();
+		Helper one = b.new Helper();
+		one.number = 100L;
+		one.name = "ABC";
+		Helper two = b.new Helper();
+		two.number = 250L;
+		two.name = "BCD";
+		ArrayList<Helper>a = new ArrayList<Helper>();
+		
+		a.add(two);
+		a.add(one);
+		Helper three = b.new Helper();
+		three.name = "CCC";
+		three.number = 250L;
+		a.add(three);
+		Helper f = b.new Helper();
+		f.name = "BCD";
+		f.number = 250L;
+		a.add(f);
+		//Sortierung
+		@SuppressWarnings("rawtypes")
+		ComparatorChain chain = new ComparatorChain();  
+        chain.addComparator(comparatorDuedate);  
+        chain.addComparator(comparatorMaterial);  
+		for(Helper mo : a) {
+			System.out.println(" Delivery Date: "+mo.number+" Article: "+mo.name);
+		}
+		Collections.sort(a, chain);
+		for(Helper mo : a) {
+			System.out.println(" Delivery Date: "+mo.number+" Article: "+mo.name);
+		}
+		
+		
+		
+		/*int quantity = (int) (Math.random()*100);
+
 		System.out.println(quantity);
 		
 		System.out.println(feasibilityCheckAndDetermineDurationParameters());

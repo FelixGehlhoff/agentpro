@@ -141,6 +141,12 @@ public class OperatorAgent extends SharedResourceAgent{
 		
 	}
 
+	@Override
+	protected Resource createResource() {
+		Resource res = new Resource();
+		return res;
+	}
+
 
 } 
 

@@ -7,7 +7,7 @@ import jade.core.*;
 /**
 * Protege name: Crane
 * @author ontology bean generator
-* @version 2019/09/27, 11:08:18
+* @version 2019/11/11, 09:45:55
 */
 public class Crane extends TransportResource{ 
 

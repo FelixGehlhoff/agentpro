@@ -113,7 +113,7 @@ public class GanttDemo1 extends ApplicationFrame {
         
                 
         try {
-			saveChartToJPG(chart,"F:/TeamDrive/Agent.Pro/_AgentPro/Prototyp/GANTT_Charts/eclipse/"+SimpleDateFormat.format(System.currentTimeMillis())+"_gantt", 700,470);
+			saveChartToJPG(chart,"D:/TeamDrive/Agent.Pro/_AgentPro/Prototyp/GANTT_Charts/eclipse/"+SimpleDateFormat.format(System.currentTimeMillis())+"_gantt", 700,470);
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();

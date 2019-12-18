@@ -1,10 +1,9 @@
 package webservice;
 
-import java.util.ArrayList;
-import java.util.List;
 
-import javax.xml.bind.annotation.XmlAccessType;
-import javax.xml.bind.annotation.XmlAccessorType;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlElementWrapper;
 import javax.xml.bind.annotation.XmlRootElement;
@@ -15,13 +14,13 @@ public class ActualProcess {
 	//@XmlElement
 	public int ID;
 	//@XmlElement
-	public String ActualStart;
+	public Date ActualStart;
 	//@XmlElement
-	public String ActualEnd;
+	public Date ActualEnd;
 	//@XmlElement
-	public String PlannedStartEarliest;
+	public Date PlannedStartEarliest;
 	//@XmlElement
-	public String PlannedEndLatest;
+	public Date PlannedEndLatest;
 	
 	@XmlElementWrapper(name = "ActualProcessSteps")
     // XmlElement sets the name of the entities

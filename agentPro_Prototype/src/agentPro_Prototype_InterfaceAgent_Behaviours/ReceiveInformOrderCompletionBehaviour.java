@@ -142,9 +142,10 @@ public class ReceiveInformOrderCompletionBehaviour extends CyclicBehaviour{
 				    	if (rs.isBeforeFirst() ) {  //the SQL query has returned data  
 				    		rs.next(); 
 				    		rs.updateString("product", type);
-				    		rs.updateDouble("number", quantity);
+				    		rs.updateInt("number", quantity);
 				    		rs.updateDouble("StartCoordination", start);	    		
 				    		rs.updateDouble("EndCoordination", end);
+				    		rs.updateRow();
 				    	}else {
 				    		stmt.executeUpdate( 
 									"Insert into "+_Agent_Template.nameOfOrderbook+" (orderID, product, number, StartCoordination, EndCoordination) Values ("+id+", '"+type+"' , "+quantity+", "+start+", "+end+");");

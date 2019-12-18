@@ -20,6 +20,8 @@ import java.util.TimeZone;
 
 import DatabaseConnection.ReceiveDatabaseQueryRequestBehaviour;
 import agentPro.onto.AllocatedWorkingStep;
+import agentPro.onto.Location;
+import agentPro.onto.Resource;
 import agentPro.onto.WorkPlan;
 import support_classes.GeneralFunctions;
 
@@ -37,9 +39,9 @@ public class DatabaseConnectorAgent extends _Agent_Template{
 	
 	//Datenbankverbindung
 		//public final String dbaddress = "jdbc:ucanaccess://C:/Users/Mitarbeiter/Dropbox (HSU_Agent.Pro)/_AgentPro/Prototyp/Database.accdb";	//Address od database
-		private Connection connection;			//Connection to database
+		//private Connection connection;			//Connection to database
 
-	private HashMap<Integer, Resource_Extension> resource_hashmap = new HashMap();
+	private HashMap<Integer, Resource_Extension> resource_hashmap = new HashMap<Integer, Resource_Extension>();
 	
 	
 	protected void setup (){
@@ -86,7 +88,7 @@ public class DatabaseConnectorAgent extends _Agent_Template{
 	
 	//erstmal nur WP einträge?
 	public void addDataToDatabase(String agent_type, WorkPlan workplan, String sender) throws SQLException {
-		System.out.println("DEBUG___DATABASE CONNECTOR ADD TO DATABASE FROM SENDER = "+sender);
+		//System.out.println("DEBUG___DATABASE CONNECTOR ADD TO DATABASE FROM SENDER = "+sender);
 		int order_id = 0;
 		if(agent_type.equals("workpiece")){
 			String split [] = sender.split("_");
@@ -156,11 +158,11 @@ public class DatabaseConnectorAgent extends _Agent_Template{
 					     //       ResultSet.TYPE_SCROLL_SENSITIVE, // Vor- und Rücksprünge möglich
 					     //       ResultSet.CONCUR_UPDATABLE);     // Veränderbar
 
-			    	
+			    		String new_name = replaceName(allWorkingStep.getHasOperation().getName(), allWorkingStep.getHasResource().getID_Number(), allWorkingStep.getHasResource().getName());
 				    //12.02.2019 rs ERstellung ausgeschnitten
 				    	ResultSet rs2 = stmt.executeQuery(		
 				    			//"select * from "+nameOfMES_Data+" where "+columnNameOfOperation+" = '"+allWorkingStep.getHasOperation().getName()+"' and "+columnNameAuftrags_ID+" = '"+allWorkingStep.getHasOperation().getAppliedOn().getID_String()+"' and "+columnNameFinished+" = 'false'"); 
-				    			"select * from "+mes_table_to_be_used+" where "+columnNameOfOperation+" = '"+allWorkingStep.getHasOperation().getName()+"' and "+columnNameAuftrags_ID+" = '"+allWorkingStep.getHasOperation().getAppliedOn().getID_String()+"'"); 
+				    			"select * from "+mes_table_to_be_used+" where "+columnNameOfOperation+" = '"+new_name+"' and "+columnNameAuftrags_ID+" = '"+allWorkingStep.getHasOperation().getAppliedOn().getID_String()+"'"); 
 						// System.out.println("mes__table_to_be_used "+mes_table_to_be_used);      
 				    	if (rs2.isBeforeFirst() ) {  //the SQL query has returned data  
 				    		rs2.next(); 
@@ -172,7 +174,7 @@ public class DatabaseConnectorAgent extends _Agent_Template{
 				    		cal.setTimeInMillis(Long.parseLong(allWorkingStep.getHasTimeslot().getStartDate()));
 				    		
 				    		//java.sql.Date sql_date = new java.sql.Date(Long.parseLong(allWorkingStep.getHasTimeslot().getStartDate()));
-				    		java.sql.Timestamp sql_timestamp = new java.sql.Timestamp(Long.parseLong(allWorkingStep.getHasTimeslot().getStartDate()));
+				    		//java.sql.Timestamp sql_timestamp = new java.sql.Timestamp(Long.parseLong(allWorkingStep.getHasTimeslot().getStartDate()));
 				    		//rs2.updateDate(columnNameOfPlanStart, sql_date);		
 				    		//rs2.updateTime(columnNameOfPlanStart, sql_date.getTime());
 				    		
@@ -184,9 +186,9 @@ public class DatabaseConnectorAgent extends _Agent_Template{
 				 	       rs2.updateTimestamp(columnNameOfPlanEnd, new java.sql.Timestamp(Long.parseLong(allWorkingStep.getHasTimeslot().getEndDate())));
 				 	       
 				 	       //simulation times
-				 	       	double hours_sim_time_start_soll = (double) (Long.parseLong(allWorkingStep.getHasTimeslot().getStartDate()) - this.start_simulation_agentpto) / (1000*60*60);
+				 	       	double hours_sim_time_start_soll = (double) (Long.parseLong(allWorkingStep.getHasTimeslot().getStartDate()) - this.start_simulation_agentpto) / (1000*60);
 				    		double hours_sim_time_start_soll_rounded = GeneralFunctions.round(hours_sim_time_start_soll,4);
-				    		double hours_sim_time_end_soll = (double) (Long.parseLong(allWorkingStep.getHasTimeslot().getEndDate()) - this.start_simulation_agentpto) / (1000*60*60);							    		
+				    		double hours_sim_time_end_soll = (double) (Long.parseLong(allWorkingStep.getHasTimeslot().getEndDate()) - this.start_simulation_agentpto) / (1000*60);							    		
 				    		double hours_sim_time_end_soll_rounded = GeneralFunctions.round(hours_sim_time_end_soll,4);		
 				    		
 				    		rs2.updateDouble(columnNameStartSimulation, hours_sim_time_start_soll_rounded);	
@@ -212,17 +214,21 @@ public class DatabaseConnectorAgent extends _Agent_Template{
 				    		
 				    	rs.moveToInsertRow();		  //Jetzt steht das RS in der "Insert" Zeile, diese ist quasi "separat" zum Rest der Tabelle  
 				        //RS bzw. jede Spalte wird mit Werten gefüllt
+				    
+				    	if(new_name == "no match") {
+				    		System.out.println(logLinePrefix+"  ERROR Matching Database: Name of Operation");
+				    	}
 				        rs.updateString(columnNameOfResource, allWorkingStep.getHasResource().getName());	  
-				        rs.updateString(columnNameOfOperation, allWorkingStep.getHasOperation().getName());
+				        rs.updateString(columnNameOfOperation, new_name);
 				        rs.updateInt(columnNameOfResource_ID, allWorkingStep.getHasResource().getID_Number());		        
 				        //rs.updateDate(columnNameOfPlanStart, new java.sql.Date(Long.parseLong(allWorkingStep.getHasTimeslot().getStartDate())));	        
 				        //rs.updateDate(columnNameOfPlanEnd, new java.sql.Date(Long.parseLong(allWorkingStep.getHasTimeslot().getEndDate())));	
 				        rs.updateTimestamp(columnNameOfPlanStart, new java.sql.Timestamp(Long.parseLong(allWorkingStep.getHasTimeslot().getStartDate())));
 				        rs.updateTimestamp(columnNameOfPlanEnd, new java.sql.Timestamp(Long.parseLong(allWorkingStep.getHasTimeslot().getEndDate())));
 				 	       //simulation times
-			 	       	double hours_sim_time_start_soll = (double) (Long.parseLong(allWorkingStep.getHasTimeslot().getStartDate()) - this.start_simulation_agentpto) / (1000*60*60);
+			 	       	double hours_sim_time_start_soll = (double) (Long.parseLong(allWorkingStep.getHasTimeslot().getStartDate()) - this.start_simulation_agentpto) / (1000*60);
 			    		double hours_sim_time_start_soll_rounded = GeneralFunctions.round(hours_sim_time_start_soll,4);
-			    		double hours_sim_time_end_soll = (double) (Long.parseLong(allWorkingStep.getHasTimeslot().getEndDate()) - this.start_simulation_agentpto) / (1000*60*60);							    		
+			    		double hours_sim_time_end_soll = (double) (Long.parseLong(allWorkingStep.getHasTimeslot().getEndDate()) - this.start_simulation_agentpto) / (1000*60);							    		
 			    		double hours_sim_time_end_soll_rounded = GeneralFunctions.round(hours_sim_time_end_soll,4);		
 			    		
 			    		rs.updateDouble(columnNameStartSimulation, hours_sim_time_start_soll_rounded);	
@@ -252,6 +258,28 @@ public class DatabaseConnectorAgent extends _Agent_Template{
 		       
 	}
 	
+	private String replaceName(String name_operation, int id, String res_name) {
+		if(res_name.contains("Transport")) {
+			String [] split = name_operation.split("_", 2); //2 parts
+			String res_start_transport = "";
+			Location loc = new Location();
+			loc.setCoordX(Float.parseFloat(split[0].split(";")[0]));
+			loc.setCoordY(Float.parseFloat(split[0].split(";")[1]));
+			
+			for (Map.Entry<Integer, Resource_Extension> entry : resource_hashmap.entrySet()) {
+			    if(_Agent_Template.doLocationsMatch(loc, entry.getValue().getHasLocation())){
+			    	res_start_transport =  entry.getValue().getName();
+			    	return res_start_transport+"-"+split[1];
+			    }
+			}			
+			
+			return "no match";
+		}else {
+			return name_operation;
+		}
+		
+	}
+
 	private void addToFlexsimLayoutTable(Statement stmt, int order_id, WorkPlan workplan, String tableNameProductionPlan) throws SQLException {
 		String query = "Select * from "+tableNameProductionPlan+" where "+this.columnNameID+" = "+order_id;
 		ResultSet rs2 = stmt.executeQuery("select * from "+tableNameProductionPlan);
@@ -299,7 +327,7 @@ public class DatabaseConnectorAgent extends _Agent_Template{
 	    		rs2.updateInt(number_of_column_for_production_step, allWorkingStep.getHasResource().getID_Number());
 	    		//01.02.2019	variable Odernummer
 	    		//System.out.println("DEBUG_____________________________________________________________order_id  "+order_id);
-	    		int row = rs2.getRow() + row_count;
+	    		//int row = rs2.getRow() + row_count;
 	    		//rs2.updateInt(1, row);
 	    		rs2.updateInt(72, order_id); //72 = letzte Spalte
 	            i2++;
@@ -402,6 +430,10 @@ public class DatabaseConnectorAgent extends _Agent_Template{
 			Resource_Extension res = new Resource_Extension();
 			res.setID_Number(rs.getInt(columnNameID));
 			res.setName(rs.getString(columnNameResourceName_simulation));
+			Location loc = new Location();
+			loc.setCoordX(rs.getInt(_Agent_Template.columnNameLocationX));
+			loc.setCoordY(rs.getInt(_Agent_Template.columnNameLocationY));
+			res.setHasLocation(loc);
 			if(_Agent_Template.simulation_enercon_mode) {
 				res.setColumninproductionplan(rs.getInt(columnNameColumnInProductionPlan));
 			}
@@ -416,6 +448,7 @@ public class DatabaseConnectorAgent extends _Agent_Template{
 		}	// Verbindung zur DB mit ucanaccess	
 
 	}
+	/*
 	private int determine_number_of_planned_production_steps(WorkPlan workplan) {
 		int counter = 0;
 		
@@ -429,7 +462,7 @@ public class DatabaseConnectorAgent extends _Agent_Template{
 	    }
 
 		return counter;
-	}
+	}*/
 
 
 }

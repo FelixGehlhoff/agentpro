@@ -8,7 +8,7 @@ import jade.core.*;
 /**
 * Protege name: Resource
 * @author ontology bean generator
-* @version 2019/09/27, 11:08:18
+* @version 2019/11/11, 09:45:55
 */
 public class Resource implements Concept {
 
@@ -24,58 +24,14 @@ public class Resource implements Concept {
    }
 
    /**
-* Protege name: type
+* Protege name: currentState
    */
-   private String type;
-   public void setType(String value) { 
-    this.type=value;
+   private State currentState;
+   public void setCurrentState(State value) { 
+    this.currentState=value;
    }
-   public String getType() {
-     return this.type;
-   }
-
-   /**
-* Protege name: hasCapability
-   */
-   private Capability hasCapability;
-   public void setHasCapability(Capability value) { 
-    this.hasCapability=value;
-   }
-   public Capability getHasCapability() {
-     return this.hasCapability;
-   }
-
-   /**
-* Protege name: detailed_Type
-   */
-   private String detailed_Type;
-   public void setDetailed_Type(String value) { 
-    this.detailed_Type=value;
-   }
-   public String getDetailed_Type() {
-     return this.detailed_Type;
-   }
-
-   /**
-* Protege name: name
-   */
-   private String name;
-   public void setName(String value) { 
-    this.name=value;
-   }
-   public String getName() {
-     return this.name;
-   }
-
-   /**
-* Protege name: hasLocation
-   */
-   private Location hasLocation;
-   public void setHasLocation(Location value) { 
-    this.hasLocation=value;
-   }
-   public Location getHasLocation() {
-     return this.hasLocation;
+   public State getCurrentState() {
+     return this.currentState;
    }
 
    /**
@@ -90,6 +46,39 @@ public class Resource implements Concept {
    }
 
    /**
+* Protege name: name
+   */
+   private String name;
+   public void setName(String value) { 
+    this.name=value;
+   }
+   public String getName() {
+     return this.name;
+   }
+
+   /**
+* Protege name: hasCapability
+   */
+   private Capability hasCapability;
+   public void setHasCapability(Capability value) { 
+    this.hasCapability=value;
+   }
+   public Capability getHasCapability() {
+     return this.hasCapability;
+   }
+
+   /**
+* Protege name: hasLocation
+   */
+   private Location hasLocation;
+   public void setHasLocation(Location value) { 
+    this.hasLocation=value;
+   }
+   public Location getHasLocation() {
+     return this.hasLocation;
+   }
+
+   /**
 * Protege name: startState
    */
    private State startState;
@@ -101,14 +90,25 @@ public class Resource implements Concept {
    }
 
    /**
-* Protege name: currentState
+* Protege name: detailed_Type
    */
-   private State currentState;
-   public void setCurrentState(State value) { 
-    this.currentState=value;
+   private String detailed_Type;
+   public void setDetailed_Type(String value) { 
+    this.detailed_Type=value;
    }
-   public State getCurrentState() {
-     return this.currentState;
+   public String getDetailed_Type() {
+     return this.detailed_Type;
+   }
+
+   /**
+* Protege name: type
+   */
+   private String type;
+   public void setType(String value) { 
+    this.type=value;
+   }
+   public String getType() {
+     return this.type;
    }
 
 }
