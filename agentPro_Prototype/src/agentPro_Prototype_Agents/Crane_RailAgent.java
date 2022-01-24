@@ -3,6 +3,7 @@ package agentPro_Prototype_Agents;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.util.ArrayList;
 
 import agentPro.onto.AllocatedWorkingStep;
 import agentPro.onto.CFP;
@@ -59,10 +60,10 @@ public class Crane_RailAgent extends SharedResourceAgent{
 	}
 
 	@Override
-	public Proposal checkScheduleDetermineTimeslotAndCreateProposal(CFP cfp) {
+	public ArrayList<Proposal> checkScheduleDetermineTimeslotAndCreateProposal(CFP cfp) {
 		
-		Proposal proposal = new Proposal();
-		Timeslot timeslot_for_proposal = new Timeslot();
+		ArrayList<Proposal> proposal_list = new ArrayList<Proposal>();
+		//Timeslot timeslot_for_proposal = new Timeslot();
 		
 		//extract CFP Timeslot
 		Timeslot cfp_timeslot = cfp.getHasTimeslot();	
@@ -127,11 +128,13 @@ public class Crane_RailAgent extends SharedResourceAgent{
 		*/
 		float price = operation.getAvg_Duration();	
 		//this.getReceiveCFPBehav().duration_for_price = operation.getAvg_Duration(); //in min
+		Timeslot timeslot_for_proposal = new Timeslot();
 		timeslot_for_proposal.setEndDate(Long.toString(enddate_cfp));
 		timeslot_for_proposal.setStartDate(Long.toString(startdate_cfp));	
 		
-		proposal = createProposal(price, operation, timeslot_for_proposal, cfp.getHasSender(), "");	//cfp.getIDString() is empty in CFPs to production resources
-		return proposal;
+		Proposal proposal = createProposal(price, operation, timeslot_for_proposal, cfp.getHasSender(), "");	//cfp.getIDString() is empty in CFPs to production resources
+		proposal_list.add(proposal);
+		return proposal_list;
 	}
 
 

@@ -17,6 +17,7 @@ public class OperationCombination {
 	private Proposal initial_proposal_production;
 	
 	private AllocatedWorkingStep prod_allWS;
+	
 	private String identification_string;
 	private ArrayList<Proposal> buffer_operations = new ArrayList<Proposal>();
 	private ArrayList<Proposal> sharedResource_operations = new ArrayList<Proposal>();
@@ -272,5 +273,13 @@ public class OperationCombination {
 	public void setSharedResource_operations(ArrayList<Proposal> sharedResource_operations) {
 		this.sharedResource_operations = sharedResource_operations;
 	}
+	public AllocatedWorkingStep getProd_allWS() {
+		return prod_allWS;
+	}
+
+	public void setProd_allWS(AllocatedWorkingStep prod_allWS) {
+		this.prod_allWS = prod_allWS;
+	}
+
 	
 }

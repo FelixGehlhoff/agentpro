@@ -1,5 +1,7 @@
 package agentPro_Prototype_Agents;
 
+import java.util.ArrayList;
+
 import agentPro.onto.Accept_Proposal;
 import agentPro.onto.AllocatedWorkingStep;
 import agentPro.onto.CFP;
@@ -48,28 +50,32 @@ public class BufferAgent_new extends ProductionResourceAgent{
 		
 	}
 	@Override
-	public Proposal checkScheduleDetermineTimeslotAndCreateProposal(CFP cfp) {
+	public ArrayList<Proposal> checkScheduleDetermineTimeslotAndCreateProposal(CFP cfp) {
 	
 		
 		//extract CFP Timeslot
 		Timeslot cfp_timeslot = cfp.getHasTimeslot();	
 		Operation operation = cfp.getHasOperation();
 		operation.setType("buffer");
-		Proposal proposal = new Proposal();
+		ArrayList<Proposal> proposal_list = new ArrayList<Proposal>();
 		Production_Operation buffer_operation = (Production_Operation) operation;
 		float price = 1;
-		buffer_operation.setBuffer_after_operation_end(10*60*60*1000);
-		buffer_operation.setBuffer_after_operation_start(10*60*60*1000);
-		buffer_operation.setBuffer_before_operation_start(10*60*60*1000);
+		//24.01.2022 Puffer werden erstmal nicht gesetzt
+		
+		//buffer_operation.setBuffer_after_operation_end(10*60*60*1000);
+		//buffer_operation.setBuffer_after_operation_start(10*60*60*1000);
+		//buffer_operation.setBuffer_before_operation_start(10*60*60*1000);
 		//buffer_operation.setName("buffer_"+this.getOfferNumber());
 		//this.getReceiveCFPBehav().timeslot_for_schedule.setEndDate(String.valueOf(cfp_timeslot.getEndDate())); //time increment is reduced / put to the other busy interval later
 		//this.getReceiveCFPBehav().timeslot_for_schedule.setStartDate(String.valueOf(cfp_timeslot.getStartDate()));	
 		//this.getReceiveCFPBehav().timeslot_for_schedule.setLength(cfp_timeslot.getLength());
 
-		Storage_element_slot slot = createStorageElement(operation, cfp_timeslot, (long) cfp.getHasOperation().getAvg_PickupTime()*60*1000, 0F);
-		 this.getReceiveCFPBehav().getProposed_slots().add(slot);	
-	proposal = createProposal(price, buffer_operation, cfp_timeslot, cfp.getHasSender(), cfp.getID_String());
-	return proposal;
+		Storage_element_slot slot = createStorageElement(operation, cfp_timeslot, (long) cfp.getHasOperation().getAvg_PickupTime()*60*1000, 0F);		
+	Proposal proposal = createProposal(price, buffer_operation, cfp_timeslot, cfp.getHasSender(), cfp.getID_String());
+	slot.setProposal(proposal);
+	this.getReceiveCFPBehav().getProposed_slots().add(slot);
+	proposal_list.add(proposal);
+	return proposal_list;
 	}
 	
 	

@@ -2,8 +2,8 @@ package support_classes;
 
 public interface Run_Configuration {
 	//Orders and Interfaces
-	int limit = 3; //number of orders to create	
-	long initial_wait =1000;
+	int limit = 1; //number of orders to create	
+	long initial_wait =12000;
 	boolean IntervalWait = false;
 	double wait_between_agent_creation = 300;	
 	double wait_betwee_agent_creation_max = 600;

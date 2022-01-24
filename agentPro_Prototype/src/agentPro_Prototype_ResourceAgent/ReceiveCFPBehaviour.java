@@ -32,6 +32,7 @@ import jade.core.behaviours.Behaviour;
 //import jade.core.behaviours.CyclicBehaviour;
 import jade.lang.acl.ACLMessage;
 import jade.lang.acl.MessageTemplate;
+import support_classes.Interval;
 import support_classes.Run_Configuration;
 import support_classes.Storage_element_slot;
 //import support_classes.XYTaskDatasetDemo2;
@@ -136,35 +137,72 @@ public class ReceiveCFPBehaviour extends Behaviour {
 						
 						//check if there is already a proposal to the id (for example, a transport to a buffer)
 						//and where the endlocation equals this CFP's start location
-						if(cfp.getHasOperation().getName().equals("5.0;5.0_Puffer_1")){
+						/*if(cfp.getHasOperation().getName().equals("5.0;5.0_Puffer_1")){
 							if(myAgent.getLocalName().equals("Transport1")) {
 								System.out.println("here");
 							}
 							
+						}*/
+						if(myAgent.getLocalName().equals("Transport1") && cfp.getHasOperation().getName().equals("10.0;11.0_Fraese")) {
+							System.out.println("here");
 						}
 						boolean proposalAdded = false;
-						for(Proposal prop : proposals) {
-							AllocatedWorkingStep allWS_of_Proposal = (AllocatedWorkingStep)prop.getConsistsOfAllocatedWorkingSteps().get(0);
-							//there can only be one
-							if(prop.getID_String().equals(cfp.getID_String()) && _Agent_Template.doLocationsMatch((Location) allWS_of_Proposal.getHasOperation().getEndState(),(Location)cfp.getHasOperation().getStartStateNeeded())) {
-								myAgent.bookIntoSchedule(prop);
-								//cfp.getHasOperation().addRequiresOperation(allWS_of_Proposal.getHasOperation());
-								Proposal newProposal = myAgent.checkScheduleDetermineTimeslotAndCreateProposal(cfp);
-								//add the operation of proposal 1 as "required Operation" to the (dependand) proposal 2
-								((AllocatedWorkingStep)newProposal.getConsistsOfAllocatedWorkingSteps().get(0)).getHasOperation().addRequiresOperation(allWS_of_Proposal.getHasOperation());
-								//proposals.add(myAgent.checkScheduleDetermineTimeslotAndCreateProposal(cfp));
-								proposals.add(newProposal);
-								myAgent.removeAllocatedWorkingStepFromWorkPlanAndBusyIntervalsAndCreateFreeIntervals(allWS_of_Proposal);
-								//now add the proposal again without the one before
-								Proposal newProposal_independent = myAgent.checkScheduleDetermineTimeslotAndCreateProposal(cfp);
-								proposals.add(newProposal_independent);
-								proposalAdded = true;
-								break;
+						ArrayList<Proposal> list_to_add = new ArrayList<Proposal>();
+						if(myAgent.getRepresentedResource().getType().equals("Transport")) {
+							for(Proposal prop : proposals) {
+								AllocatedWorkingStep allWS_of_Proposal = (AllocatedWorkingStep)prop.getConsistsOfAllocatedWorkingSteps().get(0);
+								//there can only be one							
+								Boolean proposal_dependency = checkProposalDependency(prop, cfp);
+								if(proposal_dependency) {
+									myAgent.bookIntoSchedule(prop);
+									ArrayList<Proposal> newProposals = myAgent.checkScheduleDetermineTimeslotAndCreateProposal(cfp);
+									//add the operation of proposal 1 as "required Operation" to the (dependand) proposal 2
+									for(Proposal p : newProposals) {
+										((AllocatedWorkingStep)p.getConsistsOfAllocatedWorkingSteps().get(0)).getHasOperation().addRequiresOperation(allWS_of_Proposal.getHasOperation());							
+										list_to_add.add(p);								
+									}
+									myAgent.removeAllocatedWorkingStepFromWorkPlanAndBusyIntervalsAndCreateFreeIntervals(allWS_of_Proposal);
+									
+									//now add the proposal again without the one before
+									ArrayList<Proposal> newProposals_independent = myAgent.checkScheduleDetermineTimeslotAndCreateProposal(cfp);
+									for(Proposal p_ind : newProposals_independent) {
+										list_to_add.add(p_ind);
+									}
+									
+									proposalAdded = true;
+								}
+								
+								
+								/* 24.01.2022
+								if(prop.getID_String().equals(cfp.getID_String()) && _Agent_Template.doLocationsMatch((Location) allWS_of_Proposal.getHasOperation().getEndState(),(Location)cfp.getHasOperation().getStartStateNeeded())) {
+									myAgent.bookIntoSchedule(prop);
+									//cfp.getHasOperation().addRequiresOperation(allWS_of_Proposal.getHasOperation());
+									Proposal newProposal = myAgent.checkScheduleDetermineTimeslotAndCreateProposal(cfp);
+									//add the operation of proposal 1 as "required Operation" to the (dependand) proposal 2
+									((AllocatedWorkingStep)newProposal.getConsistsOfAllocatedWorkingSteps().get(0)).getHasOperation().addRequiresOperation(allWS_of_Proposal.getHasOperation());
+									//proposals.add(myAgent.checkScheduleDetermineTimeslotAndCreateProposal(cfp));
+									proposals.add(newProposal);
+									myAgent.removeAllocatedWorkingStepFromWorkPlanAndBusyIntervalsAndCreateFreeIntervals(allWS_of_Proposal);
+									//now add the proposal again without the one before
+									Proposal newProposal_independent = myAgent.checkScheduleDetermineTimeslotAndCreateProposal(cfp);
+									proposals.add(newProposal_independent);
+									proposalAdded = true;
+									break;
+								}*/
+							}
+							for(Proposal p : list_to_add) {  //adding out of the for each is a ConcurrentModificationException
+								proposals.add(p);
 							}
 						}
+						
+						
 		
 					if(!proposalAdded) {
-						proposals.add(myAgent.checkScheduleDetermineTimeslotAndCreateProposal(cfp));	
+						ArrayList<Proposal> newProposals_independent = myAgent.checkScheduleDetermineTimeslotAndCreateProposal(cfp);
+						for(Proposal p_ind : newProposals_independent) {
+							proposals.add(p_ind);
+						}
+							
 					}
 			
 						
@@ -243,6 +281,20 @@ public class ReceiveCFPBehaviour extends Behaviour {
 			step = 0;
 			break;
 		}
+	}
+
+	private Boolean checkProposalDependency(Proposal prop, CFP cfp) {
+		if(prop.getID_String().equals(cfp.getID_String())) {		//the proposal was created for the same ID such as A_1_Order@Durchsatz
+			//now check if the proposal timeslot is the closest to the cfp compared to existing busy intervals
+			for(int i = myAgent.getBusyInterval_array().size()-1;i>=0;i--) {
+				Interval busy_interval = myAgent.getBusyInterval_array().get(i);		
+				AllocatedWorkingStep allWS = (AllocatedWorkingStep) prop.getConsistsOfAllocatedWorkingSteps().get(0);
+				if(Long.parseLong(cfp.getHasTimeslot().getStartDate())-busy_interval.upperBound() < Long.parseLong(cfp.getHasTimeslot().getStartDate())-Long.parseLong(allWS.getHasTimeslot().getEndDate()) && Long.parseLong(cfp.getHasTimeslot().getStartDate())-busy_interval.upperBound()>0) {
+					return false; //there is no dependency
+				}
+			}
+		}
+		return true;
 	}
 
 	private void determineSharedResourceBehaviour(ACLMessage msg) {

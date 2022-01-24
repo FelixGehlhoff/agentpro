@@ -348,10 +348,11 @@ public void receiveCapabilityOperationsValuesFromDB(Resource r) {
 
 @Override
 //public Proposal checkScheduleDetermineTimeslotAndCreateProposal(long startdate_cfp, long enddate_cfp, Operation operation) {
-public Proposal checkScheduleDetermineTimeslotAndCreateProposal(CFP cfp) {
+public ArrayList<Proposal> checkScheduleDetermineTimeslotAndCreateProposal(CFP cfp) {
 	
-	Proposal proposal = new Proposal();
-	Timeslot timeslot_for_proposal = new Timeslot();
+	//Proposal proposal = new Proposal();
+	ArrayList<Proposal> proposal_list = new ArrayList<Proposal>();
+	//Timeslot timeslot_for_proposal = new Timeslot();
 	long estimated_start_date = 0;
 
 
@@ -361,26 +362,30 @@ public Proposal checkScheduleDetermineTimeslotAndCreateProposal(CFP cfp) {
 	
 	//extract CFP Timeslot
 			Timeslot cfp_timeslot = cfp.getHasTimeslot();	
-			Production_Operation operation = createOperationCopy((Production_Operation)cfp.getHasOperation());
-			operation.setType("production");
+			
+			
 			long startdate_cfp = Long.parseLong(cfp_timeslot.getStartDate());
 			long enddate_cfp = Long.parseLong(cfp_timeslot.getEndDate());
 			
 			
-			float duration_eff = calculateDurationOfProcessWithoutSetup(operation, cfp.getQuantity());
+			
 			
 			float time_increment_or_decrement_to_be_added_for_setup_of_next_task = 0; //TODO integrieren
 	//long enddate_interval = 0;			
 
-	ArrayList<Interval> listOfIntervals = new ArrayList<Interval>();
+	//ArrayList<Interval> listOfIntervals = new ArrayList<Interval>();
 //System.out.println("DEBUG_______productionResourceAgent  timeslot_interval_to_be_booked_production "+timeslot_interval_to_be_booked_production.getSize()/(60*1000));
 	
 	boolean slot_found = false;
 	double duration_setup = 0;
 	long setup_and_pickup_to_consider = 0;
-	Storage_element_slot slot = null;
+	//Storage_element_slot slot = null;
 	
 	for(int i = 0;i<getFree_interval_array().size();i++) {	
+		Production_Operation operation = createOperationCopy((Production_Operation)cfp.getHasOperation());
+		operation.setType("production");
+		float duration_eff = calculateDurationOfProcessWithoutSetup(operation, cfp.getQuantity());
+		Boolean slot_found_this_FI = false;
 		//dependent parameters
 		duration_setup = calculateDurationSetup(getFree_interval_array().get(i), operation);	// in min
 		time_increment_or_decrement_to_be_added_for_setup_of_next_task = calculateTimeIncrement(operation, i, null); // in min    null is detailed operation description (ony needed for transport)
@@ -413,7 +418,7 @@ public Proposal checkScheduleDetermineTimeslotAndCreateProposal(CFP cfp) {
 		//calculate possible slots within this free interval (FI)
 		//the enddate of the cfp is quite far in the future. Thus, it does not mark a constrained in the same sense as it does for transports
 		// the process can be finised much earlier than the enddate of the CFP, e.g. at the start of the cfp
-		listOfIntervals = calculateIntervals(startdate_cfp, enddate_cfp, (long)(setup_and_pickup_to_consider*60*1000), (long)(duration_eff*60*1000), (long)(time_increment_or_decrement_to_be_added_for_setup_of_next_task*60*1000), (enddate_cfp-startdate_cfp), i); //0 = buffer that production can start earlier
+		ArrayList<Interval> listOfIntervals = calculateIntervals(startdate_cfp, enddate_cfp, (long)(setup_and_pickup_to_consider*60*1000), (long)(duration_eff*60*1000), (long)(time_increment_or_decrement_to_be_added_for_setup_of_next_task*60*1000), (enddate_cfp-startdate_cfp), i); //0 = buffer that production can start earlier
 		//System.out.println(this.printoutArraylistIntervals(listOfIntervals));
 		
 		 checkFeasibility(listOfIntervals, startdate_cfp, enddate_cfp, (enddate_cfp-startdate_cfp)); //no buffer that production can start earlier
@@ -425,6 +430,7 @@ public Proposal checkScheduleDetermineTimeslotAndCreateProposal(CFP cfp) {
 		 
 		 if(listOfIntervals.size()>0) {
 			 slot_found = true;
+			 slot_found_this_FI = true;
 			 //sort earliest end first
 			 this.sortArrayListIntervalsEarliestFirst(listOfIntervals, "end");
 			 //now the best slot is found --> calculate buffers
@@ -438,13 +444,28 @@ public Proposal checkScheduleDetermineTimeslotAndCreateProposal(CFP cfp) {
 				 deadline_not_met = 10000; 
 			 }
 			//System.out.println("DEBUG_prod res agent buffer before operation: "+operation.getBuffer_before_operation()+" buffer after operation: "+operation.getBuffer_after_operation()+" free int: "+getFree_interval_array().get(i).toString()+" work int: "+listOfIntervals.get(0).toString()+" setup/pickup: "+setup_and_pickup_to_consider+" time increment "+time_increment_or_decrement_to_be_added_for_setup_of_next_task);
+			Timeslot timeslot_for_proposal = new Timeslot();
 			timeslot_for_proposal.setEndDate(String.valueOf(listOfIntervals.get(0).upperBound()));
 			timeslot_for_proposal.setStartDate(String.valueOf(listOfIntervals.get(0).lowerBound()));	
 			timeslot_for_proposal.setLength(listOfIntervals.get(0).upperBound()-listOfIntervals.get(0).lowerBound());
-			slot = createStorageElement(operation, timeslot_for_proposal, setup_and_pickup_to_consider*60*1000, (long)(time_increment_or_decrement_to_be_added_for_setup_of_next_task*60*1000));
-			 this.getReceiveCFPBehav().getProposed_slots().add(slot);
+			
+			if(timeslot_for_proposal.getLength() == 0) {
+				System.out.println("DEBUG_________ERROR___"+this.getLocalName()+" timeslot for proposal length = 0 in ProductionAgent L 450");	
+				
+				}
+			if(slot_found_this_FI) {
+				Storage_element_slot slot = new Storage_element_slot();
+				slot = createStorageElement(operation, timeslot_for_proposal, setup_and_pickup_to_consider*60*1000, (long)(time_increment_or_decrement_to_be_added_for_setup_of_next_task*60*1000));
+				float price = duration_total_for_price + deadline_not_met;
+				Proposal proposal = createProposal(price, operation, timeslot_for_proposal, cfp.getHasSender(), cfp.getHasSender().getLocalName()+"@"+this.getLocalName());		
+				slot.setProposal(proposal);
+				this.getReceiveCFPBehav().getProposed_slots().add(slot);
+				proposal_list.add(proposal);	
+			}
+			
 			 //TBD Buffer
-			 break;
+			 //break;
+			 
 		 }
 	}
 
@@ -452,14 +473,13 @@ public Proposal checkScheduleDetermineTimeslotAndCreateProposal(CFP cfp) {
 				//if(startdate_cfp+(long)(duration_for_answering_CFP_so_for_Workpiece_schedule*60*1000)>=earliest_finish_date_from_arrive_at_resource) {
 					//System.out.println("DEBUG_______WRONG DATA FROM CFP --> startdate_cfp+(long)(duration_for_answering_CFP_so_for_Workpiece_schedule*60*1000)  "+startdate_cfp+(long)(duration_for_answering_CFP_so_for_Workpiece_schedule*60*1000)+" >= "+earliest_finish_date_from_arrive_at_resource+" earliest_finish_date_from_arrive_at_resource    is violated");
 				//}
-				System.out.println("DEBUG----------"+"NO FREE SLOT FOUND ---> this should not happen   printout   	");
-				proposal = null;
+				System.out.println("DEBUG----------"+"NO FREE SLOT FOUND ---> this should not happen   printout   	"+this.getLocalName());
 			}else {
 				
 
-	float price = duration_total_for_price + deadline_not_met;		//strafkosten, wenn deadline_not_met
+	//24.01 float price = duration_total_for_price + deadline_not_met;		//strafkosten, wenn deadline_not_met
 	
-	
+	/*24.01.22
 	if(simulation_enercon_mode && (this.getRepresentedResource().getName().contains("Skoda_2") || this.getRepresentedResource().getName().contains("Skoda_3")) ) {		//skoda 1 is better
 		price = price + 50;
 	}else if(simulation_enercon_mode && this.getRepresentedResource().getName().contains("Konfektion") || this.getRepresentedResource().getName().contains("FAD")) {
@@ -469,7 +489,7 @@ public Proposal checkScheduleDetermineTimeslotAndCreateProposal(CFP cfp) {
 			double difference_double = difference/(1000*60);
 			price = price + this.getWorkplan().getConsistsOfAllocatedWorkingSteps().size()*10000-(float)difference_double;	//biggest difference should get order
 		}	
-	}
+	}*/
 	//timeslot_for_proposal.setEndDate(Long.toString(estimated_enddate));
 	//timeslot_for_proposal.setStartDate(Long.toString(estimated_start_date));	
 	//timeslot_for_proposal.setLength(estimated_enddate-estimated_start_date);
@@ -484,15 +504,13 @@ public Proposal checkScheduleDetermineTimeslotAndCreateProposal(CFP cfp) {
 	//this.getReceiveCFPBehav().timeslot_for_schedule.setLength((listOfIntervals.get(0).upperBound()-(long)setup_and_pickup_to_consider*1000*60)-(listOfIntervals.get(0).upperBound()+(long)avg_pickUp*1000*60));
 	//System.out.println("DEBUG____________timeslot for schedule end"+this.getReceiveCFPBehav().timeslot_for_schedule.getEndDate()+" start "+this.getReceiveCFPBehav().timeslot_for_schedule.getStartDate());
 	
-	proposal = createProposal(price, operation, timeslot_for_proposal, cfp.getHasSender(), cfp.getHasSender().getLocalName()+"@"+this.getLocalName());	//cfp.getIDString() is empty in CFPs to production resources
+	//24.01.22 proposal = createProposal(price, operation, timeslot_for_proposal, cfp.getHasSender(), cfp.getHasSender().getLocalName()+"@"+this.getLocalName());	//cfp.getIDString() is empty in CFPs to production resources
 	//System.out.println("DEBUG____"+getLocalName()+" getFree_interval_array().size() = "+getFree_interval_array().size());
-	slot.setProposal(proposal);
+	//24.01.22 slot.setProposal(proposal);
 	}
-		if(timeslot_for_proposal.getLength() == 0) {
-		proposal = null;	
-		}
+
 	//System.out.println("DEBUG_____operation.getAvg_Duration()*quantity "+operation.getAvg_Duration()+"______"+this.getLocalName()+" timeslot "+timeslot_for_proposal.getStartDate()+" "+timeslot_for_proposal.getEndDate()+" "+timeslot_for_proposal.getLength());
-	return proposal;
+	return proposal_list;
 }
 
 public void checkSchedule(ArrayList<Interval> listOfIntervals_possibleFromResourceSide, long setup_and_pickup_to_consider, long time_increment_or_decrement_to_be_added_for_setup_of_next_task, int i2) {

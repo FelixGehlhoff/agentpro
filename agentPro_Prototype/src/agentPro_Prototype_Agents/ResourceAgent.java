@@ -216,6 +216,7 @@ public abstract class ResourceAgent extends _Agent_Template{
 		Timeslot timeslot_proposed = new Timeslot();
 		String type = "";
 		Storage_element_slot right_slot = null;
+		Boolean success = false;
 		for(Storage_element_slot slot : this.getReceiveCFPBehav().getProposed_slots()) {
 			if(slot.getID().contentEquals(((AllocatedWorkingStep)proposal.getConsistsOfAllocatedWorkingSteps().get(0)).getHasOperation().getName())) {
 				//if(((AllocatedWorkingStep)proposal.getConsistsOfAllocatedWorkingSteps().get(0)).getHasOperation().getName().contentEquals("20.0;5.0_Rollformen")){
@@ -238,14 +239,14 @@ public abstract class ResourceAgent extends _Agent_Template{
 					
 					right_slot = new Storage_element_slot(((AllocatedWorkingStep)proposal.getConsistsOfAllocatedWorkingSteps().get(0)).getHasOperation(), timeslot_proposed, slot.getDuration_to_get_to_workpiece(), slot.getTime_increment(), ((AllocatedWorkingStep)proposal.getConsistsOfAllocatedWorkingSteps().get(0)).getID_String(), ((AllocatedWorkingStep)proposal.getConsistsOfAllocatedWorkingSteps().get(0)).getQuantity(), ((AllocatedWorkingStep)proposal.getConsistsOfAllocatedWorkingSteps().get(0)).getHasResource());
 					//((AllocatedWorkingStep) right_slot.getProposal().getConsistsOfAllocatedWorkingSteps().get(0)).setHasTimeslot(timeslot_to_add);
+					success = true;
 					break;
-				}else {
-					System.out.println(logLinePrefix  + "______________ERROR_________step has wrong timeslot!!"); //TODO better error handling
-					return false;
-				}
-				
-
+				}				
 			}
+		}
+		if(!success) {
+			System.out.println(logLinePrefix  + "______________ERROR_________step has wrong timeslot!!"); //TODO better error handling
+			return false;
 		}
 		
 		//long long_time_increment_or_decrement_to_be_added_for_setup_of_next_task = (long) (time_increment_or_decrement_to_be_added_for_setup_of_next_task*60*1000);
@@ -703,7 +704,7 @@ public abstract class ResourceAgent extends _Agent_Template{
 	
 	}
 	//public abstract Proposal checkScheduleDetermineTimeslotAndCreateProposal(long startdate_cfp, long enddate_cfp, Operation operation);
-	public abstract Proposal checkScheduleDetermineTimeslotAndCreateProposal(CFP cfp);
+	public abstract ArrayList<Proposal> checkScheduleDetermineTimeslotAndCreateProposal(CFP cfp);
 	
 	//refers to the actual process (without setup)
 	public ArrayList<Interval> calculateIntervals(long startdate_cfp, long enddate_cfp, long duration_setup, long duration_eff, long time_increment_or_decrement_to_be_added_for_setup_of_next_task, long buffer_time_that_production_can_start_earlier, int i) {	//for feasibility checking the arrival dates AT THE RESSOURCES are important

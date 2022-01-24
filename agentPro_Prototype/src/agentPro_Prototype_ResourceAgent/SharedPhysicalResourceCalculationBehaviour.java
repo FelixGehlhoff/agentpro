@@ -71,7 +71,11 @@ public class SharedPhysicalResourceCalculationBehaviour extends Behaviour{
 								operation = cfp.getHasOperation();
 								//timeslot_for_schedule = new Timeslot();
 								//this.proposal = myAgent.checkScheduleDetermineTimeslotAndCreateProposal(Long.parseLong(cfp.getHasTimeslot().getStartDate()), Long.parseLong(cfp.getHasTimeslot().getEndDate()), operation);								
-								proposals.add(myAgent.checkScheduleDetermineTimeslotAndCreateProposal(cfp));	
+								ArrayList<Proposal> list = myAgent.checkScheduleDetermineTimeslotAndCreateProposal(cfp);
+								for(Proposal p : list) {
+									proposals.add(p);
+								}
+									
 								
 						    }
 						

@@ -368,12 +368,26 @@ public class RequestPerformer_transport extends Behaviour {
 				cfp_onto.setID_String(id_of_production_step); //vorher end.id --> führt zu ..._puffer
 				//26.02.2019 add quantity
 				cfp_onto.setQuantity(myAgent.getOrderPos().getQuantity());
+				//24.01.2022 Buffer after operation start muss eig das Minimum aus den beiden Buffer after operation End sein
+				//Beispiel: Wenn ich zwar 10h später beim Zuscnitt weg kann, aber nur 2 h später beim Durchsatz ankommen darf
+				// kann ich ja effektiv nicht 6h später abholen beim Zuschnitt
+				Float new_Buffer_after_operation_start = Math.min(start.getHasOperation().getBuffer_after_operation_end(), end.getHasOperation().getBuffer_after_operation_start());
 				//25.06.2020
-				cfp_onto.getHasOperation().setBuffer_after_operation_start(start.getHasOperation().getBuffer_after_operation_end()); //is currently not checked by the crane
-				cfp_onto.getHasOperation().setBuffer_after_operation_end(end.getHasOperation().getBuffer_after_operation_end());
+				//cfp_onto.getHasOperation().setBuffer_after_operation_start(start.getHasOperation().getBuffer_after_operation_end()); //is currently not checked by the crane
+				cfp_onto.getHasOperation().setBuffer_after_operation_start(new_Buffer_after_operation_start);
+				//cfp_onto.getHasOperation().setBuffer_after_operation_end(end.getHasOperation().getBuffer_after_operation_end());
+				cfp_onto.getHasOperation().setBuffer_after_operation_end(end.getHasOperation().getBuffer_after_operation_start()); //24.01.2022
+				
+				//Beispiel: Zuschnitt: Dort kann ich 1 h früher abgeholt werden. Beim Durchsatz kann ich 2 h früher anfangen. Also kann ich effektiv 1h früher abgeholt werden
+				Float new_Buffer_before_operation_start = Math.min(start.getHasOperation().getBuffer_before_operation_end(), end.getHasOperation().getBuffer_before_operation_start());
+				cfp_onto.getHasOperation().setBuffer_before_operation_end(new_Buffer_before_operation_start); // //buffer before steht für früher beenden 
+				
 				//cfp_onto.getHasOperation().setAvg_Duration(myAgent.getTransport_estimation());
-				cfp_onto.getHasOperation().setBuffer_before_operation_end(end.getHasOperation().getBuffer_before_operation_start()); // //buffer before steht für früher beenden 
-				cfp_onto.getHasOperation().setBuffer_before_operation_start(0); // nicht früher starten, weil Vor-Operation nicht früher starten und beendet werden kann (Annahme). Außer z.B. bei Teillieferungen??
+				//cfp_onto.getHasOperation().setBuffer_before_operation_end(end.getHasOperation().getBuffer_before_operation_start()); // //buffer before steht für früher beenden 
+				//cfp_onto.getHasOperation().setBuffer_before_operation_start(0); // nicht früher starten, weil Vor-Operation nicht früher starten und beendet werden kann (Annahme). Außer z.B. bei Teillieferungen??
+				cfp_onto.getHasOperation().setBuffer_before_operation_start(start.getHasOperation().getBuffer_before_operation_end()); // nicht früher starten, weil Vor-Operation nicht früher starten und beendet werden kann (Annahme). Außer z.B. bei Teillieferungen??
+				
+				
 				return cfp_onto;
 	}
 
@@ -482,13 +496,13 @@ public class RequestPerformer_transport extends Behaviour {
 					break;
 				//}else if(System.currentTimeMillis()<=reply_by_date_long){ 
 				}else if(number_of_answers == resourceAgents.size()) {
-					System.out.println("DEBUG_______________________________ARRANGE Additional Operation __________________________ALL ANSWERS THERE");
+					//System.out.println("DEBUG_______________________________ARRANGE Additional Operation __________________________ALL ANSWERS THERE");
 					finished = true;
 					for(Proposal prop1 : proposals) {
 						//receivedProposals_buffer.add(prop_buffer);
 						for(OperationCombination comb : list) {
 							if(prop1.getID_String().contentEquals(comb.getIdenticiation_string())) {
-								if(((AllocatedWorkingStep)prop1.getConsistsOfAllocatedWorkingSteps().get(0)).getHasOperation().getType().equals("buffer")){
+								if(((AllocatedWorkingStep)prop1.getConsistsOfAllocatedWorkingSteps().get(0)).getHasOperation().getType().equals("buffer") && Long.parseLong(((AllocatedWorkingStep)prop1.getConsistsOfAllocatedWorkingSteps().get(0)).getHasTimeslot().getEndDate())+Run_Configuration.transport_estimation == Long.parseLong(((AllocatedWorkingStep)comb.getProd_allWS()).getHasTimeslot().getStartDate())){
 									comb.getBuffer_operations().add(prop1);
 								}else if(((AllocatedWorkingStep)prop1.getConsistsOfAllocatedWorkingSteps().get(0)).getHasOperation().getType().equals("shared_resource")){ //wieso stand da buffer?
 									comb.getSharedResource_operations().add(prop1);

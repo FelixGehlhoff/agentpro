@@ -3,6 +3,7 @@ package agentPro_Prototype_Agents;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.util.ArrayList;
 
 import agentPro.onto.AllocatedWorkingStep;
 import agentPro.onto.CFP;
@@ -55,10 +56,10 @@ public class OperatorAgent extends SharedResourceAgent{
 	}
 
 	@Override
-	public Proposal checkScheduleDetermineTimeslotAndCreateProposal(CFP cfp) {
+	public ArrayList<Proposal> checkScheduleDetermineTimeslotAndCreateProposal(CFP cfp) {
 		
-		Proposal proposal = new Proposal();
-		Timeslot timeslot_for_proposal = new Timeslot();
+		ArrayList<Proposal> proposal_list = new ArrayList<Proposal>();
+		//Timeslot timeslot_for_proposal = new Timeslot();
 		long estimated_start_date = 0;
 		long estimated_enddate = 0;
 		long set_up_time = 0; //can be time to reach the crane
@@ -107,6 +108,14 @@ public class OperatorAgent extends SharedResourceAgent{
 					operation.setBuffer_after_operation_end(getFree_interval_array().get(i).upperBound()-timeslot_interval_to_be_booked_production.upperBound());
 					
 					
+					float price = duration_for_price + deadline_not_met;		//strafkosten, wenn deadline_not_met
+					Timeslot timeslot_for_proposal = new Timeslot();
+					timeslot_for_proposal.setEndDate(Long.toString(estimated_enddate));
+					timeslot_for_proposal.setStartDate(Long.toString(estimated_start_date));	
+					
+					Proposal proposal = createProposal(price, operation, timeslot_for_proposal, cfp.getHasSender(), "");	//cfp.getIDString() is empty in CFPs to production resources
+				
+					proposal_list.add(proposal);
 					break;
 				}
 				
@@ -115,13 +124,8 @@ public class OperatorAgent extends SharedResourceAgent{
 		
 	}	
 
-	float price = duration_for_price + deadline_not_met;		//strafkosten, wenn deadline_not_met
-		timeslot_for_proposal.setEndDate(Long.toString(estimated_enddate));
-		timeslot_for_proposal.setStartDate(Long.toString(estimated_start_date));	
 		
-		proposal = createProposal(price, operation, timeslot_for_proposal, cfp.getHasSender(), "");	//cfp.getIDString() is empty in CFPs to production resources
-		
-		return proposal;
+		return proposal_list;
 	}
 
 	@Override

@@ -22,6 +22,10 @@ private String allWS_id;
 private int allWS_quantity;
 private Resource res;
 
+public Storage_element_slot() {
+	
+};
+
 	public Storage_element_slot(Operation operation, Timeslot slot, float duration_to_get_to_workpiece, long increment, 
 			String all_WS_id, int allWS_quantity, Resource resource) {
 		Operation op = ResourceAgent.createOperationCopy(operation);
