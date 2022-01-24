@@ -5,6 +5,7 @@ import jade.domain.FIPAException;
 import jade.domain.FIPAAgentManagement.DFAgentDescription;
 import jade.domain.FIPAAgentManagement.ServiceDescription;
 import support_classes.Resource_Extension;
+import support_classes.Run_Configuration;
 
 import java.sql.Connection;
 import java.sql.DriverManager;
@@ -21,8 +22,8 @@ import java.util.TimeZone;
 import DatabaseConnection.ReceiveDatabaseQueryRequestBehaviour;
 import agentPro.onto.AllocatedWorkingStep;
 import agentPro.onto.Location;
-import agentPro.onto.Resource;
 import agentPro.onto.WorkPlan;
+import support_classes.DatabaseValues;
 import support_classes.GeneralFunctions;
 
 
@@ -107,7 +108,7 @@ public class DatabaseConnectorAgent extends _Agent_Template{
 				
 				//String query = "Select * from "+this.nameOfProductionPlan+" where "+this.columnNameID+" = "+order_id;
 				//01.02.19 Orders sollen in der Reihenfolge eingetragen werden, wie sie kommen
-				addToFlexsimLayoutTable(stmt, order_id, workplan, this.tableNameProductionPlan);
+				addToFlexsimLayoutTable(stmt, order_id, workplan, DatabaseValues.tableNameProductionPlan);
 				
 				//createRowEntries(rs, workplan, order_id);
 				//rs.updateRow();   //Einfügen der Zeile in die Datenbank
@@ -186,9 +187,9 @@ public class DatabaseConnectorAgent extends _Agent_Template{
 				 	       rs2.updateTimestamp(columnNameOfPlanEnd, new java.sql.Timestamp(Long.parseLong(allWorkingStep.getHasTimeslot().getEndDate())));
 				 	       
 				 	       //simulation times
-				 	       	double hours_sim_time_start_soll = (double) (Long.parseLong(allWorkingStep.getHasTimeslot().getStartDate()) - this.start_simulation_agentpto) / (1000*60);
+				 	       	double hours_sim_time_start_soll = (double) (Long.parseLong(allWorkingStep.getHasTimeslot().getStartDate()) - Run_Configuration.start_simulation_agentpto) / (1000*60*60);
 				    		double hours_sim_time_start_soll_rounded = GeneralFunctions.round(hours_sim_time_start_soll,4);
-				    		double hours_sim_time_end_soll = (double) (Long.parseLong(allWorkingStep.getHasTimeslot().getEndDate()) - this.start_simulation_agentpto) / (1000*60);							    		
+				    		double hours_sim_time_end_soll = (double) (Long.parseLong(allWorkingStep.getHasTimeslot().getEndDate()) - Run_Configuration.start_simulation_agentpto) / (1000*60*60);							    		
 				    		double hours_sim_time_end_soll_rounded = GeneralFunctions.round(hours_sim_time_end_soll,4);		
 				    		
 				    		rs2.updateDouble(columnNameStartSimulation, hours_sim_time_start_soll_rounded);	
@@ -223,12 +224,17 @@ public class DatabaseConnectorAgent extends _Agent_Template{
 				        rs.updateInt(columnNameOfResource_ID, allWorkingStep.getHasResource().getID_Number());		        
 				        //rs.updateDate(columnNameOfPlanStart, new java.sql.Date(Long.parseLong(allWorkingStep.getHasTimeslot().getStartDate())));	        
 				        //rs.updateDate(columnNameOfPlanEnd, new java.sql.Date(Long.parseLong(allWorkingStep.getHasTimeslot().getEndDate())));	
-				        rs.updateTimestamp(columnNameOfPlanStart, new java.sql.Timestamp(Long.parseLong(allWorkingStep.getHasTimeslot().getStartDate())));
-				        rs.updateTimestamp(columnNameOfPlanEnd, new java.sql.Timestamp(Long.parseLong(allWorkingStep.getHasTimeslot().getEndDate())));
+				        java.sql.Timestamp planstart = new java.sql.Timestamp(Long.parseLong(allWorkingStep.getHasTimeslot().getStartDate()));
+				        planstart.toLocalDateTime().toLocalDate();
+				        java.sql.Timestamp planend = new java.sql.Timestamp(Long.parseLong(allWorkingStep.getHasTimeslot().getStartDate()));
+				        planend.toLocalDateTime().toLocalDate();
+				        
+				        rs.updateTimestamp(columnNameOfPlanStart, planstart);
+				        rs.updateTimestamp(columnNameOfPlanEnd, planend);
 				 	       //simulation times
-			 	       	double hours_sim_time_start_soll = (double) (Long.parseLong(allWorkingStep.getHasTimeslot().getStartDate()) - this.start_simulation_agentpto) / (1000*60);
+			 	       	double hours_sim_time_start_soll = (double) (Long.parseLong(allWorkingStep.getHasTimeslot().getStartDate()) - Run_Configuration.start_simulation_agentpto) / (1000*60);
 			    		double hours_sim_time_start_soll_rounded = GeneralFunctions.round(hours_sim_time_start_soll,4);
-			    		double hours_sim_time_end_soll = (double) (Long.parseLong(allWorkingStep.getHasTimeslot().getEndDate()) - this.start_simulation_agentpto) / (1000*60);							    		
+			    		double hours_sim_time_end_soll = (double) (Long.parseLong(allWorkingStep.getHasTimeslot().getEndDate()) - Run_Configuration.start_simulation_agentpto) / (1000*60);							    		
 			    		double hours_sim_time_end_soll_rounded = GeneralFunctions.round(hours_sim_time_end_soll,4);		
 			    		
 			    		rs.updateDouble(columnNameStartSimulation, hours_sim_time_start_soll_rounded);	
@@ -259,6 +265,9 @@ public class DatabaseConnectorAgent extends _Agent_Template{
 	}
 	
 	private String replaceName(String name_operation, int id, String res_name) {
+		if(name_operation.contains("maintenance")) {
+			return name_operation;
+		}
 		if(res_name.contains("Transport")) {
 			String [] split = name_operation.split("_", 2); //2 parts
 			String res_start_transport = "";
@@ -281,7 +290,7 @@ public class DatabaseConnectorAgent extends _Agent_Template{
 	}
 
 	private void addToFlexsimLayoutTable(Statement stmt, int order_id, WorkPlan workplan, String tableNameProductionPlan) throws SQLException {
-		String query = "Select * from "+tableNameProductionPlan+" where "+this.columnNameID+" = "+order_id;
+		String query = "Select * from "+tableNameProductionPlan+" where "+DatabaseValues.columnNameID+" = "+order_id;
 		ResultSet rs2 = stmt.executeQuery("select * from "+tableNameProductionPlan);
 		rs2.last();
 		int row_count = rs2.getRow();
@@ -311,13 +320,13 @@ public class DatabaseConnectorAgent extends _Agent_Template{
 	    while(ite.hasNext()) {
 	    	AllocatedWorkingStep allWorkingStep = ite.next();
 	    	if(!allWorkingStep.getIsFinished() && !allWorkingStep.getIsErrorStep() && allWorkingStep.getHasOperation().getType().equals("production")) {
-	    		String c_StartSoll = this.columnNameStartSoll + i2;
-				String c_EndeSoll = this.columnNameEndeSoll + i2;
+	    		String c_StartSoll = DatabaseValues.columnNameStartSoll + i2;
+				String c_EndeSoll = DatabaseValues.columnNameEndeSoll + i2;
 			//falsch	String c_Bezeichnung = allWorkingStep.getHasResource().getName();
-	    		double hours_sim_time_start_soll = (double) (Long.parseLong(allWorkingStep.getHasTimeslot().getStartDate()) - this.start_simulation) / (1000*60*60);
+	    		double hours_sim_time_start_soll = (double) (Long.parseLong(allWorkingStep.getHasTimeslot().getStartDate()) - Run_Configuration.start_simulation) / (1000*60*60);
 	    		double hours_sim_time_start_soll_rounded = GeneralFunctions.round(hours_sim_time_start_soll,4);
-	    		System.out.println("DEBUG_____DATABASECONNECTOR______ start date ms "+allWorkingStep.getHasTimeslot().getStartDate() + " minus start sim "+this.start_simulation+" div by 1000*60*60 = "+hours_sim_time_start_soll+" rounded 	"+hours_sim_time_start_soll_rounded);
-	    		double hours_sim_time_end_soll = (double) (Long.parseLong(allWorkingStep.getHasTimeslot().getEndDate()) - this.start_simulation) / (1000*60*60);							    		
+	    		System.out.println("DEBUG_____DATABASECONNECTOR______ start date ms "+allWorkingStep.getHasTimeslot().getStartDate() + " minus start sim "+Run_Configuration.start_simulation+" div by 1000*60*60 = "+hours_sim_time_start_soll+" rounded 	"+hours_sim_time_start_soll_rounded);
+	    		double hours_sim_time_end_soll = (double) (Long.parseLong(allWorkingStep.getHasTimeslot().getEndDate()) - Run_Configuration.start_simulation) / (1000*60*60);							    		
 	    		double hours_sim_time_end_soll_rounded = GeneralFunctions.round(hours_sim_time_end_soll,4);
 	    		//int res_id = rs2.getInt(c_Bezeichnung);
 	    		int number_of_column_for_production_step = 2+7*(i2-1);
@@ -332,16 +341,16 @@ public class DatabaseConnectorAgent extends _Agent_Template{
 	    		rs2.updateInt(72, order_id); //72 = letzte Spalte
 	            i2++;
 	    	}else if (allWorkingStep.getIsErrorStep()){
-	    		double hours_sim_time_start_soll = (double) (Long.parseLong(allWorkingStep.getHasTimeslot().getStartDate()) - this.start_simulation) / (1000*60*60);
+	    		double hours_sim_time_start_soll = (double) (Long.parseLong(allWorkingStep.getHasTimeslot().getStartDate()) - Run_Configuration.start_simulation) / (1000*60*60);
 	    		double hours_sim_time_start_soll_rounded = GeneralFunctions.round(hours_sim_time_start_soll,4);
-	    		System.out.println("DEBUG_____DATABASECONNECTOR______ start date ms "+allWorkingStep.getHasTimeslot().getStartDate() + " minus start sim "+this.start_simulation+" div by 1000*60*60 = "+hours_sim_time_start_soll);
-	    		double hours_sim_time_end_soll = (double) (Long.parseLong(allWorkingStep.getHasTimeslot().getEndDate()) - this.start_simulation) / (1000*60*60);							    		
+	    		System.out.println("DEBUG_____DATABASECONNECTOR______ start date ms "+allWorkingStep.getHasTimeslot().getStartDate() + " minus start sim "+Run_Configuration.start_simulation+" div by 1000*60*60 = "+hours_sim_time_start_soll);
+	    		double hours_sim_time_end_soll = (double) (Long.parseLong(allWorkingStep.getHasTimeslot().getEndDate()) - Run_Configuration.start_simulation) / (1000*60*60);							    		
 	    		double hours_sim_time_end_soll_rounded = GeneralFunctions.round(hours_sim_time_end_soll,4);
 	    		//int res_id = rs2.getInt(c_Bezeichnung);
 	    		int number_of_column_for_production_step = 2+7*(10-1);	//=65
 	    		
-	    		String c_StartSoll = this.columnNameStartSoll + "10";
-				String c_EndeSoll = this.columnNameEndeSoll + "10";
+	    		String c_StartSoll = DatabaseValues.columnNameStartSoll + "10";
+				String c_EndeSoll = DatabaseValues.columnNameEndeSoll + "10";
 	    		rs2.updateDouble(c_StartSoll, hours_sim_time_start_soll_rounded);	
 	    		rs2.updateDouble(c_EndeSoll, hours_sim_time_end_soll_rounded);		
 	    		rs2.updateInt(number_of_column_for_production_step, allWorkingStep.getHasResource().getID_Number());
@@ -349,13 +358,13 @@ public class DatabaseConnectorAgent extends _Agent_Template{
 	    	}else {
 	    		System.out.println("Test "+allWorkingStep.getHasOperation().getName());
 	    		if(ite.hasNext() == false) {	//03.12.2018 the last element should be the transport to warehouse --> I want to add that too
-		    		String c_StartSoll = this.columnNameStartSoll + i2;
-					String c_EndeSoll = this.columnNameEndeSoll + i2;
+		    		String c_StartSoll = DatabaseValues.columnNameStartSoll + i2;
+					String c_EndeSoll = DatabaseValues.columnNameEndeSoll + i2;
 				//falsch	String c_Bezeichnung = allWorkingStep.getHasResource().getName();
-		    		double hours_sim_time_start_soll = (double) (Long.parseLong(allWorkingStep.getHasTimeslot().getStartDate()) - this.start_simulation) / (1000*60*60);
+		    		double hours_sim_time_start_soll = (double) (Long.parseLong(allWorkingStep.getHasTimeslot().getStartDate()) - Run_Configuration.start_simulation) / (1000*60*60);
 		    		double hours_sim_time_start_soll_rounded = GeneralFunctions.round(hours_sim_time_start_soll,4);
-		    		System.out.println("DEBUG_____DATABASECONNECTOR___LASTTRANSPORT___ start date ms "+allWorkingStep.getHasTimeslot().getStartDate() + " minus start sim "+this.start_simulation+" div by 1000*60*60 = "+hours_sim_time_start_soll);
-		    		double hours_sim_time_end_soll = (double) (Long.parseLong(allWorkingStep.getHasTimeslot().getEndDate()) - this.start_simulation) / (1000*60*60);							    		
+		    		System.out.println("DEBUG_____DATABASECONNECTOR___LASTTRANSPORT___ start date ms "+allWorkingStep.getHasTimeslot().getStartDate() + " minus start sim "+Run_Configuration.start_simulation+" div by 1000*60*60 = "+hours_sim_time_start_soll);
+		    		double hours_sim_time_end_soll = (double) (Long.parseLong(allWorkingStep.getHasTimeslot().getEndDate()) - Run_Configuration.start_simulation) / (1000*60*60);							    		
 		    		double hours_sim_time_end_soll_rounded = GeneralFunctions.round(hours_sim_time_end_soll,4);
 		    		//int res_id = rs2.getInt(c_Bezeichnung);
 		    		int number_of_column_for_production_step = 2+7*(i2-1);
@@ -420,8 +429,8 @@ public class DatabaseConnectorAgent extends _Agent_Template{
 	        //Statement stmt = this.getConnection().createStatement();
 	        ResultSet rs = null;
 	      
-			String query_resource = "select * from "+tableNameResource;
-
+			String query_resource = "select * from "+DatabaseValues.tableNameResource;
+				
 
 	        
 		rs = stmt.executeQuery(query_resource); 

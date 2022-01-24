@@ -89,6 +89,9 @@ public class Testing_mySQL_Dates {
 	private static HashMap<Integer, Resource_Extension> resource_hashmap = new HashMap();
 
 	public static void main(String[] args) {
+		Float test = -0.4333F;
+		long test2 = test.longValue();
+		System.out.println(test2);
 		
 		final Calendar calendar = Calendar.getInstance(TimeZone.getTimeZone("Germany/Hamburg"));
         calendar.setTimeInMillis(1551400337821L);

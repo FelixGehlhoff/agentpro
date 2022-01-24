@@ -20,8 +20,10 @@ import java.util.concurrent.ExecutionException;
 import agentPro.onto.Accept_Proposal;
 import agentPro.onto.AllocatedWorkingStep;
 import agentPro.onto.CFP;
+import agentPro.onto.Capability;
 import agentPro.onto.DetailedOperationDescription;
 import agentPro.onto.Location;
+import agentPro.onto.Material;
 import agentPro.onto.Operation;
 import agentPro.onto.ProductionResource;
 import agentPro.onto.Production_Operation;
@@ -46,6 +48,7 @@ import jade.core.behaviours.ThreadedBehaviourFactory;
 import jade.lang.acl.ACLMessage;
 //import agentPro_Prototype_ResourceAgent.ReceiveRejectProposalBehaviour;
 import support_classes.Interval;
+import support_classes.Run_Configuration;
 import support_classes.Storage_element_slot;
 import webservice.ManufacturingOrder;
 import webservice.ManufacturingOrderList;
@@ -75,31 +78,14 @@ public abstract class ResourceAgent extends _Agent_Template{
 	private ArrayList <Interval> free_interval_array = new ArrayList <Interval>();
 	
 	//private long time_until_end = 1000*60*60*24*10; //10 Tage 
-	public long reply_by_time = 350; //ms KRAN_WS
+	//public long reply_by_time = 350; //ms KRAN_WS
 	public long reply_by_time_shared_resources = 150;
 	public int numberOfResourcesPossibleForCalculationOfSharedResourceProposal = 0;
 	//protected Resource representedResource;
-	//Datenbankverbindung
-		
-		protected String nameOfResource_Definitions_Table = "Resource_Definitions";
-		protected String columnNameOfResource_Name = "Resource_Name";
-		protected String columnNameOfResource_Type = "Resource_Type";
-		protected String columnNameOfResource_Detailed_Type = "Resource_Detailed_Type";
-		protected String columnNameOfCapability = "Capability";
-		protected String columnNameOfLocationX = "LocationX";
-		protected String columnNameOfLocationY = "LocationY";
-		protected String columnNameOfAvg_Transportation_Speed = "Avg_Transportation_Speed";
-		protected String columnNameOfAvg_PickUp_Time = "Avg_PickUp_Time";
-		
-		protected String nameOfCapability_Operations_Mapping_Table = _Agent_Template.prefix_schema+".capability_operations_mapping";
-		protected String columnNameOfID = "ID";
-		protected String columnNameOfCapability_Name = "Capability_Name";
-		protected String columnNameOfEnables_Operation = "Enables_Operation";
-		protected String columnNameOfOperation_Number = "Operation_Number";
-		protected String columnNameOfTimeConsumption = "TimeConsumption";
-		
+
 		public ThreadedBehaviourFactory tbf = new ThreadedBehaviourFactory();
 		public Resource representedResource;
+		protected ArrayList<Operation> enabled_operations = new ArrayList<Operation>();
 
 	protected void setup (){
 		super.setup();
@@ -139,15 +125,16 @@ public abstract class ResourceAgent extends _Agent_Template{
 				free_interval_array.add(i);
 			}
 		}else {
-			free_starting_interval = new Interval (1556632800000L, 1556632800000L+time_until_end, false); //30.04. 16 Uhr = start
+			free_starting_interval = new Interval (start_free_interval_resources, start_free_interval_resources+time_until_end, false); //30.04. 16 Uhr = start
 			//System.out.println("Starting interval = "+_Agent_Template.SimpleDateFormat.format(1556632800000L)+" ; "+_Agent_Template.SimpleDateFormat.format(1556632800000L+time_until_end));
 			free_interval_array.add(free_starting_interval);
 			//project
-			Interval free_starting_interval2 = new Interval (System.currentTimeMillis(), System.currentTimeMillis()+time_until_end*24, false); //30.04. 16 Uhr = start
+			//Interval free_starting_interval2 = new Interval (System.currentTimeMillis(), System.currentTimeMillis()+time_until_end*24, false); //30.04. 16 Uhr = start
 			
-			free_interval_array.add(free_starting_interval2);
+			//free_interval_array.add(free_starting_interval2);
 		}
-		
+		setStartState();
+		receiveWorkPlanValuesFromDB(representedResource);
 		
 		logLinePrefix = getLocalName();
 	
@@ -196,10 +183,11 @@ public abstract class ResourceAgent extends _Agent_Template{
 	        			wp.setID_String("machine");
 	        		op.setAppliedOn(wp);
 	        		allWS.setHasOperation(op);
-	        		allWS.setHasResource(this.getRepresentedResource());
-	        		
+	        		allWS.setHasResource(this.getRepresentedResource());	        	
+	     		
 	        		this.getWorkplan().addConsistsOfAllocatedWorkingSteps(allWS);
 	        		Interval timeslot_interval_busy = new Interval (rs.getTimestamp(columnNameStartSoll).getTime(), rs.getTimestamp(columnNameEndeSoll).getTime(), false);
+	        		timeslot_interval_busy.setId("Maintenance");
 	        		Boolean booking_successful = adjustIntervals(timeslot_interval_busy, 0, null);
 	        		if(booking_successful) {
 	        			getBusyInterval_array().add(timeslot_interval_busy);	
@@ -221,6 +209,95 @@ public abstract class ResourceAgent extends _Agent_Template{
 	protected abstract void setStartState();
 	protected abstract void receiveValuesFromDB(Resource r);
 
+	public Boolean bookIntoSchedule(Proposal proposal) {	
+		Boolean booking_successful = false;
+		//receive the right interval from the list of intervals
+		long long_time_increment_or_decrement_to_be_added_for_setup_of_next_task = 0;
+		Timeslot timeslot_proposed = new Timeslot();
+		String type = "";
+		Storage_element_slot right_slot = null;
+		for(Storage_element_slot slot : this.getReceiveCFPBehav().getProposed_slots()) {
+			if(slot.getID().contentEquals(((AllocatedWorkingStep)proposal.getConsistsOfAllocatedWorkingSteps().get(0)).getHasOperation().getName())) {
+				//if(((AllocatedWorkingStep)proposal.getConsistsOfAllocatedWorkingSteps().get(0)).getHasOperation().getName().contentEquals("20.0;5.0_Rollformen")){
+				//}
+				//currntly nothing happens for transport resources
+				considerPickup((AllocatedWorkingStep)proposal.getConsistsOfAllocatedWorkingSteps().get(0));	//prod. res adds the pick up at the beginning
+				if(slot.checkNewTimeslot((AllocatedWorkingStep)proposal.getConsistsOfAllocatedWorkingSteps().get(0))) {
+					timeslot_proposed.setStartDate(((AllocatedWorkingStep)proposal.getConsistsOfAllocatedWorkingSteps().get(0)).getHasTimeslot().getStartDate());
+					timeslot_proposed.setEndDate(((AllocatedWorkingStep)proposal.getConsistsOfAllocatedWorkingSteps().get(0)).getHasTimeslot().getEndDate());
+					timeslot_proposed.setLength(((AllocatedWorkingStep)proposal.getConsistsOfAllocatedWorkingSteps().get(0)).getHasTimeslot().getLength());
+					//timeslot_to_add.setStartDate(Long.toString(Long.parseLong(timeslot_to_add.getStartDate())-(long)slot.getDuration_to_get_to_workpiece()));
+					//slot_to_add = slot.getTimeslot();							//use the timeslot from the list (includes setup etc.
+					long_time_increment_or_decrement_to_be_added_for_setup_of_next_task = slot.getTime_increment();
+					type = slot.getType();
+									
+					//op.setName(((AllocatedWorkingStep)proposal.getConsistsOfAllocatedWorkingSteps().get(0)).getHasOperation().getName());
+					//op.setBuffer_after_operation_end(((AllocatedWorkingStep)proposal.getConsistsOfAllocatedWorkingSteps().get(0)).getHasOperation().getBuffer_after_operation_end());
+					//op.setBuffer_before_operation_start(((AllocatedWorkingStep)proposal.getConsistsOfAllocatedWorkingSteps().get(0)).getHasOperation().getBuffer_before_operation_start());
+					//op.setType(((AllocatedWorkingStep)proposal.getConsistsOfAllocatedWorkingSteps().get(0)).getHasOperation().getType());
+					
+					right_slot = new Storage_element_slot(((AllocatedWorkingStep)proposal.getConsistsOfAllocatedWorkingSteps().get(0)).getHasOperation(), timeslot_proposed, slot.getDuration_to_get_to_workpiece(), slot.getTime_increment(), ((AllocatedWorkingStep)proposal.getConsistsOfAllocatedWorkingSteps().get(0)).getID_String(), ((AllocatedWorkingStep)proposal.getConsistsOfAllocatedWorkingSteps().get(0)).getQuantity(), ((AllocatedWorkingStep)proposal.getConsistsOfAllocatedWorkingSteps().get(0)).getHasResource());
+					//((AllocatedWorkingStep) right_slot.getProposal().getConsistsOfAllocatedWorkingSteps().get(0)).setHasTimeslot(timeslot_to_add);
+					break;
+				}else {
+					System.out.println(logLinePrefix  + "______________ERROR_________step has wrong timeslot!!"); //TODO better error handling
+					return false;
+				}
+				
+
+			}
+		}
+		
+		//long long_time_increment_or_decrement_to_be_added_for_setup_of_next_task = (long) (time_increment_or_decrement_to_be_added_for_setup_of_next_task*60*1000);
+		long startdate_busy_interval_new = Long.parseLong(timeslot_proposed.getStartDate())-(long)right_slot.getDuration_to_get_to_workpiece();
+		//((AllocatedWorkingStep)right_slot.getProposal().getConsistsOfAllocatedWorkingSteps().get(0)).getHasTimeslot().setStartDate(Long.toString(Long.parseLong(timeslot_proposed.getStartDate())-(long)right_slot.getDuration_to_get_to_workpiece()));
+		long enddate_busy_interval_new = Long.parseLong(timeslot_proposed.getEndDate());
+		Timeslot timeslot_to_add = new Timeslot();
+		timeslot_to_add.setStartDate(Long.toString(Long.parseLong(timeslot_proposed.getStartDate())-(long)right_slot.getDuration_to_get_to_workpiece()));
+		timeslot_to_add.setEndDate(timeslot_proposed.getEndDate());
+		timeslot_to_add.setLength(enddate_busy_interval_new-startdate_busy_interval_new);
+		
+		
+		Location new_endLocation = null;
+		if(type.equals("transport")) {
+			//new_endLocation = (Location) ((Transport_Operation)((AllocatedWorkingStep)right_slot.getProposal().getConsistsOfAllocatedWorkingSteps().get(0)).getHasOperation()).getEndState();				
+			new_endLocation = (Location) right_slot.getEndState();				
+			
+		}
+		
+		
+		Interval timeslot_interval_busy = new Interval(startdate_busy_interval_new, enddate_busy_interval_new, false);
+		timeslot_interval_busy.setId(proposal.getID_String());
+		//System.out.println("DEBUG_                  REceiveCFPBookintoSchedule  allocWorkingstep.getHasTimeslot().getStartDate() "+allocWorkingstep.getHasTimeslot().getStartDate()+" allocWorkingstep.getHasTimeslot().getEndDate() "+allocWorkingstep.getHasTimeslot().getEndDate()+" Long.parseLong(allocWorkingstep.getHasTimeslot().getStartDate()  "+Long.parseLong(allocWorkingstep.getHasTimeslot().getStartDate())+" Long.parseLong(allocWorkingstep.getHasTimeslot().getEndDate())  "+Long.parseLong(allocWorkingstep.getHasTimeslot().getEndDate())+" time_increment_or_decrement_to_be_added_for_setup_of_next_task*60*1000+ "+(long) time_increment_or_decrement_to_be_added_for_setup_of_next_task*60*1000+" timeslot_interval_busy "+timeslot_interval_busy.toString());
+		
+		
+		
+		booking_successful = adjustIntervals(timeslot_interval_busy, long_time_increment_or_decrement_to_be_added_for_setup_of_next_task, new_endLocation);
+
+		if(booking_successful) {
+			getBusyInterval_array().add(timeslot_interval_busy);	
+			sortArrayListIntervalsEarliestFirst(getBusyInterval_array(), "start");
+			AllocatedWorkingStep allWS = new AllocatedWorkingStep();
+			allWS.setHasOperation(right_slot.getOperation());
+			allWS.setHasTimeslot(timeslot_to_add);
+			allWS.setID_String(right_slot.getAllWS_id());
+			//allWS.setIsErrorStep(value);
+			allWS.setQuantity(right_slot.getAllWS_quantity());
+			allWS.setHasResource(right_slot.getRes());
+			getWorkplan().addConsistsOfAllocatedWorkingSteps(allWS);
+			
+			
+			//getWorkplan().addConsistsOfAllocatedWorkingSteps((AllocatedWorkingStep) right_slot.getProposal().getConsistsOfAllocatedWorkingSteps().get(0));
+			
+			if(getWorkplan().getConsistsOfAllocatedWorkingSteps().size()>1) {
+				this.setWorkplan(_Agent_Template.sortWorkplanChronologically(this.getWorkplan()));
+			}
+		}else {
+    	System.out.println("DEBUG________RESOURCE AGENT "+this.getLocalName()+"__BOOKING UNSUCCESFULL");
+		}
+	return booking_successful;	
+	}
+	
 	public Boolean bookIntoSchedule(Accept_Proposal accept_proposal) {			
 		 //add interval (busy) and new resulting free intervals	 *  
 		Boolean booking_successful = false;
@@ -228,7 +305,10 @@ public abstract class ResourceAgent extends _Agent_Template{
 		Iterator<Proposal> it = accept_proposal.getHasProposal().iterator();	  
 	    while(it.hasNext()) {	
 			Proposal proposal = it.next();
+			booking_successful = bookIntoSchedule(proposal);
 			
+	    }
+			/*
 			//receive the right interval from the list of intervals
 			long long_time_increment_or_decrement_to_be_added_for_setup_of_next_task = 0;
 			Timeslot timeslot_to_add = new Timeslot();
@@ -292,8 +372,9 @@ public abstract class ResourceAgent extends _Agent_Template{
 		//printoutFreeIntervals();
 		//printoutBusyIntervals();
 	    if(!booking_successful) {
-	    	System.out.println("DEBUG");
+	    	System.out.println("DEBUG________RESOURCE AGENT__BOOKING UNSUCCESFULL");
 	    }
+	    */
 		return booking_successful;		
 		//create GANTT chart
 		/*
@@ -306,6 +387,30 @@ public abstract class ResourceAgent extends _Agent_Template{
 	
 	protected abstract void considerPickup(AllocatedWorkingStep allocatedWorkingStep);
 
+	/*
+	protected void adjustBusyInterval () {
+		//determine old start
+		if(j+1<getBusyInterval_array().size()) {
+			long old_start = getBusyInterval_array().get(j+1).lowerBound();
+		}else {
+			long old_start = getBusyInterval_array().get(j).lowerBound();
+		}
+		//create new busy interfal_after
+		Interval new_busy_interval_AFTER = new Interval(old_start - long_time_increment_or_decrement_to_be_added_for_setup_of_next_task, getBusyInterval_array().get(j+1).upperBound());
+		//set id
+		new_busy_interval_AFTER.setId(getBusyInterval_array().get(j+1).getId());
+		//remove old busy intervall after and add new
+		if(j+1<getBusyInterval_array().size()) {
+			getBusyInterval_array().remove(j+1);
+			getBusyInterval_array().add(j+1, new_busy_interval_AFTER);
+		}else {
+			getBusyInterval_array().remove(j);
+			getBusyInterval_array().add(j, new_busy_interval_AFTER);
+		}
+		//adjust allWS
+		setStartOfAllocatedWorkingStepThatStartsAtTimeXToYandChangeStartLocation(old_start, long_time_increment_or_decrement_to_be_added_for_setup_of_next_task, new_endLocation);
+		
+	}*/
 
 	protected boolean adjustIntervals(Interval timeslot_interval_busy, long long_time_increment_or_decrement_to_be_added_for_setup_of_next_task, Location new_endLocation) {
 		Boolean booking_successful = false;
@@ -337,7 +442,7 @@ public abstract class ResourceAgent extends _Agent_Template{
 									if(getBusyInterval_array().get(j).contains(timeslot_interval_busy.upperBound())) {	//new 12.02.19
 										busy_interval_after_contains_enddate = true;
 									}
-									
+																								
 									long old_start = getBusyInterval_array().get(j+1).lowerBound();
 									Interval new_busy_interval_AFTER = new Interval(old_start - long_time_increment_or_decrement_to_be_added_for_setup_of_next_task, getBusyInterval_array().get(j+1).upperBound());
 									new_busy_interval_AFTER.setId(getBusyInterval_array().get(j+1).getId());
@@ -412,7 +517,9 @@ public abstract class ResourceAgent extends _Agent_Template{
 			
 		}
 		if(!booking_successful) {
-			System.out.println("DEBUG__");
+			System.out.println("DEBUG__ in adjust intervals ResourceAgent line 491 "+this.getLocalName()+" timeslot "+timeslot_interval_busy);
+			this.printoutBusyIntervals();
+			this.printoutFreeIntervals();
 		}
 		return booking_successful;
 	}
@@ -427,7 +534,7 @@ public abstract class ResourceAgent extends _Agent_Template{
 					a.getHasOperation().setSet_up_time(a.getHasOperation().getSet_up_time()+(float)time_increment/(60*1000));
 					a.getHasTimeslot().setStartDate(String.valueOf(new_start_date));	    		
 		    		if(new_endLocation != null) {
-		    			((Transport_Operation)a.getHasOperation()).setStartState(new_endLocation);
+		    			a.getHasOperation().setStartState(new_endLocation);
 		    		}
 		    		
 		    		
@@ -447,8 +554,7 @@ public abstract class ResourceAgent extends _Agent_Template{
 	}
 	public abstract boolean feasibilityCheckAndDetermineDurationParameters(Operation operation);
 	
-	
-	protected float calculateTimeIncrement(Operation op, int counter_free_interval_i, DetailedOperationDescription operation_description) {
+	protected float calculateTimeIncrement(Operation op, long start_date, DetailedOperationDescription operation_description) {
 		float time_increment_or_decrement_to_be_added = 0;
 
 		//check if there is a task that starts at the end of the free interval
@@ -457,7 +563,8 @@ public abstract class ResourceAgent extends _Agent_Template{
 			Iterator<AllocatedWorkingStep> it = getWorkplan().getConsistsOfAllocatedWorkingSteps().iterator();	  
 		    while(it.hasNext()) {		//checks for every allWS in Workplan
 		    	AllocatedWorkingStep a = it.next();	  
-		    	if(Long.parseLong(a.getHasTimeslot().getStartDate()) == getFree_interval_array().get(counter_free_interval_i).upperBound()) {
+		    	//long end_of_free_interval = getFree_interval_array().get(counter_free_interval_i).upperBound();
+		    	if(Long.parseLong(a.getHasTimeslot().getStartDate()) == start_date) {
 		    		//if yes
 
 		    		State start_next_task_needed = a.getHasOperation().getStartStateNeeded();
@@ -467,7 +574,7 @@ public abstract class ResourceAgent extends _Agent_Template{
 		    		State end_new = op.getEndState();
 		    		//Location end_new = (Location) transport_op_to_destination.getEndState();
 		    		
-		    		time_increment_or_decrement_to_be_added = calculateTimeBetweenStates(start_next_task_needed, end_new, counter_free_interval_i);
+		    		time_increment_or_decrement_to_be_added = calculateTimeBetweenStates(start_next_task_needed, end_new, start_date);
 		    				    		
 		    		if(time_increment_or_decrement_to_be_added != 0) {
 		    			//addPointToList(operation_description, end_new.getCoordX(), getFree_interval_array().get(i).upperBound()-(long)(time_increment_or_decrement_to_be_added*60*1000), "Start:set_up");		    			    					    		
@@ -475,14 +582,22 @@ public abstract class ResourceAgent extends _Agent_Template{
 		    		break;
 		    	}
 		    }	  
-		}		
-		return time_increment_or_decrement_to_be_added;
+		}	
+		
+		return time_increment_or_decrement_to_be_added;	
+	}
+	
+	protected float calculateTimeIncrement(Operation op, int counter_free_interval_i, DetailedOperationDescription operation_description) {
+		long start_date = getFree_interval_array().get(counter_free_interval_i).upperBound();
+		
+			
+		return calculateTimeIncrement(op, start_date, operation_description);
 	}
 
 	
-	public float calculateTimeBetweenStates(State start_next_task, State end_new, int busy_interval_i) {
-		return 0;		
-	}
+	public abstract float calculateTimeBetweenStates(State start_next_task, State end_new, long end_of_free_interval);
+			
+	
 
 	protected float getDurationOfNextSetupStartingAt(long upperBound) {
 		float duration_setup = 0;	
@@ -503,6 +618,7 @@ public abstract class ResourceAgent extends _Agent_Template{
 	//checks the state of the following allocated working step
 	public State getStateAtTime(long lowerBound_freeInterval) {
 		State state = new State();
+				
 		Boolean allocatedWorkingStepWithGreaterTimeFound = false;
 		if(getWorkplan().getConsistsOfAllocatedWorkingSteps().size()>0) {		
 			@SuppressWarnings("unchecked")		
@@ -510,7 +626,7 @@ public abstract class ResourceAgent extends _Agent_Template{
 		    while(i.hasNext()) {		//checks for every allWS in Workplan
 		    	AllocatedWorkingStep a = i.next();	  
 		    	if(Long.parseLong(a.getHasTimeslot().getStartDate()) > lowerBound_freeInterval) {
-		    		state = a.getHasOperation().getStartState();
+		    		state = a.getHasOperation().getStartState();		    
 		    		allocatedWorkingStepWithGreaterTimeFound = true;
 		    		break;
 		    	}
@@ -525,10 +641,67 @@ public abstract class ResourceAgent extends _Agent_Template{
 			state = getRepresentedResource().getStartState(); 
 			//System.out.println(this.getLocalName()+"  DEBUG___________First step____________"+state.getClass().getSimpleName());
 		}
+		
 		return state;
 	
 	}
 	
+	public long getPreviousUpperBoundOfBusyInterval(long lowerBound_newBusyInterval) {
+		long endOfPreviousInterval = 0;	
+		
+		Boolean allocatedWorkingStepWithSmallerTimeFound = false;
+		if(getWorkplan().getConsistsOfAllocatedWorkingSteps().size()>0) {		
+			@SuppressWarnings("unchecked")		
+			Iterator<AllocatedWorkingStep> i = getWorkplan().getConsistsOfAllocatedWorkingSteps().iterator();	  
+		    while(i.hasNext()) {		//checks for every allWS in Workplan
+		    	AllocatedWorkingStep a = i.next();	  
+		    	if(Long.parseLong(a.getHasTimeslot().getEndDate()) < lowerBound_newBusyInterval) {
+		    		endOfPreviousInterval = Long.parseLong(a.getHasTimeslot().getEndDate());
+		    		allocatedWorkingStepWithSmallerTimeFound = true;
+		    		//break; //needs to run through all until the closest is found
+		    	}
+		    }
+		   
+		    if(!allocatedWorkingStepWithSmallerTimeFound) {	//the time is after the last allocated step
+		    	//take the end location of the last allocated step
+		    	endOfPreviousInterval = Run_Configuration.start_free_interval_resources;
+		    }
+		}else { //first step
+			endOfPreviousInterval = Run_Configuration.start_free_interval_resources;
+			//System.out.println(this.getLocalName()+"  DEBUG___________First step____________"+state.getClass().getSimpleName());
+		}
+		return endOfPreviousInterval;
+		
+	}
+	//checks the state of the following allocated working step
+	public long getNextLowerBoundOfBusyInterval(long upperBound_newBusyInterval) {
+		long startOfNextInterval = 0;	
+		
+		Boolean allocatedWorkingStepWithGreaterTimeFound = false;
+		if(getWorkplan().getConsistsOfAllocatedWorkingSteps().size()>0) {		
+			@SuppressWarnings("unchecked")		
+			Iterator<AllocatedWorkingStep> i = getWorkplan().getConsistsOfAllocatedWorkingSteps().iterator();	  
+		    while(i.hasNext()) {		//checks for every allWS in Workplan
+		    	AllocatedWorkingStep a = i.next();	  
+		    	if(Long.parseLong(a.getHasTimeslot().getStartDate()) > upperBound_newBusyInterval) {
+		    		startOfNextInterval = Long.parseLong(a.getHasTimeslot().getStartDate());
+		    		allocatedWorkingStepWithGreaterTimeFound = true;
+		    		break;
+		    	}
+		    }
+		   
+		    if(!allocatedWorkingStepWithGreaterTimeFound) {	//the time is after the last allocated step
+		    	//take the end location of the last allocated step
+		    	startOfNextInterval = Run_Configuration.start_simulation_agentpto+Run_Configuration.time_until_end;
+		    }
+		}else { //first step
+			startOfNextInterval = Run_Configuration.start_simulation_agentpto+Run_Configuration.time_until_end;
+			//System.out.println(this.getLocalName()+"  DEBUG___________First step____________"+state.getClass().getSimpleName());
+		}
+		
+		return startOfNextInterval;
+	
+	}
 	//public abstract Proposal checkScheduleDetermineTimeslotAndCreateProposal(long startdate_cfp, long enddate_cfp, Operation operation);
 	public abstract Proposal checkScheduleDetermineTimeslotAndCreateProposal(CFP cfp);
 	
@@ -642,12 +815,24 @@ public abstract class ResourceAgent extends _Agent_Template{
 		    	
 		    	//if operaiton name and workpiece ID are correct --> delete
 		    	if(op.getName().equals(allWS.getHasOperation().getName()) && name_Workpiece.equals(allWS.getHasOperation().getAppliedOn().getID_String())) {	//find out the position of the relevant step			    	
-		    		 //getWorkplan().getConsistsOfAllocatedWorkingSteps().remove(counter);
-		    		it_2.remove();		    		
+		    		 //getWorkplan().getConsistsOfAllocatedWorkingSteps().remove(counter);		
+
+		 		    Location start_state_old = (Location) allocWorkingstep.getHasOperation().getStartState(); //old start is the new start
+		    		it_2.remove();
+		    		if(it_2.hasNext()) {
+		    			AllocatedWorkingStep allWS_plus1 = it_2.next();
+			    		Location start_state_needed = (Location) allWS_plus1.getHasOperation().getStartStateNeeded();
+			    		Float time_increment = calculateTimeBetweenStates(start_state_old, start_state_needed, Long.parseLong(allWS_plus1.getHasTimeslot().getStartDate()));
+			    		
+			    		//Float time_increment = calculateTimeIncrement(op, Long.parseLong(allWS_plus1.getHasTimeslot().getStartDate()), null);
+			    		
+			    		setStartOfAllocatedWorkingStepThatStartsAtTimeXToYandChangeStartLocation(Long.parseLong(allWS_plus1.getHasTimeslot().getStartDate()), (long)(Math.round(time_increment*60*1000)), (Location) allWS.getHasOperation().getStartState());
+			    			
+		    		}
 		    		 //find the corresponding busy interval and delete it + add free interval
 		    		 for(int i = 0;i < getBusyInterval_array().size(); i++) {
 		    			
-		    			 if(getBusyInterval_array().get(i).getId().equals(allocWorkingstep.getID_String())) {
+		    			 if(getBusyInterval_array().get(i).equals(busy_interval)) {
 		    				// System.out.println(getLocalName()+" DEBUG________busy interval removed "+SimpleDateFormat.format(getBusyInterval_array().get(i).lowerBound())+" "+SimpleDateFormat.format(getBusyInterval_array().get(i).upperBound()));
 		    				getBusyInterval_array().remove(i);
 		    			 	getFree_interval_array().add(busy_interval); 
@@ -776,6 +961,7 @@ public abstract class ResourceAgent extends _Agent_Template{
 		receiver.setLocalName(msg.getSender().getLocalName());
 		refusal.addReceiver(receiver);
 		refusal.setConversationId(msg.getConversationId());
+		refusal.setInReplyTo(msg.getInReplyTo());
 		refusal.setLanguage(getCodec().getName());
 		refusal.setOntology(getOntology().getName());
 	//proposal.setReplyWith(String.valueOf(proposal_onto.getID_Number()));
@@ -838,7 +1024,11 @@ public abstract class ResourceAgent extends _Agent_Template{
 					sendProposal(proposal_onto, conversationID, sender_localName, i);			
 				}
 		}
-		
+		public void sendProposal(ArrayList<Proposal> proposals, String conversationID, String sender, Double i) {
+			ArrayList<String>list_sender = new ArrayList<String>();
+			list_sender.add(sender);
+			sendProposal(proposals, conversationID, list_sender, i);
+		}	
 	public void sendProposal(ArrayList<Proposal> proposals, String conversationID, ArrayList<String> sender, Double i) {
 		ACLMessage proposal = new ACLMessage(ACLMessage.PROPOSE);
 		for(String receiver_name : sender) {
@@ -875,9 +1065,9 @@ public abstract class ResourceAgent extends _Agent_Template{
 	//determine reply by time
 	long reply_by_date_long = 0;
 	if(i != null) {
-		reply_by_date_long = (long) (System.currentTimeMillis()+i*reply_by_time);
+		reply_by_date_long = (long) (System.currentTimeMillis()+i*Run_Configuration.reply_by_time_resource_agent);
 	}else {
-		reply_by_date_long = System.currentTimeMillis()+reply_by_time;
+		reply_by_date_long = System.currentTimeMillis()+Run_Configuration.reply_by_time_resource_agent;
 	}
 	
 	Date reply_by_date = new Date(reply_by_date_long);
@@ -887,13 +1077,264 @@ public abstract class ResourceAgent extends _Agent_Template{
 		
 	}
 	
-	protected Storage_element_slot createStorageElement(Operation operation, Timeslot timeslot, float duration_to_get_to_workpiece,
+	protected Storage_element_slot createStorageElement(Operation operation, Timeslot timeslot, float duration_setup_time,
 			float time_increment) {
 		
-		Storage_element_slot slot = new Storage_element_slot(operation, timeslot, duration_to_get_to_workpiece, (long) time_increment);
+		Storage_element_slot slot = new Storage_element_slot(operation, timeslot, duration_setup_time, (long) time_increment);
 		
 			return slot;
 		
 	}
+
+	public static Production_Operation createOperationCopy(Production_Operation hasOperation) {
+		
+		Production_Operation operationCopy = new Production_Operation();
+		operationCopy.setAvg_Duration(hasOperation.getAvg_Duration());
+		operationCopy.setBuffer_after_operation_end(hasOperation.getBuffer_after_operation_end());
+		operationCopy.setBuffer_after_operation_start(hasOperation.getBuffer_after_operation_start());
+		operationCopy.setBuffer_before_operation_end(hasOperation.getBuffer_before_operation_end());
+		operationCopy.setBuffer_before_operation_start(hasOperation.getBuffer_before_operation_start());
+		operationCopy.setName(hasOperation.getName());
+		operationCopy.setType(hasOperation.getType());
+		
+		if(hasOperation.getStartState() != null) {
+			operationCopy.setStartState(createStateCopy(hasOperation.getStartState()));
+		}
+		if(hasOperation.getStartStateNeeded() != null) {
+			operationCopy.setStartStateNeeded(createStateCopy(hasOperation.getStartStateNeeded()));
+		}
+		if(hasOperation.getEndState() != null) {
+			operationCopy.setEndState(createStateCopy(hasOperation.getEndState()));
+		}
+
+		if(hasOperation.getRequiresMaterial() != null) {
+			Material m = createMaterialCopy(hasOperation.getRequiresMaterial());
+			operationCopy.setRequiresMaterial(m);
+		}
+		
+			
+			
+			
+			/*
+			if(hasOperation.getEndState().getClass().equals(Location.class)) {
+				Location startneeded = new Location();
+				startneeded.setCoordX(((Location)hasOperation.getStartStateNeeded()).getCoordX());
+				startneeded.setCoordY(((Location)hasOperation.getStartStateNeeded()).getCoordY());
+				Location end = new Location();
+				end.setCoordX(((Location)hasOperation.getEndState()).getCoordX());
+				end.setCoordY(((Location)hasOperation.getEndState()).getCoordY());
+				operationCopy.setStartStateNeeded(startneeded);
+				operationCopy.setEndState(end);
+			}else {
+				Setup_state startneeded = new Setup_state();
+				startneeded.setID_String(((Setup_state)hasOperation.getStartStateNeeded()).getID_String());
+				Setup_state end = new Setup_state();
+				end.setID_String(((Setup_state)hasOperation.getEndState()).getID_String());
+				operationCopy.setStartStateNeeded(startneeded);
+				operationCopy.setEndState(end);
+			}*/
+		
+		
+		if(hasOperation.getAppliedOn()!= null) {
+			Workpiece wp = new Workpiece();
+			wp.setID_String(hasOperation.getAppliedOn().getID_String());
+			operationCopy.setAppliedOn(wp);
+		}
+		
+		
+		
+		return operationCopy;
+	}
+public static Operation createOperationCopy(Operation hasOperation) {
+		
+		Operation operationCopy = new Operation();
+		operationCopy.setAvg_Duration(hasOperation.getAvg_Duration());
+		operationCopy.setBuffer_after_operation_end(hasOperation.getBuffer_after_operation_end());
+		operationCopy.setBuffer_after_operation_start(hasOperation.getBuffer_after_operation_start());
+		operationCopy.setBuffer_before_operation_end(hasOperation.getBuffer_before_operation_end());
+		operationCopy.setBuffer_before_operation_start(hasOperation.getBuffer_before_operation_start());
+		operationCopy.setName(hasOperation.getName());
+		operationCopy.setType(hasOperation.getType());
+		
+		if(hasOperation.getStartState() != null) {
+			operationCopy.setStartState(createStateCopy(hasOperation.getStartState()));
+		}
+		if(hasOperation.getStartStateNeeded() != null) {
+			operationCopy.setStartStateNeeded(createStateCopy(hasOperation.getStartStateNeeded()));
+		}
+		if(hasOperation.getEndState() != null) {
+			operationCopy.setEndState(createStateCopy(hasOperation.getEndState()));
+		}
+
+		if(hasOperation.getAllRequiresOperation() != null) {
+			@SuppressWarnings("unchecked")		
+			Iterator<Operation> it = hasOperation.getAllRequiresOperation();	
+			 while(it.hasNext()) {
+				 Operation op = it.next();
+				 Operation op_to_copy = createOperationCopy(op);
+				 operationCopy.addRequiresOperation(op_to_copy);
+			 }
+		}	
+			
+			
+			
+			/*
+			if(hasOperation.getEndState().getClass().equals(Location.class)) {
+				Location startneeded = new Location();
+				startneeded.setCoordX(((Location)hasOperation.getStartStateNeeded()).getCoordX());
+				startneeded.setCoordY(((Location)hasOperation.getStartStateNeeded()).getCoordY());
+				Location end = new Location();
+				end.setCoordX(((Location)hasOperation.getEndState()).getCoordX());
+				end.setCoordY(((Location)hasOperation.getEndState()).getCoordY());
+				operationCopy.setStartStateNeeded(startneeded);
+				operationCopy.setEndState(end);
+			}else {
+				Setup_state startneeded = new Setup_state();
+				startneeded.setID_String(((Setup_state)hasOperation.getStartStateNeeded()).getID_String());
+				Setup_state end = new Setup_state();
+				end.setID_String(((Setup_state)hasOperation.getEndState()).getID_String());
+				operationCopy.setStartStateNeeded(startneeded);
+				operationCopy.setEndState(end);
+			}*/
+		
+		
+		if(hasOperation.getAppliedOn()!= null) {
+			Workpiece wp = new Workpiece();
+			wp.setID_String(hasOperation.getAppliedOn().getID_String());
+			operationCopy.setAppliedOn(wp);
+		}
+		
+		
+		
+		return operationCopy;
+	}
+	public static Transport_Operation createOperationCopy(Transport_Operation hasOperation) {
+		
+		Transport_Operation operationCopy = new Transport_Operation();
+		operationCopy.setAvg_Duration(hasOperation.getAvg_Duration());
+		operationCopy.setBuffer_after_operation_end(hasOperation.getBuffer_after_operation_end());
+		operationCopy.setBuffer_after_operation_start(hasOperation.getBuffer_after_operation_start());
+		operationCopy.setBuffer_before_operation_end(hasOperation.getBuffer_before_operation_end());
+		operationCopy.setBuffer_before_operation_start(hasOperation.getBuffer_before_operation_start());
+		operationCopy.setName(hasOperation.getName());
+		operationCopy.setType(hasOperation.getType());
+		if(hasOperation.getHasDetailedOperationDescription()!= null) {
+			operationCopy.setHasDetailedOperationDescription(hasOperation.getHasDetailedOperationDescription());
+		}
+		if(hasOperation.getStartState() != null) {
+			operationCopy.setStartState(createStateCopy(hasOperation.getStartState()));
+		}
+		if(hasOperation.getStartStateNeeded() != null) {
+			operationCopy.setStartStateNeeded(createStateCopy(hasOperation.getStartStateNeeded()));
+		}
+		if(hasOperation.getEndState() != null) {
+			operationCopy.setEndState(createStateCopy(hasOperation.getEndState()));
+		}
+			
+			
+			
+			
+			/*
+			if(hasOperation.getEndState().getClass().equals(Location.class)) {
+				Location startneeded = new Location();
+				startneeded.setCoordX(((Location)hasOperation.getStartStateNeeded()).getCoordX());
+				startneeded.setCoordY(((Location)hasOperation.getStartStateNeeded()).getCoordY());
+				Location end = new Location();
+				end.setCoordX(((Location)hasOperation.getEndState()).getCoordX());
+				end.setCoordY(((Location)hasOperation.getEndState()).getCoordY());
+				operationCopy.setStartStateNeeded(startneeded);
+				operationCopy.setEndState(end);
+			}else {
+				Setup_state startneeded = new Setup_state();
+				startneeded.setID_String(((Setup_state)hasOperation.getStartStateNeeded()).getID_String());
+				Setup_state end = new Setup_state();
+				end.setID_String(((Setup_state)hasOperation.getEndState()).getID_String());
+				operationCopy.setStartStateNeeded(startneeded);
+				operationCopy.setEndState(end);
+			}*/
+		
+		
+		if(hasOperation.getAppliedOn()!= null) {
+			Workpiece wp = new Workpiece();
+			wp.setID_String(hasOperation.getAppliedOn().getID_String());
+			operationCopy.setAppliedOn(wp);
+		}
+		
+		
+		
+		return operationCopy;
+	}
+	
+	public ArrayList<Operation> getEnabled_operations() {
+		return enabled_operations;
+	}
+
+
+	public void setEnabled_operations(ArrayList<Operation> enabled_operations) {
+		this.enabled_operations = enabled_operations;
+	}
+
+
+	public static Resource createResourceCopy(Resource resource) {
+		Resource res = new Resource();
+		if(resource.getCurrentState() != null) {
+			res.setCurrentState(createStateCopy(resource.getCurrentState()));
+		}
+		if(resource.getStartState() != null) {
+			res.setStartState(createStateCopy(resource.getStartState()));
+		}
+			
+		res.setDetailed_Type(resource.getDetailed_Type());
+		if(resource.getHasCapability() != null) {
+			res.setHasCapability(createCapabilityCopy(resource.getHasCapability()));
+		}
+		res.setHasLocation(createStateCopy(resource.getHasLocation()));
+		res.setID_Number(resource.getID_Number());
+		res.setName(resource.getName());
+		res.setType(resource.getType());
+		//TBD Disturbance
+		return res;
+	}
+
+
+	private static Capability createCapabilityCopy(Capability cap_to_copy) {
+		Capability cap = new Capability();
+		cap.setID_Number(cap_to_copy.getID_Number());
+		cap.setName(cap_to_copy.getName());
+		@SuppressWarnings("unchecked")		
+		Iterator<Operation> it = cap_to_copy.getEnables().iterator();	
+		 while(it.hasNext()) {
+			 Operation op = it.next();
+			 Operation op_to_copy = createOperationCopy(op);
+			 cap.addEnables(op_to_copy);
+		 }
+		 
+		return cap;
+	}
+
+
+	private static State createStateCopy(State state_to_copy) {
+		if(state_to_copy.getClass().equals(Location.class)) {
+			Location a = new Location();
+			a.setCoordX(((Location)state_to_copy).getCoordX());
+			a.setCoordY(((Location)state_to_copy).getCoordY());
+			return a;
+		}else {
+			Setup_state b = new Setup_state();
+			b.setID_String(((Setup_state)state_to_copy).getID_String());
+			return b;
+		}
+	}
+	private static Location createStateCopy(Location state_to_copy) {
+			Location a = new Location();
+			a.setCoordX(((Location)state_to_copy).getCoordX());
+			a.setCoordY(((Location)state_to_copy).getCoordY());
+			return a;
+	}
+	private static Material createMaterialCopy(Material mat_to_copy) {
+		Material a = new Material();
+		a.setName(mat_to_copy.getName());
+		return a;
+}
 } 
 

@@ -2,6 +2,7 @@ package agentPro_Prototype_ResourceAgent;
 
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.Iterator;
 
 import agentPro.onto.AllocatedWorkingStep;
 import agentPro.onto.CFP;
@@ -16,6 +17,7 @@ import jade.content.onto.UngroundedException;
 import jade.content.onto.basic.Action;
 import jade.core.behaviours.Behaviour;
 import jade.lang.acl.ACLMessage;
+import support_classes.Run_Configuration;
 
 public class SharedPhysicalResourceCalculationBehaviour extends Behaviour{
 
@@ -28,6 +30,7 @@ public class SharedPhysicalResourceCalculationBehaviour extends Behaviour{
 	private Proposal proposal = new Proposal();;
 	private int deadline_not_met;
 	private Operation requested_operation;
+	private ArrayList<Proposal> proposals = new ArrayList<Proposal>();
 
 	
 	public SharedPhysicalResourceCalculationBehaviour(ResourceAgent myAgent, long timeToWait) {
@@ -41,7 +44,7 @@ public class SharedPhysicalResourceCalculationBehaviour extends Behaviour{
 	
 	@Override
 	public void action() {
-		/*
+		
 		switch(step) {
 		case 0:
 			//System.out.println(myAgent.getLocalName()+" DEBUG_____"+myAgent.getLocalName()+"______"+System.currentTimeMillis()+" >= "+ (initialTime+timeToWait+" or "+(Boolean)this.getDataStore().get(0)+" = true"));
@@ -54,14 +57,24 @@ public class SharedPhysicalResourceCalculationBehaviour extends Behaviour{
 				//listOfCFPMessagesFromTransportResources = (ArrayList<ACLMessage>) this.getDataStore().get(1);
 				//System.out.println(myAgent.getLocalName()+" DEBUG_____________listOfCFPMessagesFromTransportResources "+listOfCFPMessagesFromTransportResources.get(0).getContent());
 				for(ACLMessage msg: listOfCFPMessagesFromTransportResources) {
-					CFP cfp = new CFP();
+					//CFP cfp = new CFP();
 					Operation operation = new Operation();
 					try {	
 
 						Action act = (Action) myAgent.getContentManager().extractContent(msg);
 						_SendCFP sendcfp_onto = (_SendCFP) act.getAction();
-						cfp = sendcfp_onto.getHasCFP();
-						operation = cfp.getHasOperation();
+						
+						  @SuppressWarnings("unchecked")
+						Iterator<CFP> it = sendcfp_onto.getAllHasCFP();		   
+						    while(it.hasNext()) {
+								CFP cfp = it.next();
+								operation = cfp.getHasOperation();
+								//timeslot_for_schedule = new Timeslot();
+								//this.proposal = myAgent.checkScheduleDetermineTimeslotAndCreateProposal(Long.parseLong(cfp.getHasTimeslot().getStartDate()), Long.parseLong(cfp.getHasTimeslot().getEndDate()), operation);								
+								proposals.add(myAgent.checkScheduleDetermineTimeslotAndCreateProposal(cfp));	
+								
+						    }
+						
 					} catch (UngroundedException e) {
 						// TODO Auto-generated catch block
 						e.printStackTrace();
@@ -72,13 +85,13 @@ public class SharedPhysicalResourceCalculationBehaviour extends Behaviour{
 						// TODO Auto-generated catch block
 						e.printStackTrace();
 					}
-					//timeslot_for_schedule = new Timeslot();
-					//this.proposal = myAgent.checkScheduleDetermineTimeslotAndCreateProposal(Long.parseLong(cfp.getHasTimeslot().getStartDate()), Long.parseLong(cfp.getHasTimeslot().getEndDate()), operation);								
-					this.proposal = myAgent.checkScheduleDetermineTimeslotAndCreateProposal(cfp);	
 					//System.out.println(myAgent.getLocalName()+" DEBUG_______proposal calculated "+proposal.getID_Number());
 					//deadline_not_met = 0;
-									
-					myAgent.sendProposal(proposal, msg.getConversationId(), msg.getSender().getLocalName(), null);
+					
+					//send proposal
+					myAgent.sendProposal(proposals, msg.getConversationId(), msg.getSender().getLocalName(), 2.5); //2,5 x reply_by_time 
+					
+					//myAgent.sendProposal(proposal, msg.getConversationId(), msg.getSender().getLocalName(), null);
 					
 					//as a reservation the slot is booked into the schedule
 					
@@ -88,7 +101,7 @@ public class SharedPhysicalResourceCalculationBehaviour extends Behaviour{
 					
 					// / ADD BEHAVIOURS
 			        // /////////////////////////////////////////////////////////
-					ReceiveOrderBehaviour rob = new ReceiveOrderBehaviour(myAgent, msg.getConversationId(), myAgent.reply_by_time, System.currentTimeMillis()+myAgent.reply_by_time, proposal.getID_Number());
+					ReceiveOrderBehaviour rob = new ReceiveOrderBehaviour(myAgent, msg.getConversationId(), Run_Configuration.reply_by_time_resource_agent, System.currentTimeMillis()+Run_Configuration.reply_by_time_resource_agent, proposal.getID_Number());
 					//rob.setDataStore(this.getDataStore());				
 					myAgent.addBehaviour(rob);		
 					myAgent.setOfferNumber(myAgent.getOfferNumber()+1);			
@@ -99,14 +112,14 @@ public class SharedPhysicalResourceCalculationBehaviour extends Behaviour{
 				
 			}else {	//wait for 10 ms and check again
 				this.block(10);
-				/*
+				
 				try {
 					Thread.sleep(10);
 				} catch (InterruptedException e) {
 					// TODO Auto-generated catch block
 					e.printStackTrace();
-				}*/
-		/*
+				}
+		
 				break;
 			}
 
@@ -116,7 +129,7 @@ public class SharedPhysicalResourceCalculationBehaviour extends Behaviour{
 			break;
 		}
 
-	*/
+	
 		
 	}
 

@@ -22,25 +22,6 @@ public class _Simulation_Order_Generator extends _Agent_Template{
 	
 	protected void setup (){
 		super.setup();
-		
-		//Datenbank
-		/*
-				Connection con;			
-				
-				try {
-					Class.forName("com.mysql.cj.jdbc.Driver");
-
-						con = DriverManager.getConnection(dbaddress_sim);	// Verbindung zur DB mit ucanaccess	
-	
-					this.setConnection(con);	     
-			        
-			    } catch (SQLException e ) {
-			        e.printStackTrace();
-			    }catch (ClassNotFoundException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				}
-*/
 	
 		CreateAgentsAccordingToDatabase setup_agents = new CreateAgentsAccordingToDatabase(this);
 		this.addBehaviour(setup_agents);
@@ -48,15 +29,5 @@ public class _Simulation_Order_Generator extends _Agent_Template{
 		
 		
 	}
-/*
-	public Connection getConnection() {
-		return connection;
-	}
-
-	public void setConnection(Connection connection) {
-		this.connection = connection;
-	}
-
-	*/
 
 }

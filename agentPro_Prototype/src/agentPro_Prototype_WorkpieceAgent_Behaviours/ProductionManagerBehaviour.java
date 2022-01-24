@@ -10,12 +10,6 @@ import java.util.Date;
 import java.util.Iterator;
 import java.util.concurrent.ExecutionException;
 
-import agentPro.onto.AllocatedWorkingStep;
-import agentPro.onto.OrderedOperation;
-import agentPro.onto.Production_Operation;
-import agentPro.onto.Transport_Operation;
-import agentPro.onto.WorkPlan;
-import agentPro.onto.Location;
 import agentPro_Prototype_Agents.WorkpieceAgent;
 import agentPro_Prototype_Agents._Agent_Template;
 import agentPro_Prototype_ResourceAgent.RequestDatabaseEntryBehaviour;
@@ -27,6 +21,13 @@ import webservice.Webservice_agentPro;
 
 import org.jfree.ui.RefineryUtilities;
 
+import agentPro.onto.AllocatedWorkingStep;
+import agentPro.onto.Location;
+import agentPro.onto.OrderedOperation;
+import agentPro.onto.Production_Operation;
+import agentPro.onto.Transport_Operation;
+import agentPro.onto.WorkPlan;
+
 /*
  * Determines the next step to be performed and starts the CFP Behaviour. If there are no more steps needed
  * it starts the CFP Behaviour for the transport to the warehouse and contacts the order agent.
@@ -36,7 +37,7 @@ public class ProductionManagerBehaviour extends Behaviour{
 	private String logLinePrefix = ".ProductionManager ";
 	private WorkpieceAgent myAgent;
 	private int step = 0;
-	public long reply_by_time = 1250; //reply within 450 ms
+	//public long reply_by_time = 2500; //reply within 450 ms
 	
 	//private JSONObject workpiece;	
 	//private double average_speed = 1; //m/s
@@ -369,7 +370,7 @@ private void arrangeTransportToWarehouse() {
 				
 				//Name = Start_Ziel in format  X;Y_DestinationResource
 				transport_operation.setName(startlocation.getCoordX()+";"+startlocation.getCoordY()+"_"+myAgent.getOrderPos().getHasTargetWarehouse().getName());
-				transport_operation.setBuffer_before_operation(2*60*60*1000); //e.g. 2 hours --> does not matter				
+				transport_operation.setBuffer_before_operation_start(2*60*60*1000); //e.g. 2 hours --> does not matter				
 				myAgent.addBehaviour(new RequestPerformer_transport(myAgent, transport_operation, (long) 0, null, false));
 			}
 		

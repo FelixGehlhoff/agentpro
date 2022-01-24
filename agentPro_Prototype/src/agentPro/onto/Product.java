@@ -8,30 +8,19 @@ import jade.core.*;
 /**
 * Protege name: Product
 * @author ontology bean generator
-* @version 2019/11/11, 09:45:55
+* @version 2020/06/26, 11:54:55
 */
 public class Product implements Concept {
 
    /**
-* Protege name: iD_Number
+* Protege name: hasProductionPlan
    */
-   private int iD_Number;
-   public void setID_Number(int value) { 
-    this.iD_Number=value;
+   private ProductionPlan hasProductionPlan;
+   public void setHasProductionPlan(ProductionPlan value) { 
+    this.hasProductionPlan=value;
    }
-   public int getID_Number() {
-     return this.iD_Number;
-   }
-
-   /**
-* Protege name: name
-   */
-   private String name;
-   public void setName(String value) { 
-    this.name=value;
-   }
-   public String getName() {
-     return this.name;
+   public ProductionPlan getHasProductionPlan() {
+     return this.hasProductionPlan;
    }
 
    /**
@@ -46,14 +35,25 @@ public class Product implements Concept {
    }
 
    /**
-* Protege name: hasProductionPlan
+* Protege name: name
    */
-   private ProductionPlan hasProductionPlan;
-   public void setHasProductionPlan(ProductionPlan value) { 
-    this.hasProductionPlan=value;
+   private String name;
+   public void setName(String value) { 
+    this.name=value;
    }
-   public ProductionPlan getHasProductionPlan() {
-     return this.hasProductionPlan;
+   public String getName() {
+     return this.name;
+   }
+
+   /**
+* Protege name: iD_Number
+   */
+   private int iD_Number;
+   public void setID_Number(int value) { 
+    this.iD_Number=value;
+   }
+   public int getID_Number() {
+     return this.iD_Number;
    }
 
 }

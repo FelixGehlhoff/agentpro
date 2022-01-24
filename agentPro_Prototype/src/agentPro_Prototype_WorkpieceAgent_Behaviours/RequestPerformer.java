@@ -5,10 +5,8 @@ import java.util.ArrayList;
 import java.util.Date;
 
 import agentPro.onto.AllocatedWorkingStep;
-
 import agentPro.onto.Production_Operation;
 import agentPro.onto.Proposal;
-
 import agentPro.onto.Timeslot;
 import agentPro_Prototype_Agents.WorkpieceAgent;
 
@@ -16,6 +14,7 @@ import jade.core.AID;
 import jade.core.behaviours.Behaviour;
 
 import jade.domain.FIPAAgentManagement.DFAgentDescription;
+import support_classes.Run_Configuration;
 
 
 public class RequestPerformer extends Behaviour {
@@ -90,13 +89,13 @@ public class RequestPerformer extends Behaviour {
 					 
 					 
 			//determine reply by time
-						long reply_by_date_long = System.currentTimeMillis()+myAgent.getProductionManagerBehaviour().reply_by_time;
+						long reply_by_date_long = System.currentTimeMillis()+Run_Configuration.reply_by_time_wp_agent;
 						Date reply_by_date = new Date(reply_by_date_long);
 						reply_by_date_CFP = reply_by_date_long;
 			myAgent.sendCfps(cfp_timeslot, requested_operation, conversationID, resourceAgents, reply_by_date);
 				
 			step = 1;
-			block((long) (0.5*myAgent.getProductionManagerBehaviour().reply_by_time));
+			block((long) (0.5*Run_Configuration.reply_by_time_wp_agent));
 			break;
 		case 1:	
 			//deadline	
@@ -138,9 +137,9 @@ public class RequestPerformer extends Behaviour {
 			if(LAST_alWS_Production != null && LAST_alWS_Production.getIsFinished()) {		//if if the last allocatedWStep is already finished, there are no new steps planned which would have to be used as a start and a new planning has started
 				//timeslot.setStartDate(Long.toString(System.currentTimeMillis())); --> Workaraound needed because current time is before the finished step   TBD			
 				//start for the next production step is end of last + transport time
-				timeslot.setStartDate(Long.toString(Long.parseLong(LAST_alWS_Production.getHasTimeslot().getEndDate())+myAgent.getTransport_estimation()));			
+				timeslot.setStartDate(Long.toString(Long.parseLong(LAST_alWS_Production.getHasTimeslot().getEndDate())+myAgent.getTransport_estimation_CFP()));			
 			}else if(LAST_alWS_Production != null && !LAST_alWS_Production.getIsFinished()){	//we are within a new planning cycle	
-				timeslot.setStartDate(Long.toString(Long.parseLong(LAST_alWS_Production.getHasTimeslot().getEndDate())+myAgent.getTransport_estimation()));			
+				timeslot.setStartDate(Long.toString(Long.parseLong(LAST_alWS_Production.getHasTimeslot().getEndDate())+myAgent.getTransport_estimation_CFP()));			
 			}
 			else {		//first step to be scheduled
 				timeslot.setStartDate(Long.toString(startdate_for_this_task));			

@@ -5,12 +5,10 @@ import java.util.Date;
 import java.util.Iterator;
 
 import agentPro.onto.AllocatedWorkingStep;
-
 import agentPro.onto.Operation;
 import agentPro.onto.Transport_Operation;
 import agentPro.onto.WorkPlan;
 import agentPro.onto._SendCancellation;
-
 import agentPro_Prototype_Agents.ResourceAgent;
 import jade.content.lang.Codec.CodecException;
 import jade.content.onto.OntologyException;

@@ -10,7 +10,6 @@ import java.util.Date;
 import java.util.Iterator;
 import java.util.Random;
 
-import agentPro.onto.Workpiece_Error;
 import agentPro.onto.AgentPro_ProductionOntology;
 import agentPro.onto.AllocatedWorkingStep;
 import agentPro.onto.Delay;
@@ -23,6 +22,7 @@ import agentPro.onto.OrderPosition;
 import agentPro.onto.Product;
 import agentPro.onto.Resource;
 import agentPro.onto.Warehouse_Resource;
+import agentPro.onto.Workpiece_Error;
 import agentPro.onto._Incoming_Disturbance;
 import agentPro.onto._Incoming_Order;
 import agentPro.onto._SendProposal;

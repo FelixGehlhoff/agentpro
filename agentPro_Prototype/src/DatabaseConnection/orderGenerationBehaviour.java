@@ -5,6 +5,8 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.Random;
+
 import agentPro.onto.Location;
 import agentPro.onto.OrderPosition;
 import agentPro.onto.OrderedOperation;
@@ -23,6 +25,8 @@ import jade.domain.FIPAAgentManagement.ServiceDescription;
 import jade.wrapper.AgentController;
 import jade.wrapper.ContainerController;
 import jade.wrapper.StaleProxyException;
+import support_classes.DatabaseValues;
+import support_classes.Run_Configuration;
 import webservice.ManufacturingOrder;
 
 public class orderGenerationBehaviour extends OneShotBehaviour{
@@ -33,24 +37,10 @@ public class orderGenerationBehaviour extends OneShotBehaviour{
 	private _Simulation_Order_Generator myAgent;
 	private ArrayList<ProductionPlan> productionPlans = new ArrayList<ProductionPlan>();
 	
-	private String columnNameOfStep = "Step";
-	private String columnNameOfOperation = "Operation";
-	private String columnNameOfFirstOperation = "FirstOperation";
-	private String columnNameOfLastOperation = "LastOperation";
-	private String nameOfProduction_Plan_Def_Table = _Agent_Template.prefix_schema+".production_plan_def";
-	private String columnNameOfProductName = "ProductName";
-	private int numberOfProducts = 3;
+
 	
 	public static String conversationID_forInterfaceAgent = "OrderAgent"; //for directly contacting the interface agent
 	public static DFAgentDescription interface_agent;
-	private long initial_wait =1000;
-	private double wait_between_agent_creation = 2500;
-	private String columnNameOfFollowUpConstraint = "hasFollowUpOperationConstraint";
-	private String columnNameOfWithStep = "withStep";
-	private String columnNameLocationX = "locationX";
-	private String columnNameLocationY = "locationY";
-	
-	
 
 
 	public orderGenerationBehaviour(_Simulation_Order_Generator myAgent) {
@@ -66,7 +56,7 @@ public class orderGenerationBehaviour extends OneShotBehaviour{
 		 receiveProductionPlansFromDB(productionPlans);
 		
 		 try {
-				Thread.sleep(initial_wait);
+				Thread.sleep(Run_Configuration.initial_wait);
 			} catch (InterruptedException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
@@ -101,7 +91,6 @@ public class orderGenerationBehaviour extends OneShotBehaviour{
 	    }catch (SQLException e ) {
 	    	e.printStackTrace();
 	    } 
-	    _Agent_Template.limit = 2;
 		int number_of_orders = _Agent_Template.limit;						//create x orders
 		double proportion_AvsB = 1;
 		
@@ -185,7 +174,13 @@ public class orderGenerationBehaviour extends OneShotBehaviour{
  				}*/
  				
  				try {
- 					Thread.sleep((long) wait_between_agent_creation);
+ 					if(Run_Configuration.IntervalWait) {
+ 						Thread.sleep(getRandomNumber((int)Run_Configuration.wait_between_agent_creation, (int)Run_Configuration.wait_betwee_agent_creation_max));
+ 					}else {
+ 						Thread.sleep((long) Run_Configuration.wait_between_agent_creation);	 					
+ 					}
+ 
+ 					
  				} catch (InterruptedException e) {
  					// TODO Auto-generated catch block
  					e.printStackTrace();
@@ -199,6 +194,19 @@ public class orderGenerationBehaviour extends OneShotBehaviour{
 		
 
 		
+	}
+	public static long getRandomNumber(int min, int max) {
+		Random r = new Random();
+			double d = r.nextGaussian();
+			double d_new = d*100+337.5;
+			//double return_v =  ((d * (max - min)) + min);
+			if(d_new <=0) {
+				//System.out.println("((d * (max - min)) + min)  "+"d "+d+" max "+max+" min "+min);
+				return min;
+			}else {
+				return (long) d_new;
+			}
+	    //return (long) ((d * (max - min)) + min);
 	}
 
 	public static void searchDFForInterfaceAgent(Agent myAgent) {
@@ -237,23 +245,23 @@ public class orderGenerationBehaviour extends OneShotBehaviour{
 	    	    try {
 	    	    	stmt = myAgent.getConnection().createStatement(ResultSet.TYPE_SCROLL_SENSITIVE, ResultSet.CONCUR_UPDATABLE);
 	    	    	
-	    	    for(int i = 1;i<=numberOfProducts ;i++) {
+	    	    for(int i = 1;i<=Run_Configuration.numberOfProducts ;i++) {
 	    	 	    ProductionPlan pP = new ProductionPlan();
-	    	    	String query1 = "select "+columnNameOfStep+" , "+myAgent.columnNameID+" , "+columnNameOfOperation+" , "+columnNameOfFirstOperation+" , "+columnNameOfLastOperation+" , "+columnNameOfProductName +" , "+columnNameOfFollowUpConstraint +" , "+columnNameOfWithStep +" from "+nameOfProduction_Plan_Def_Table+" where "+myAgent.columnNameID+" = "+i;	     
+	    	    	String query1 = "select "+DatabaseValues.columnNameOfStep+" , "+DatabaseValues.columnNameID+" , "+DatabaseValues.columnNameOfOperation+" , "+DatabaseValues.columnNameOfFirstOperation+" , "+DatabaseValues.columnNameOfLastOperation+" , "+DatabaseValues.columnNameOfProductName +" , "+DatabaseValues.columnNameOfFollowUpConstraint +" , "+DatabaseValues.columnNameOfWithStep +" from "+DatabaseValues.nameOfProduction_Plan_Def_Table+" where "+DatabaseValues.columnNameID+" = "+i;	     
 	    	        ResultSet rs = stmt.executeQuery(query1);
 	           		Product product = new Product();
 	    	        while (rs.next()) {
 	    	        	 OrderedOperation orderedOp = new OrderedOperation();
 	    				    Production_Operation op = new Production_Operation();
-	    				    op.setName(rs.getString(columnNameOfOperation));
+	    				    op.setName(rs.getString(DatabaseValues.columnNameOfOperation));
 	    				    op.setType("production");
-	    				    orderedOp.setFirstOperation(rs.getBoolean(columnNameOfFirstOperation));
-	    				    orderedOp.setLastOperation(rs.getBoolean(columnNameOfLastOperation));
+	    				    orderedOp.setFirstOperation(rs.getBoolean(DatabaseValues.columnNameOfFirstOperation));
+	    				    orderedOp.setLastOperation(rs.getBoolean(DatabaseValues.columnNameOfLastOperation));
 	    				    orderedOp.setHasProductionOperation(op);
-	    		        	orderedOp.setSequence_Number(rs.getInt(columnNameOfStep)); 
-	    		        	orderedOp.setHasFollowUpOperation(rs.getBoolean(columnNameOfFollowUpConstraint));
-	    		        	orderedOp.setWithOperationInStep(rs.getInt(columnNameOfWithStep));
-	    	        		product.setName(rs.getString(columnNameOfProductName));
+	    		        	orderedOp.setSequence_Number(rs.getInt(DatabaseValues.columnNameOfStep)); 
+	    		        	orderedOp.setHasFollowUpOperation(rs.getBoolean(DatabaseValues.columnNameOfFollowUpConstraint));
+	    		        	orderedOp.setWithOperationInStep(rs.getInt(DatabaseValues.columnNameOfWithStep));
+	    	        		product.setName(rs.getString(DatabaseValues.columnNameOfProductName));
 	    	        		pP.addConsistsOfOrderedOperations(orderedOp);	   
 	    	        		print = print + op.getName()+" "+i+" ";
 	    	        }
@@ -274,7 +282,7 @@ public class orderGenerationBehaviour extends OneShotBehaviour{
 		Statement stmt = null;
 		Statement stmt2 = null;
 		//String query = "select "+myAgent.columnNameID+" , "+columnNameProduct+" , "+columnNameNumber+" , "+columnNameTargetWarehouse+" from "+nameOfOrderbook; 	    
-		String query = "select * from "+_Agent_Template.nameOfOrderbook+" ORDER BY "+myAgent.columnNameOfDueDate+", "+myAgent.columnNameOfProduct+", "+myAgent.columnNameOfPriority+", "+myAgent.columnNameOfNumber+" DESC"; 
+		String query = "select * from "+DatabaseValues.nameOfOrderbook+" ORDER BY "+DatabaseValues.columnNameOfDueDate+", "+DatabaseValues.columnNameOfProduct+", "+DatabaseValues.columnNameOfPriority+", "+DatabaseValues.columnNameOfNumber+" DESC"; 
 		//SELECT * FROM People ORDER BY FirstName DESC, YearOfBirth ASC
 		
 	    try {
@@ -284,23 +292,23 @@ public class orderGenerationBehaviour extends OneShotBehaviour{
 	       
 	        int i = 1;
 	        while (rs.next() && i<=_Agent_Template.limit) {
-	        	String query2 = "select "+columnNameLocationX+" , "+myAgent.columnNameID+" , "+columnNameLocationY+" from "+myAgent.tableNameResource+" where "+myAgent.columnNameResourceName_simulation+" = ";
+	        	String query2 = "select "+DatabaseValues.columnNameLocationX+" , "+DatabaseValues.columnNameID+" , "+DatabaseValues.columnNameLocationY+" from "+_Agent_Template.tableNameResource+" where "+DatabaseValues.columnNameResourceName_simulation+" = ";
 	        		        	
 	        	OrderPosition orderPos = new OrderPosition();
-	        	orderPos.setQuantity(rs.getInt(myAgent.columnNameOfNumber));
+	        	orderPos.setQuantity(rs.getInt(DatabaseValues.columnNameOfNumber));
 	        	
 	        	//15.01.19 dates for backwards calculation etc.
-	        	orderPos.setDueDate(_Agent_Template.SimpleDateFormat.format(rs.getTime(myAgent.columnNameOfDueDate)));
-	        	orderPos.setReleaseDate(_Agent_Template.SimpleDateFormat.format(rs.getTime(myAgent.columnNameOfReleaseDate)));
+	        	orderPos.setDueDate(_Agent_Template.SimpleDateFormat.format(rs.getTime(DatabaseValues.columnNameOfDueDate)));
+	        	orderPos.setReleaseDate(_Agent_Template.SimpleDateFormat.format(rs.getTime(DatabaseValues.columnNameOfReleaseDate)));
 	        	 if(_Agent_Template.simulation_enercon_mode) {
-    				 orderPos.setStartDate(String.valueOf(myAgent.start_simulation));
+    				 orderPos.setStartDate(String.valueOf(Run_Configuration.start_simulation));
     			 }else {
     				 orderPos.setStartDate(_Agent_Template.SimpleDateFormat.format(rs.getTimestamp(_Agent_Template.columnNameOfPlanStart)));
     			}
 	        
 	        	orderPos.setEndDate_String(_Agent_Template.SimpleDateFormat.format(rs.getTimestamp(_Agent_Template.columnNameOfPlanEnd)));
 	        	
-	        	String prod_name = rs.getString(myAgent.columnNameOfProduct);
+	        	String prod_name = rs.getString(DatabaseValues.columnNameOfProduct);
 	        	Product product = new Product();
 	        	product.setName(prod_name);
 	        	orderPos.setContainsProduct(product);
@@ -311,7 +319,7 @@ public class orderGenerationBehaviour extends OneShotBehaviour{
 	        			 if(_Agent_Template.simulation_enercon_mode) {
 	        				 orderPos.setSequence_Number(i);
 	        			 }else {
-	        				 orderPos.setSequence_Number(rs.getInt(myAgent.columnNameID)); 
+	        				 orderPos.setSequence_Number(rs.getInt(DatabaseValues.columnNameID)); 
 	        			 }
 	        			
 	        				Warehouse_Resource warehouse = new Warehouse_Resource();
@@ -319,14 +327,14 @@ public class orderGenerationBehaviour extends OneShotBehaviour{
 							//loc.setCoordX(100);
 							//loc.setCoordY(100);
 							//warehouse.setHasLocation(loc);
-							warehouse.setName(rs.getString(myAgent.columnNameOfTargetWarehouse));
-							warehouse.setID_Number(rs.getInt(myAgent.columnNameID));
+							warehouse.setName(rs.getString(DatabaseValues.columnNameOfTargetWarehouse));
+							warehouse.setID_Number(rs.getInt(DatabaseValues.columnNameID));
 							//name_of_exit = rs.getString(myAgent.columnNameOfTargetWarehouse);
 							query2 = query2+"'"+warehouse.getName()+"'";
 								 ResultSet rs2 = stmt2.executeQuery(query2);
 								 while (rs2.next()) {
-					        		loc.setCoordX((float)rs2.getInt(columnNameLocationX));
-					        		loc.setCoordY((float)rs2.getInt(columnNameLocationY));
+					        		loc.setCoordX((float)rs2.getInt(DatabaseValues.columnNameLocationX));
+					        		loc.setCoordY((float)rs2.getInt(DatabaseValues.columnNameLocationY));
 					        	  }
 								 warehouse.setHasLocation(loc);
 	        			 orderPos.setHasTargetWarehouse(warehouse);    
@@ -340,7 +348,7 @@ public class orderGenerationBehaviour extends OneShotBehaviour{
 	        	createAgent(myAgent, orderPos);
 	        	
 	        	try {
-					Thread.sleep((long) wait_between_agent_creation);
+					Thread.sleep((long) Run_Configuration.wait_between_agent_creation);
 				} catch (InterruptedException e) {
 					// TODO Auto-generated catch block
 					e.printStackTrace();
@@ -427,7 +435,7 @@ public class orderGenerationBehaviour extends OneShotBehaviour{
 		
 	    Statement stmt = null;
 	    String query1 =
-	        "select "+columnNameOfStep+" , "+columnNameOfOperation+" , "+columnNameOfFirstOperation+" , "+columnNameOfLastOperation+" from "+nameOfProduction_Plan_Def_Table+" where "+columnNameOfProductName+" = '"+product_name+"'";
+	        "select "+DatabaseValues.columnNameOfStep+" , "+DatabaseValues.columnNameOfOperation+" , "+DatabaseValues.columnNameOfFirstOperation+" , "+DatabaseValues.columnNameOfLastOperation+" from "+DatabaseValues.nameOfProduction_Plan_Def_Table+" where "+DatabaseValues.columnNameOfProductName+" = '"+product_name+"'";
 	    
 	    try {
 	        stmt = myAgent.getConnection().createStatement();
@@ -436,11 +444,11 @@ public class orderGenerationBehaviour extends OneShotBehaviour{
 	        while (rs.next()) {
 			    OrderedOperation orderedOp = new OrderedOperation();
 			    Production_Operation op = new Production_Operation();
-			    op.setName(rs.getString(columnNameOfOperation));
-			    orderedOp.setFirstOperation(rs.getBoolean(columnNameOfFirstOperation));
-			    orderedOp.setLastOperation(rs.getBoolean(columnNameOfLastOperation));
+			    op.setName(rs.getString(DatabaseValues.columnNameOfOperation));
+			    orderedOp.setFirstOperation(rs.getBoolean(DatabaseValues.columnNameOfFirstOperation));
+			    orderedOp.setLastOperation(rs.getBoolean(DatabaseValues.columnNameOfLastOperation));
 			    orderedOp.setHasProductionOperation(op);
-	        	orderedOp.setSequence_Number(rs.getInt(columnNameOfStep)); 
+	        	orderedOp.setSequence_Number(rs.getInt(DatabaseValues.columnNameOfStep)); 
 	        	p.addConsistsOfOrderedOperations(orderedOp);		   
 	        }
 	        

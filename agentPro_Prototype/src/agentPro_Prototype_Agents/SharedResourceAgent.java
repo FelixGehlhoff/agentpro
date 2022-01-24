@@ -4,15 +4,12 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 
-import agentPro.onto.CFP;
 import agentPro.onto.Capability;
+import agentPro.onto.Location;
 import agentPro.onto.Operation;
-import agentPro.onto.Proposal;
 import agentPro.onto.Resource;
 import agentPro.onto.Shared_Resource;
-import agentPro.onto.Timeslot;
-import agentPro.onto.TransportResource;
-import agentPro_Prototype_ResourceAgent.ReceiveCFPBehaviour;
+import agentPro.onto.Transport_Operation;
 import jade.domain.DFService;
 import jade.domain.FIPAException;
 import jade.domain.FIPAAgentManagement.DFAgentDescription;
@@ -26,7 +23,8 @@ public abstract class SharedResourceAgent extends ResourceAgent{
 
 	private static final long serialVersionUID = 1L;
 	//private ReceiveCFPBehaviour ReceiveCFPBehav;
-	protected Shared_Resource representedResource;
+	//protected Shared_Resource representedResource;
+
 
 	protected void setup (){
 		super.setup();
@@ -34,10 +32,10 @@ public abstract class SharedResourceAgent extends ResourceAgent{
 		logLinePrefix = logLinePrefix+"-SharedResourceAgent.";
 		
 		
-		    representedResource = new Shared_Resource();
-			representedResource.setName(this.getLocalName());
-			receiveValuesFromDB(representedResource);
-			reply_by_time = 600;
+		    //representedResource = new Shared_Resource();
+			//representedResource.setName(this.getLocalName());
+			//receiveValuesFromDB(representedResource);
+			//reply_by_time = 600;
 							
 		registerAtDF();
 		
@@ -77,13 +75,13 @@ public abstract class SharedResourceAgent extends ResourceAgent{
 
 	@Override
 	public boolean feasibilityCheckAndDetermineDurationParameters(Operation operation) {
-		// TODO Auto-generated method stub
+
 		return true;
 	}
-	
+	@Override
 	public void receiveValuesFromDB(Resource r) {
 		
-		Shared_Resource shared_r = (Shared_Resource) r;
+		//Shared_Resource shared_r = (Shared_Resource) r;
 		
 		 Statement stmt = null;
 		    String query = "";
@@ -98,17 +96,22 @@ public abstract class SharedResourceAgent extends ResourceAgent{
 	        	
 			    	Capability cap = new Capability();
 			    	cap.setName(rs.getString(columnNameOfCapability));
-			    shared_r.setHasCapability(cap);
-			    shared_r.setType(rs.getString(columnNameOfResource_Type));
-			    shared_r.setID_Number(rs.getInt(columnNameOfID));		
-			    shared_r.setDetailed_Type(rs.getString(columnNameOfResource_Detailed_Type));
+			    r.setHasCapability(cap);
+			    r.setType(rs.getString(columnNameOfResource_Type));
+			    r.setID_Number(rs.getInt(columnNameOfID));		
+			    r.setDetailed_Type(rs.getString(columnNameOfResource_Detailed_Type));
 	        }	   
 	        
 	    } catch (SQLException e ) {
 	    	e.printStackTrace();
 	    } 
 	    
-	    r = shared_r;
+	  //determine the possible operations from the capability
+	     //System.out.println("DEBUG______enabled_operation _"+enabled_operation);
+        
+
+      //System.out.println("DEBUG______enabled_operation _"+enabled_operation+"  range "+range.toString());
+        
 	    
 	}
 
@@ -185,7 +188,7 @@ public abstract class SharedResourceAgent extends ResourceAgent{
 	}
 */
 	@Override
-	public Shared_Resource getRepresentedResource() {
+	public Resource getRepresentedResource() {
 		return representedResource;
 	}
 
@@ -195,7 +198,12 @@ public abstract class SharedResourceAgent extends ResourceAgent{
 		
 	}
 
-
+	@Override
+	public Resource createResource() {
+		Shared_Resource sr = new Shared_Resource();
+		return sr;
+		
+	}
 
 } 
 

@@ -107,7 +107,8 @@ public class OperationCombination_SinglePath {
 			switch(opimizationCriterion) {
 			case "time_of_finish":
 				if(Long.parseLong(transport_to_buffer.getHasTimeslot().getEndDate())>Long.parseLong(allWS_of_proposal.getHasTimeslot().getEndDate())) {
-					if(Long.parseLong(allWS_of_proposal.getHasTimeslot().getEndDate())>(Long.parseLong(startStep.getHasTimeslot().getEndDate())+startStep.getHasOperation().getBuffer_after_operation())) {
+					//26.06.2020 enddate in startdate geändert
+					if(Long.parseLong(allWS_of_proposal.getHasTimeslot().getStartDate())>(Long.parseLong(startStep.getHasTimeslot().getEndDate())+startStep.getHasOperation().getBuffer_after_operation_end())) {
 						System.out.println(System.currentTimeMillis()+" OperationCombination: Proposal "+allWS_of_proposal.getID_String()+" violates latest Start of "+startStep.getID_String());
 						return 0;
 					}else {
@@ -118,7 +119,7 @@ public class OperationCombination_SinglePath {
 					
 				}else if(Long.parseLong(transport_to_buffer.getHasTimeslot().getEndDate())==Long.parseLong(allWS_of_proposal.getHasTimeslot().getEndDate())) {
 					if(transport_to_buffer.getHasOperation().getSet_up_time()>allWS_of_proposal.getHasOperation().getSet_up_time()) {
-						if(Long.parseLong(allWS_of_proposal.getHasTimeslot().getEndDate())>(Long.parseLong(startStep.getHasTimeslot().getEndDate())+startStep.getHasOperation().getBuffer_after_operation())) {
+						if(Long.parseLong(allWS_of_proposal.getHasTimeslot().getStartDate())>(Long.parseLong(startStep.getHasTimeslot().getEndDate())+startStep.getHasOperation().getBuffer_after_operation_end())) {
 							System.out.println(System.currentTimeMillis()+" OperationCombination: Proposal "+allWS_of_proposal.getID_String()+" violates latest Start of "+startStep.getID_String());
 							return 0;
 						}else {
@@ -130,7 +131,7 @@ public class OperationCombination_SinglePath {
 				}
 			}
 		}else {
-			if(Long.parseLong(allWS_of_proposal.getHasTimeslot().getEndDate())>(Long.parseLong(startStep.getHasTimeslot().getEndDate())+startStep.getHasOperation().getBuffer_after_operation())) {
+			if(Long.parseLong(allWS_of_proposal.getHasTimeslot().getEndDate())>(Long.parseLong(startStep.getHasTimeslot().getEndDate())+startStep.getHasOperation().getBuffer_after_operation_end())) {
 				System.out.println(System.currentTimeMillis()+" OperationCombination: Proposal "+allWS_of_proposal.getHasOperation().getName()+" violates latest Start of "+startStep.getID_String());
 				return 0;
 			}else {
@@ -188,7 +189,7 @@ public class OperationCombination_SinglePath {
 			if(Long.parseLong(transport_to_production.getHasTimeslot().getStartDate())-Long.parseLong(startStep.getHasTimeslot().getEndDate())>WorkpieceAgent.transport_estimation+_Agent_Template.bufferThreshold*60*1000){
 				System.out.println("OPERATIONCOMBINATION_SINGLEPATH______________________ERROR_____________A BUFFER SHOULD BE ARRANGED!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! Waiting time now: 	"+(Long.parseLong(transport_to_production.getHasTimeslot().getStartDate())-Long.parseLong(startStep.getHasTimeslot().getEndDate())));
 			}
-			if(Long.parseLong(transport_to_production.getHasTimeslot().getEndDate())>(Long.parseLong(startStep.getHasTimeslot().getEndDate())+startStep.getHasOperation().getBuffer_after_operation())) {
+			if(Long.parseLong(transport_to_production.getHasTimeslot().getStartDate())>(Long.parseLong(startStep.getHasTimeslot().getEndDate())+startStep.getHasOperation().getBuffer_after_operation_end())) {
 				System.out.println(System.currentTimeMillis()+" OperationCombination: Proposal "+transport_to_production.getID_String()+" violates latest Start of "+startStep.getID_String());
 				latest_start_violated = true;
 			}else {
@@ -198,16 +199,18 @@ public class OperationCombination_SinglePath {
 		}
 				//now check next resource
 				long length = Math.round(nextProductionStep.getHasTimeslot().getLength());
-				System.out.println("DEBUG______________"+(Long.parseLong(nextProductionStep.getHasTimeslot().getEndDate())+(long)nextProductionStep.getHasOperation().getBuffer_after_operation())+" >= "+ (Long.parseLong(transport_to_production.getHasTimeslot().getEndDate())+length));
+				System.out.println("DEBUG______________"+(Long.parseLong(nextProductionStep.getHasTimeslot().getEndDate())+(long)nextProductionStep.getHasOperation().getBuffer_after_operation_end())+" >= "+ (Long.parseLong(transport_to_production.getHasTimeslot().getEndDate())+length+Math.round(nextProductionStep.getHasOperation().getSet_up_time()*60*1000)));
 				//check if the later arrival can be accounted for with the buffer after operation: Enddate + buffer after muss >= enddate transp +  duration + setup
-				if(Long.parseLong(nextProductionStep.getHasTimeslot().getEndDate())+Math.round(nextProductionStep.getHasOperation().getBuffer_after_operation())>= Long.parseLong(transport_to_production.getHasTimeslot().getEndDate())+length+Math.round(nextProductionStep.getHasOperation().getSet_up_time()*60*1000)) {
+				if(Long.parseLong(nextProductionStep.getHasTimeslot().getEndDate())+Math.round(nextProductionStep.getHasOperation().getBuffer_after_operation_end())>= Long.parseLong(transport_to_production.getHasTimeslot().getEndDate())+length+Math.round(nextProductionStep.getHasOperation().getSet_up_time()*60*1000)) {
 					nextProductionStep.getHasTimeslot().setStartDate(transport_to_production.getHasTimeslot().getEndDate());
 					nextProductionStep.getHasTimeslot().setEndDate(Long.toString(Long.parseLong(nextProductionStep.getHasTimeslot().getStartDate())+length));
 					nextProductionStep.getHasOperation().setAvg_PickupTime(transport_to_production.getHasOperation().getAvg_PickupTime());
 				
-					//if both resources are fin
+					//if both resources are fine
 					if(!latest_start_violated) {
 						this.transport_to_production = transport_to_production;	
+					}else {
+						System.out.println("DEBUG__________________LATEST START VIOLATED");
 					}
 				
 				}else {

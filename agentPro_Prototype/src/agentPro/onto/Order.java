@@ -8,20 +8,9 @@ import jade.core.*;
 /**
 * Protege name: Order
 * @author ontology bean generator
-* @version 2019/11/11, 09:45:55
+* @version 2020/06/26, 11:54:55
 */
 public class Order implements Concept {
-
-   /**
-* Protege name: iD_Number
-   */
-   private int iD_Number;
-   public void setID_Number(int value) { 
-    this.iD_Number=value;
-   }
-   public int getID_Number() {
-     return this.iD_Number;
-   }
 
    /**
 * Protege name: consistsOfOrderPositions
@@ -43,5 +32,16 @@ public class Order implements Concept {
    public Iterator getAllConsistsOfOrderPositions() {return consistsOfOrderPositions.iterator(); }
    public List getConsistsOfOrderPositions() {return consistsOfOrderPositions; }
    public void setConsistsOfOrderPositions(List l) {consistsOfOrderPositions = l; }
+
+   /**
+* Protege name: iD_Number
+   */
+   private int iD_Number;
+   public void setID_Number(int value) { 
+    this.iD_Number=value;
+   }
+   public int getID_Number() {
+     return this.iD_Number;
+   }
 
 }

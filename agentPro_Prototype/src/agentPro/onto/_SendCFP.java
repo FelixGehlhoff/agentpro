@@ -8,12 +8,10 @@ import jade.core.*;
 /**
 * Protege name: _SendCFP
 * @author ontology bean generator
-* @version 2019/11/11, 09:45:55
+* @version 2020/06/26, 11:54:55
 */
 public class _SendCFP implements AgentAction {
 
-//////////////////////////// User code
-int a;
    /**
 * Protege name: hasCFP
    */

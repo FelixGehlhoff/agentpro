@@ -8,17 +8,13 @@ import java.util.Iterator;
 import agentPro.onto.Accept_Proposal;
 import agentPro.onto.AllocatedWorkingStep;
 import agentPro.onto.CFP;
-
 import agentPro.onto.Operation;
-
 import agentPro.onto.Proposal;
 import agentPro.onto.Reject_Proposal;
-
 import agentPro.onto.Timeslot;
 import agentPro.onto.Transport_Operation;
 import agentPro.onto._SendAccept_Proposal;
 import agentPro.onto._SendCFP;
-
 import agentPro.onto._SendProposal;
 import agentPro.onto._SendReject_Proposal;
 import agentPro_Prototype_Agents.ResourceAgent;

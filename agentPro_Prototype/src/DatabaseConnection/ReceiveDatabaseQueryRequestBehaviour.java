@@ -5,7 +5,6 @@ import java.sql.SQLException;
 import java.util.Iterator;
 
 import agentPro.onto.AllocatedWorkingStep;
-
 import agentPro.onto.WorkPlan;
 import agentPro.onto._SendRequest_DatabaseEntry;
 import agentPro_Prototype_Agents.DatabaseConnectorAgent;

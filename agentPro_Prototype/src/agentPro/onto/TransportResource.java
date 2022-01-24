@@ -7,20 +7,9 @@ import jade.core.*;
 /**
 * Protege name: TransportResource
 * @author ontology bean generator
-* @version 2019/11/11, 09:45:55
+* @version 2020/06/26, 11:54:55
 */
 public class TransportResource extends Resource{ 
-
-   /**
-* Protege name: avg_PickupTime
-   */
-   private int avg_PickupTime;
-   public void setAvg_PickupTime(int value) { 
-    this.avg_PickupTime=value;
-   }
-   public int getAvg_PickupTime() {
-     return this.avg_PickupTime;
-   }
 
    /**
 * Protege name: avg_Speed
@@ -31,6 +20,17 @@ public class TransportResource extends Resource{
    }
    public float getAvg_Speed() {
      return this.avg_Speed;
+   }
+
+   /**
+* Protege name: avg_PickupTime
+   */
+   private int avg_PickupTime;
+   public void setAvg_PickupTime(int value) { 
+    this.avg_PickupTime=value;
+   }
+   public int getAvg_PickupTime() {
+     return this.avg_PickupTime;
    }
 
 }

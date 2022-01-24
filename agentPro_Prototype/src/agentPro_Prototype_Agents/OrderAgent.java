@@ -10,7 +10,6 @@ import java.util.Iterator;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
-
 import agentPro.onto.Location;
 import agentPro.onto.Order;
 import agentPro.onto.OrderPosition;

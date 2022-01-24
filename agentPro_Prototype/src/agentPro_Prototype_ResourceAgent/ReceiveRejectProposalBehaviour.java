@@ -4,9 +4,7 @@ import java.util.Date;
 import java.util.Iterator;
 
 import agentPro.onto.AllocatedWorkingStep;
-
 import agentPro.onto.Reject_Proposal;
-
 import agentPro.onto._SendReject_Proposal;
 import agentPro_Prototype_Agents.ResourceAgent;
 

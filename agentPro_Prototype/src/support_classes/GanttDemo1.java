@@ -77,7 +77,7 @@ import agentPro.onto.WorkPlan;
  *
  *
  */
-public class GanttDemo1 extends ApplicationFrame {
+public class GanttDemo1 extends ApplicationFrame implements Run_Configuration{
 
     /**
 	 * 
@@ -110,10 +110,10 @@ public class GanttDemo1 extends ApplicationFrame {
         final ChartPanel chartPanel = new ChartPanel(chart);
         chartPanel.setPreferredSize(new java.awt.Dimension(700, 470)); //500, 270
         setContentPane(chartPanel);
-        
+        String path = Run_Configuration.gant_1+SimpleDateFormat.format(System.currentTimeMillis())+Run_Configuration.gant_2;
                 
         try {
-			saveChartToJPG(chart,"D:/TeamDrive/Agent.Pro/_AgentPro/Prototyp/GANTT_Charts/eclipse/"+SimpleDateFormat.format(System.currentTimeMillis())+"_gantt", 700,470);
+			saveChartToJPG(chart,path, 700,470);
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();

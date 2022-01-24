@@ -141,7 +141,7 @@ public class ReceiveInformWorkpieceDepartureBehaviour extends CyclicBehaviour{
 			    
 			     //create GANTT Chart
 			    //System.out.println("DEBUG__ReceiveInformWPDeparture__"+myAgent.getLocalName()+id_workpiece);
-			    if(id_workpiece.equals("WorkpieceAgentNo_3")) {
+			    if(id_workpiece.equals("B_1.1")&&myAgent.getLocalName().equals("QS")) {
 			    	 XYTaskDatasetDemo2 demo = new XYTaskDatasetDemo2(
 				                "JFreeChart : XYTaskDatasetDemo2.java", myAgent.getWorkplan(), myAgent.getLocalName());
 				        demo.pack();

@@ -10,6 +10,7 @@ import agentPro.onto.Location;
 import agentPro.onto.Proposal;
 import agentPro.onto.WorkPlan;
 import agentPro_Prototype_Agents._Agent_Template;
+import jade.util.leap.Collection;
 
 public class OperationCombination {
 	private ArrayList<Proposal> proposal_list_transport = new ArrayList<Proposal>();
@@ -18,6 +19,7 @@ public class OperationCombination {
 	private AllocatedWorkingStep prod_allWS;
 	private String identification_string;
 	private ArrayList<Proposal> buffer_operations = new ArrayList<Proposal>();
+	private ArrayList<Proposal> sharedResource_operations = new ArrayList<Proposal>();
 	private Boolean buffer_needed;
 
 	private AllocatedWorkingStep lastProductionStepAllocated;
@@ -63,7 +65,7 @@ public class OperationCombination {
 		if(buffer_needed) {
 			for(Proposal proposal_buffer : buffer_operations) { //get Transports to each buffer
 				OperationCombination_SinglePath comb = new OperationCombination_SinglePath(lastProductionStepAllocated, initial_proposal_production, proposal_buffer);			
-				Location prod_loc = prod_allWS.getHasResource().getHasLocation();
+				Location prod_loc = prod_allWS.getHasResource().getHasLocation(); //Ziel
 				//add the best transport to production (earliest)
 				for(Proposal proposal_transport : proposal_list_transport) {
 					Location end_of_transport = (Location)((AllocatedWorkingStep)proposal_transport.getConsistsOfAllocatedWorkingSteps().get(0)).getHasOperation().getEndState();
@@ -106,7 +108,7 @@ public class OperationCombination {
 				return 0;
 			}
 		}else{
-			System.out.println("DEBUG__before constr");
+			
 			OperationCombination_SinglePath comb = new OperationCombination_SinglePath(lastProductionStepAllocated, initial_proposal_production, null);
 			for(Proposal proposal_transport : proposal_list_transport) {
 					comb.addTransportToProduction(proposal_transport, _Agent_Template.opimizationCriterion);	//adds the transport if its better than the existing one					
@@ -217,7 +219,10 @@ public class OperationCombination {
 		
 	}
 	public ArrayList<Proposal>getProposals() {
-		ArrayList<Proposal> new_list = proposal_list_transport;
+		ArrayList<Proposal> new_list = new ArrayList<Proposal>();
+		for(Proposal prop : proposal_list_transport) {
+			new_list.add(prop);
+		}
 		new_list.add(initial_proposal_production);
 		for(Proposal buffer_prop : buffer_operations) {
 			new_list.add(buffer_prop);
@@ -257,6 +262,15 @@ public class OperationCombination {
 
 	public void setTransport_needed(boolean transport_needed) {
 		this.transport_needed = transport_needed;
+	}
+
+
+	public ArrayList<Proposal> getSharedResource_operations() {
+		return sharedResource_operations;
+	}
+
+	public void setSharedResource_operations(ArrayList<Proposal> sharedResource_operations) {
+		this.sharedResource_operations = sharedResource_operations;
 	}
 	
 }

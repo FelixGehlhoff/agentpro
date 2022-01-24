@@ -11,6 +11,7 @@ import agentPro.onto.Operation;
 import agentPro.onto.Proposal;
 import agentPro.onto.Resource;
 import agentPro.onto.Shared_Resource;
+import agentPro.onto.State;
 import agentPro.onto.Timeslot;
 import agentPro.onto.Transport_Operation;
 import agentPro_Prototype_ResourceAgent.ReceiveCFPBehaviour;
@@ -85,8 +86,8 @@ public class OperatorAgent extends SharedResourceAgent{
 			estimated_enddate = enddate_interval;	
 			//determine how much time there is between this operation and the one before 
 			//this.getReceiveCFPBehav().buffer_time_that_production_can_start_earlier = timeslot_interval_to_be_booked_production.lowerBound()-getFree_interval_array().get(i).lowerBound(); 
-			operation.setBuffer_before_operation(timeslot_interval_to_be_booked_production.lowerBound()-getFree_interval_array().get(i).lowerBound());
-			operation.setBuffer_after_operation(getFree_interval_array().get(i).upperBound()-timeslot_interval_to_be_booked_production.upperBound());
+			operation.setBuffer_before_operation_start(timeslot_interval_to_be_booked_production.lowerBound()-getFree_interval_array().get(i).lowerBound());
+			operation.setBuffer_after_operation_end(getFree_interval_array().get(i).upperBound()-timeslot_interval_to_be_booked_production.upperBound());
 			break;
 		
 		}else if(getFree_interval_array().get(i).getSize() >= timeslot_interval_to_be_booked_production.getSize()){
@@ -102,8 +103,8 @@ public class OperatorAgent extends SharedResourceAgent{
 					//this.getReceiveCFPBehav().buffer_time_that_production_can_start_earlier = 0; //because the lowerBound of a free Interval is taken --> before that is a busy interval
 					//System.out.println("DEBUG_______________i "+i+" getFree_interval_array().get(i).lowerBound()"+getFree_interval_array().get(i).lowerBound());
 					deadline_not_met = 1000;
-					operation.setBuffer_before_operation(0);
-					operation.setBuffer_after_operation(getFree_interval_array().get(i).upperBound()-timeslot_interval_to_be_booked_production.upperBound());
+					operation.setBuffer_before_operation_start(0);
+					operation.setBuffer_after_operation_end(getFree_interval_array().get(i).upperBound()-timeslot_interval_to_be_booked_production.upperBound());
 					
 					
 					break;
@@ -142,9 +143,15 @@ public class OperatorAgent extends SharedResourceAgent{
 	}
 
 	@Override
-	protected Resource createResource() {
+	public Resource createResource() {
 		Resource res = new Resource();
 		return res;
+	}
+
+	@Override
+	public float calculateTimeBetweenStates(State start_next_task, State end_new, long end_of_free_interval) {
+		// TODO Auto-generated method stub
+		return 0;
 	}
 
 

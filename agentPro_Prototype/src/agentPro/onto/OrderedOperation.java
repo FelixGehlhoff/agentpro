@@ -8,41 +8,19 @@ import jade.core.*;
 /**
 * Protege name: OrderedOperation
 * @author ontology bean generator
-* @version 2019/11/11, 09:45:55
+* @version 2020/06/26, 11:54:55
 */
 public class OrderedOperation implements Concept {
 
    /**
-* Protege name: withOperationInStep
+* Protege name: hasFollowUpOperation
    */
-   private int withOperationInStep;
-   public void setWithOperationInStep(int value) { 
-    this.withOperationInStep=value;
+   private boolean hasFollowUpOperation;
+   public void setHasFollowUpOperation(boolean value) { 
+    this.hasFollowUpOperation=value;
    }
-   public int getWithOperationInStep() {
-     return this.withOperationInStep;
-   }
-
-   /**
-* Protege name: lastOperation
-   */
-   private boolean lastOperation;
-   public void setLastOperation(boolean value) { 
-    this.lastOperation=value;
-   }
-   public boolean getLastOperation() {
-     return this.lastOperation;
-   }
-
-   /**
-* Protege name: firstOperation
-   */
-   private boolean firstOperation;
-   public void setFirstOperation(boolean value) { 
-    this.firstOperation=value;
-   }
-   public boolean getFirstOperation() {
-     return this.firstOperation;
+   public boolean getHasFollowUpOperation() {
+     return this.hasFollowUpOperation;
    }
 
    /**
@@ -68,14 +46,36 @@ public class OrderedOperation implements Concept {
    }
 
    /**
-* Protege name: hasFollowUpOperation
+* Protege name: firstOperation
    */
-   private boolean hasFollowUpOperation;
-   public void setHasFollowUpOperation(boolean value) { 
-    this.hasFollowUpOperation=value;
+   private boolean firstOperation;
+   public void setFirstOperation(boolean value) { 
+    this.firstOperation=value;
    }
-   public boolean getHasFollowUpOperation() {
-     return this.hasFollowUpOperation;
+   public boolean getFirstOperation() {
+     return this.firstOperation;
+   }
+
+   /**
+* Protege name: lastOperation
+   */
+   private boolean lastOperation;
+   public void setLastOperation(boolean value) { 
+    this.lastOperation=value;
+   }
+   public boolean getLastOperation() {
+     return this.lastOperation;
+   }
+
+   /**
+* Protege name: withOperationInStep
+   */
+   private int withOperationInStep;
+   public void setWithOperationInStep(int value) { 
+    this.withOperationInStep=value;
+   }
+   public int getWithOperationInStep() {
+     return this.withOperationInStep;
    }
 
 }

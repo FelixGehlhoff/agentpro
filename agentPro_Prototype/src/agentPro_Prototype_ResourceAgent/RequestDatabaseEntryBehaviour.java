@@ -6,6 +6,8 @@ import java.util.Iterator;
 import agentPro.onto.AllocatedWorkingStep;
 import agentPro.onto.Request_DatabaseEntry;
 import agentPro.onto._SendRequest_DatabaseEntry;
+import agentPro_Prototype_Agents.ResourceAgent;
+import agentPro_Prototype_Agents.TransportResourceAgent;
 import agentPro_Prototype_Agents.WorkpieceAgent;
 import agentPro_Prototype_Agents._Agent_Template;
 import jade.content.lang.Codec.CodecException;
@@ -93,6 +95,14 @@ public class RequestDatabaseEntryBehaviour extends OneShotBehaviour{
 		//create ontology contents
 			_SendRequest_DatabaseEntry send_request_db_entry = new _SendRequest_DatabaseEntry();
 			Request_DatabaseEntry request_db_entry = new Request_DatabaseEntry();
+			
+			/*
+			if(myAgent.getClass().equals(TransportResourceAgent.class)) {
+				ResourceAgent agent = (ResourceAgent) myAgent;
+				agent.printoutBusyIntervals();
+				System.out.println(_Agent_Template.printoutWorkPlan(myAgent.getWorkplan(), myAgent.getLocalName()));
+			}*/
+		
 			
 			if(edited_step != null) {
 				request_db_entry.addConsistsOfAllocatedWorkingSteps(edited_step);

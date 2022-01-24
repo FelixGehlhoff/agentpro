@@ -49,8 +49,6 @@ import org.jfree.ui.ApplicationFrame;
 import agentPro.onto.AllocatedWorkingStep;
 import agentPro.onto.Timeslot;
 import agentPro.onto.WorkPlan;
-//import jade.util.leap.*;
-//import jade.util.leap.List;
 
 /**
  * A demonstration of the {@link XYTaskDataset} class.
@@ -163,7 +161,7 @@ public class XYTaskDataset_Total extends ApplicationFrame {
         ChartUtilities.applyCurrentTheme(chart);
         
         try {
-			saveChartToJPG(chart,"F:/TeamDrive/Agent.Pro/_AgentPro/Prototyp/GANTT_Charts/eclipse/"+SimpleDateFormat.format(System.currentTimeMillis())+"_gantt_RESOURCES.", 700,470);
+			saveChartToJPG(chart,Run_Configuration.gant_1+SimpleDateFormat.format(System.currentTimeMillis())+"_gantt_RESOURCES.", 700,470);
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();

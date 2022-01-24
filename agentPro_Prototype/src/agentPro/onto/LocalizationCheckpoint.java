@@ -8,7 +8,7 @@ import jade.core.*;
 /**
 * Protege name: LocalizationCheckpoint
 * @author ontology bean generator
-* @version 2019/11/11, 09:45:55
+* @version 2020/06/26, 11:54:55
 */
 public class LocalizationCheckpoint implements Concept {
 
@@ -21,28 +21,6 @@ public class LocalizationCheckpoint implements Concept {
    }
    public String getTime() {
      return this.time;
-   }
-
-   /**
-* Protege name: coordDeviationX
-   */
-   private float coordDeviationX;
-   public void setCoordDeviationX(float value) { 
-    this.coordDeviationX=value;
-   }
-   public float getCoordDeviationX() {
-     return this.coordDeviationX;
-   }
-
-   /**
-* Protege name: timeDeviation
-   */
-   private float timeDeviation;
-   public void setTimeDeviation(float value) { 
-    this.timeDeviation=value;
-   }
-   public float getTimeDeviation() {
-     return this.timeDeviation;
    }
 
    /**
@@ -65,6 +43,28 @@ public class LocalizationCheckpoint implements Concept {
    }
    public Location getHasLocation() {
      return this.hasLocation;
+   }
+
+   /**
+* Protege name: coordDeviationX
+   */
+   private float coordDeviationX;
+   public void setCoordDeviationX(float value) { 
+    this.coordDeviationX=value;
+   }
+   public float getCoordDeviationX() {
+     return this.coordDeviationX;
+   }
+
+   /**
+* Protege name: timeDeviation
+   */
+   private float timeDeviation;
+   public void setTimeDeviation(float value) { 
+    this.timeDeviation=value;
+   }
+   public float getTimeDeviation() {
+     return this.timeDeviation;
    }
 
 }

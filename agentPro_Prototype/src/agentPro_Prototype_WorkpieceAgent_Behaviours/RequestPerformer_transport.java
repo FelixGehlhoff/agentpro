@@ -13,6 +13,7 @@ import org.apache.commons.lang.RandomStringUtils;
 import agentPro.onto.Accept_Proposal;
 import agentPro.onto.AllocatedWorkingStep;
 import agentPro.onto.CFP;
+import agentPro.onto.Capability;
 import agentPro.onto.Location;
 import agentPro.onto.Operation;
 import agentPro.onto.OrderedOperation;
@@ -44,6 +45,7 @@ import jade.lang.acl.MessageTemplate;
 import jade.util.leap.List;
 import support_classes.Interval;
 import support_classes.OperationCombination;
+import support_classes.Run_Configuration;
 
 public class RequestPerformer_transport extends Behaviour {
 
@@ -164,7 +166,7 @@ public class RequestPerformer_transport extends Behaviour {
 			}	
 			
 			//check if a buffer is needed for this operation
-			if(!arrangeBuffer(listOfCombinations)) { //similar to normal RequestPerformer Behaviour (type: buffer), adds buffers to OperationCombination	
+			if(!arrangeAdditionalOperation(listOfCombinations, "buffer")) { //similar to normal RequestPerformer Behaviour (type: buffer), adds buffers to OperationCombination	
 				System.out.println(logLinePrefix+"   ERROR  no buffer could be arranged ");//buffer is needed but could not be arranged	
 			}
 			for(OperationCombination operationComb : listOfCombinations) {			
@@ -177,17 +179,17 @@ public class RequestPerformer_transport extends Behaviour {
 			sendCfps(sendCFP);
 					
 			step = 1;
-			block((long) (0.25*myAgent.getProductionManagerBehaviour().reply_by_time));
+			block((long) (0.25*Run_Configuration.reply_by_time_wp_agent));
 			break;
 		case 1:	
 			//deadline	
 			//if deadline expired or all proposals are received --> book best offer
 			if(System.currentTimeMillis()>reply_by_date_CFP) {
-				System.out.println("DEBUG_________________   @@@@@@@@@@@@@@@@@@@@@@@@@@@@@  WWWWWWWWWWWWWWWW   TIME EXPIRED");
+				System.out.println(System.currentTimeMillis()+" DEBUG_________________   @@@@@@@@@@@@@@@@@@@@@@@@@@@@@  WWWWWWWWWWWWWWWW   TIME EXPIRED");
 				step = 3;
 				break;
 			}else if(numberOfAnswers == resourceAgents.size()) {
-				System.out.println("DEBUG_________________   @@@@@@@@@@@@@@@@@@@@@@@@@@@@@  WWWWWWWWWWWWWWWW   ALL ANSWERS THERE");
+				System.out.println(System.currentTimeMillis()+" DEBUG_________________   @@@@@@@@@@@@@@@@@@@@@@@@@@@@@  WWWWWWWWWWWWWWWW   ALL ANSWERS THERE");
 				
 				step = 3;
 				break;
@@ -206,10 +208,10 @@ public class RequestPerformer_transport extends Behaviour {
 			
 			step = 1;			
 			break;
-			
 		case 3:
+			
 			//determine combinations
-		
+			
 			for(OperationCombination operationCombination: listOfCombinations) {	//check all transport proposals for each production proposal --> put together the ones that belong together				
 				for(Proposal prop_transport : received_proposals) {				
 					if(prop_transport.getID_String().contentEquals(operationCombination.getIdenticiation_string())) {	//compares id of prod resource with id of transp operation
@@ -217,6 +219,32 @@ public class RequestPerformer_transport extends Behaviour {
 					}					
 				}
 			}
+			
+			// organize shared resoures
+			
+ 			if(!arrangeAdditionalOperation(listOfCombinations, "shared_resource")) { //similar to normal RequestPerformer Behaviour (type: buffer), adds buffers to OperationCombination	
+				System.out.println(logLinePrefix+"   ERROR  no shared res could be arranged ");//buffer is needed but could not be arranged	
+			}
+			/*
+			for(OperationCombination operationCombination: listOfCombinations) {
+				if(checkIfSharedResourceIsNecessary(operationCombination.getInitial_proposal_production())){
+					arrangeSharedResource(operationCombination.getInitial_proposal_production());
+				}			
+			}
+			for(Proposal prop_transport : received_proposals) {	
+				if(checkIfSharedResourceIsNecessary(prop_transport)){
+					arrangeSharedResource(prop_transport);
+				}	
+			}
+			break;
+			*/
+			step = 4;
+			
+		case 4:
+			
+			
+			
+
 			if(listOfCombinations.size()>0) {
 				//calculate values and sort by criterion
 				combination_best = sortAndDetermineBestCombinationByCriterion();	
@@ -236,17 +264,17 @@ public class RequestPerformer_transport extends Behaviour {
 			    	
 					myAgent.getProductionManagerBehaviour().setStep(0);
 					myAgent.getProductionManagerBehaviour().restart();
-					step = 4;					
+					step = 5;					
 					break;
 				}else {
 					System.out.println("ERROR____________________________ no feasible OC could be arranged");
-					step = 4;
+					step = 5;
 					break;
 				}
 
 			}else {
 				System.out.println("ERROR Operation could not be arranged.");
-				step=4;
+				step=5;
 				break;
 			}
 			
@@ -254,6 +282,14 @@ public class RequestPerformer_transport extends Behaviour {
 		
 		}//switch        
 	}
+
+	private boolean checkIfSharedResourceIsNecessary(Proposal prop) {
+		//if(((AllocatedWorkingStep)prop.getConsistsOfAllocatedWorkingSteps().get(0)).getHasOperation().getRequiresOperation()!= null) {
+		if(((AllocatedWorkingStep)prop.getConsistsOfAllocatedWorkingSteps().get(0)).getHasOperation().getIsEnabledBy().size() > 0) {	
+			return true;
+		}else {
+		return false;
+		}}
 
 	private void checkConsistencyAndAddStepsToWorkplan(OperationCombination combination_best2) {
 		@SuppressWarnings("unchecked")
@@ -301,9 +337,9 @@ public class RequestPerformer_transport extends Behaviour {
 			for(Proposal prop_buffer : buffers) {	//for each buffer operation there needs to be a transport from the old prod. step to the buffer
 				System.out.println("DEBUG____________transport needed "+checkIfTransportIsNeeded(opComb, prop_buffer));
 				if(checkIfTransportIsNeeded(opComb, prop_buffer)) {	
-					sendCFP.addHasCFP(createCFPSingle(myAgent.getLastProductionStepAllocated(), (AllocatedWorkingStep)prop_buffer.getConsistsOfAllocatedWorkingSteps().get(0), opComb.getIdenticiation_string(), null, null));		//add buffer operations to CFPs --> Start = last alloc step, end = buffer
+					sendCFP.addHasCFP(createCFP_ontologyElement(myAgent.getLastProductionStepAllocated(), (AllocatedWorkingStep)prop_buffer.getConsistsOfAllocatedWorkingSteps().get(0), opComb.getIdenticiation_string(), null, null));		//add buffer operations to CFPs --> Start = last alloc step, end = buffer
 					//and from the buffer to the new step
-					sendCFP.addHasCFP(createCFPSingle((AllocatedWorkingStep)prop_buffer.getConsistsOfAllocatedWorkingSteps().get(0), (AllocatedWorkingStep)opComb.getInitial_proposal_production().getConsistsOfAllocatedWorkingSteps().get(0), opComb.getIdenticiation_string(), null, null));		//add buffer operations to CFPs --> Start = last alloc step, end = buffer			
+					sendCFP.addHasCFP(createCFP_ontologyElement((AllocatedWorkingStep)prop_buffer.getConsistsOfAllocatedWorkingSteps().get(0), (AllocatedWorkingStep)opComb.getInitial_proposal_production().getConsistsOfAllocatedWorkingSteps().get(0), opComb.getIdenticiation_string(), null, null));		//add buffer operations to CFPs --> Start = last alloc step, end = buffer			
 				
 				}
 			}		
@@ -311,12 +347,12 @@ public class RequestPerformer_transport extends Behaviour {
 			//there needs to be a transport from the old one to the new production step if a transport is needed		
 			System.out.println("DEBUG____________transport needed "+checkIfTransportIsNeeded(opComb, opComb.getInitial_proposal_production()));
 			if(checkIfTransportIsNeeded(opComb, opComb.getInitial_proposal_production())) {		
-			sendCFP.addHasCFP(createCFPSingle(myAgent.getLastProductionStepAllocated(), (AllocatedWorkingStep)opComb.getInitial_proposal_production().getConsistsOfAllocatedWorkingSteps().get(0), opComb.getIdenticiation_string(), null, null));		//add buffer operations to CFPs --> Start = last alloc step, end = buffer							
+			sendCFP.addHasCFP(createCFP_ontologyElement(myAgent.getLastProductionStepAllocated(), (AllocatedWorkingStep)opComb.getInitial_proposal_production().getConsistsOfAllocatedWorkingSteps().get(0), opComb.getIdenticiation_string(), null, null));		//add buffer operations to CFPs --> Start = last alloc step, end = buffer							
 			}
 		}		
 	}
 
-	private CFP createCFPSingle(AllocatedWorkingStep start, AllocatedWorkingStep end, String id_of_production_step, Operation op, Timeslot timeslot) {										
+	private CFP createCFP_ontologyElement(AllocatedWorkingStep start, AllocatedWorkingStep end, String id_of_production_step, Operation op, Timeslot timeslot) {										
 			CFP cfp_onto = new CFP();
 			if(timeslot != null) {
 				cfp_onto.setHasTimeslot(timeslot); //determine the requested timeslot (earliest start date, latest finish date) of the operation					
@@ -332,7 +368,13 @@ public class RequestPerformer_transport extends Behaviour {
 				cfp_onto.setID_String(id_of_production_step); //vorher end.id --> führt zu ..._puffer
 				//26.02.2019 add quantity
 				cfp_onto.setQuantity(myAgent.getOrderPos().getQuantity());
-		return cfp_onto;
+				//25.06.2020
+				cfp_onto.getHasOperation().setBuffer_after_operation_start(start.getHasOperation().getBuffer_after_operation_end()); //is currently not checked by the crane
+				cfp_onto.getHasOperation().setBuffer_after_operation_end(end.getHasOperation().getBuffer_after_operation_end());
+				//cfp_onto.getHasOperation().setAvg_Duration(myAgent.getTransport_estimation());
+				cfp_onto.getHasOperation().setBuffer_before_operation_end(end.getHasOperation().getBuffer_before_operation_start()); // //buffer before steht für früher beenden 
+				cfp_onto.getHasOperation().setBuffer_before_operation_start(0); // nicht früher starten, weil Vor-Operation nicht früher starten und beendet werden kann (Annahme). Außer z.B. bei Teillieferungen??
+				return cfp_onto;
 	}
 
 	private Timeslot determineCFPTimeslotTransport(AllocatedWorkingStep start, AllocatedWorkingStep end) {
@@ -352,7 +394,6 @@ public class RequestPerformer_transport extends Behaviour {
 		//Name = Start_Ziel in format  X;Y_DestinationResource
 		transport_operation.setName(start.getHasResource().getHasLocation().getCoordX()+";"+start.getHasResource().getHasLocation().getCoordY()+"_"+end.getHasResource().getName());
 		transport_operation.setAppliedOn(myAgent.getRepresented_Workpiece());
-		transport_operation.setBuffer_before_operation(((Operation) end.getHasOperation()).getBuffer_before_operation());
 			
 		return transport_operation;
 	}
@@ -370,18 +411,132 @@ public class RequestPerformer_transport extends Behaviour {
 				return false;
 			}
 		}
-		opComb.setTransport_needed(myAgent.transport_needed);	//true oder false für Anwendungsfall
+		opComb.setTransport_needed(Run_Configuration.transport_needed);	//true oder false für Anwendungsfall
 		return WorkpieceAgent.transport_needed;						//true
 	}
 
+	private boolean arrangeAdditionalOperation (ArrayList<OperationCombination> list, String operation_details) {
+		_SendCFP sendCFP = new _SendCFP();
+		for(OperationCombination comb : list) {
+			if(operation_details.equals("buffer")) {
+				Proposal prop = comb.getInitial_proposal_production();
+				if(checkIfBufferPlaceisNeeded(prop, myAgent.getLastProductionStepAllocated())) {
+					comb.setBuffer_needed(true);		
+					sendCFP.addHasCFP(createCFP(myAgent.getLastProductionStepAllocated(), prop, "buffer", null));
+				}
+			}else if(operation_details.equals("shared_resource")) {
+				for(Proposal prop : comb.getProposals()) {		//check for each proposal (production,transport and buffer) if a shared res is necessary
+					if(checkIfSharedResourceIsNecessary(prop)) {
+						  @SuppressWarnings("unchecked")
+							//Iterator<Operation> it = ((AllocatedWorkingStep)prop.getConsistsOfAllocatedWorkingSteps().get(0)).getHasOperation().getRequiresOperation().iterator();
+						  Iterator<Capability> it = ((AllocatedWorkingStep)prop.getConsistsOfAllocatedWorkingSteps().get(0)).getHasOperation().getIsEnabledBy().iterator();
+						  while(it.hasNext()) {
+						    	Capability req_cap = it.next();
+						    	sendCFP.addHasCFP(createCFP(myAgent.getLastProductionStepAllocated(), prop, "shared_resource", req_cap));
+						    }
+						
+					}
+				}
+				
+			}
+		}
+		
+		if(sendCFP.getHasCFP().size() > 0) {
+			ArrayList<AID> agents = new ArrayList<AID>();
+			ArrayList<Proposal>proposals = new ArrayList<Proposal>();
+			int step1 = 0;
+			Boolean finished = false;
+			int number_of_answers = 0;
+			//long reply_by_date_long = 0;
+			//String conversationID_buffer = prop_production.getID_String();
+			while(!finished) {
+			switch (step1) {
+			
+			case 0:		
+				sendCfps(sendCFP);
+				
+					
+				step1 = 1;
+				block((long) (0.25*Run_Configuration.reply_by_time_wp_agent));
+				break;
+			case 1:	
+				//deadline	
+				//if deadline expired or all proposals are received --> get transport proposals
+				if(System.currentTimeMillis()>reply_by_date_CFP) {
+					System.out.println(System.currentTimeMillis()+" DEBUG_______________________________ARRANGE Additional Operation__________________________ALL TIME EXPIRED");
+					finished = true;
+					for(Proposal prop : proposals) {
+						//receivedProposals_buffer.add(prop_buffer);
+						for(OperationCombination comb : list) {
+							if(prop.getID_String().contentEquals(comb.getIdenticiation_string())) {
+								if(((AllocatedWorkingStep)prop.getConsistsOfAllocatedWorkingSteps().get(0)).getHasOperation().getType().equals("buffer")){
+									comb.getBuffer_operations().add(prop);
+								}else if(((AllocatedWorkingStep)prop.getConsistsOfAllocatedWorkingSteps().get(0)).getHasOperation().getType().equals("shared_resource")){ //wieso stand da buffer?
+									comb.getSharedResource_operations().add(prop);
+								}else {
+									System.out.println(logLinePrefix+"ERROR__________WRONG OPERATION TYPE "+((AllocatedWorkingStep)prop.getConsistsOfAllocatedWorkingSteps().get(0)).getHasOperation().getType());
+								}
+							}
+						}				
+					}
+					break;
+				//}else if(System.currentTimeMillis()<=reply_by_date_long){ 
+				}else if(number_of_answers == resourceAgents.size()) {
+					System.out.println("DEBUG_______________________________ARRANGE Additional Operation __________________________ALL ANSWERS THERE");
+					finished = true;
+					for(Proposal prop1 : proposals) {
+						//receivedProposals_buffer.add(prop_buffer);
+						for(OperationCombination comb : list) {
+							if(prop1.getID_String().contentEquals(comb.getIdenticiation_string())) {
+								if(((AllocatedWorkingStep)prop1.getConsistsOfAllocatedWorkingSteps().get(0)).getHasOperation().getType().equals("buffer")){
+									comb.getBuffer_operations().add(prop1);
+								}else if(((AllocatedWorkingStep)prop1.getConsistsOfAllocatedWorkingSteps().get(0)).getHasOperation().getType().equals("shared_resource")){ //wieso stand da buffer?
+									comb.getSharedResource_operations().add(prop1);
+								}else {
+									System.out.println(logLinePrefix+"ERROR__________WRONG OPERATION TYPE "+((AllocatedWorkingStep)prop1.getConsistsOfAllocatedWorkingSteps().get(0)).getHasOperation().getType());
+								}
+							}
+						}				
+					}
+					break;
+				}else if(System.currentTimeMillis()<=reply_by_date_CFP){ 
+					step1 = 2;				
+					//block(10);
+					break;
+				} 
+				
+				//break;
+			case 2:
+
+				// Receive all proposals
+				number_of_answers += myAgent.receiveProposals(conversationID, agents, proposals);												
+				number_of_answers += myAgent.receiveRejection(conversationID, agents, proposals);		
+				
+				step1 = 1;			
+				break;		
+			}//switch   
+			}//while
+			if(sendCFP.getHasCFP().size() == proposals.size()) {
+				return true;
+			}else {
+				return false;
+			}
+		}else { //no buffer/x needed to be arranged
+			return true;
+		}
+		
+		
+	}
+
 	//arranges a buffer operation / proposal for a production operation and adds it to the list of buffer proposals
+	/*
 	private boolean arrangeBuffer(ArrayList <OperationCombination> list) {
 		_SendCFP sendCFP = new _SendCFP();
 		for(OperationCombination comb : list) {
 			Proposal prop = comb.getInitial_proposal_production();
 			if(checkIfBufferPlaceisNeeded(prop, myAgent.getLastProductionStepAllocated())) {
 				comb.setBuffer_needed(true);		
-				sendCFP.addHasCFP(createBufferCFP(myAgent.getLastProductionStepAllocated(), prop));
+				sendCFP.addHasCFP(createCFP(myAgent.getLastProductionStepAllocated(), prop, "buffer", null));
 			}
 		}
 		
@@ -459,17 +614,29 @@ public class RequestPerformer_transport extends Behaviour {
 			return false;
 		}
 	}
-
-	private CFP createBufferCFP(AllocatedWorkingStep lastProductionStepAllocated, Proposal prop) {
-	
-			Production_Operation requested_operation_buffer = new Production_Operation();
-			requested_operation_buffer.setType("buffer");
-			requested_operation_buffer.setAppliedOn(myAgent.getRepresented_Workpiece());
-			requested_operation_buffer.setStartStateNeeded(lastProductionStepAllocated.getHasResource().getHasLocation());
-			requested_operation_buffer.setEndState(((AllocatedWorkingStep)prop.getConsistsOfAllocatedWorkingSteps().get(0)).getHasResource().getHasLocation());	
+*/
+	private CFP createCFP(AllocatedWorkingStep lastProductionStepAllocated, Proposal prop, String type, Capability req_cap) {
+		Operation requested_operation = new Operation();
+		if(req_cap != null) {
+			requested_operation = ((AllocatedWorkingStep)prop.getConsistsOfAllocatedWorkingSteps().get(0)).getHasOperation();
+		}else {
+			requested_operation = new Production_Operation();
+			requested_operation.setType(type);
+		}
+		
+		//requested_operation.setAppliedOn(myAgent.getRepresented_Workpiece());
+			if(type.equalsIgnoreCase("buffer")) { //falls Bereiche für Puffer festgelegt sind
+				requested_operation.setAppliedOn(myAgent.getRepresented_Workpiece());
+				requested_operation.setStartStateNeeded(lastProductionStepAllocated.getHasResource().getHasLocation());
+				requested_operation.setEndState(((AllocatedWorkingStep)prop.getConsistsOfAllocatedWorkingSteps().get(0)).getHasResource().getHasLocation());			
+			}
+				
+				//requested_operation.setEndState(((AllocatedWorkingStep)prop.getConsistsOfAllocatedWorkingSteps().get(0)).getHasOperation().getEndState());		
+				
+				//}
 			//determine the requested timeslot (earliest start date, latest finish date) of the operation
 			Timeslot cfp_timeslot =  determineCFPTimeslot(prop);	 
-			CFP cfp = createCFPSingle(lastProductionStepAllocated, (AllocatedWorkingStep)prop.getConsistsOfAllocatedWorkingSteps().get(0), prop.getID_String(), requested_operation_buffer, cfp_timeslot);
+			CFP cfp = createCFP_ontologyElement(lastProductionStepAllocated, (AllocatedWorkingStep)prop.getConsistsOfAllocatedWorkingSteps().get(0), prop.getID_String(), requested_operation, cfp_timeslot);
 		
 		return cfp;
 	}
@@ -536,7 +703,7 @@ public class RequestPerformer_transport extends Behaviour {
 			cfp.setConversationId(conversationID);
 			
 			//determine reply by time
-			long reply_by_date_long = System.currentTimeMillis()+myAgent.getProductionManagerBehaviour().reply_by_time;
+			long reply_by_date_long = System.currentTimeMillis()+Run_Configuration.reply_by_time_wp_agent;
 			Date reply_by_date = new Date(reply_by_date_long);
 			this.reply_by_date_CFP = reply_by_date_long;
 			cfp.setReplyByDate(reply_by_date);
@@ -554,18 +721,37 @@ public class RequestPerformer_transport extends Behaviour {
 				e.printStackTrace();
 			}
 			
+			
 			@SuppressWarnings("unchecked")
 			Iterator<CFP>it = sendCFP.getAllHasCFP();
 			while(it.hasNext()) {
 				CFP cfp_current = it.next();
-				resourceAgents = myAgent.findOfferingAgents(cfp_current.getHasOperation());
+				if(cfp_current.getHasOperation().getIsEnabledBy().size() >0) {
+					@SuppressWarnings("unchecked")
+					Iterator<Capability>it2 = cfp_current.getHasOperation().getIsEnabledBy().iterator();
+					while(it2.hasNext()) {	
+						Capability cap = it2.next();
+						resourceAgents = myAgent.findOfferingAgents(cap);
+						for (int i = 0;i<resourceAgents.size();i++){
+							cfp.addReceiver(resourceAgents.get(i));
+							//System.out.println(myAgent.SimpleDateFormat.format(new Date())+" "+myAgent.getLocalName()+logLinePrefix+"cfp sent to receiver: "+result[i].getName().getLocalName()+" with content "+cfp.getContent());
+						}
+						myAgent.send(cfp);	
+					}
+					break;
+					
+				}else {//wird jeweils überschrieben, sollte aber für alle CFPs gleich sein
+					resourceAgents = myAgent.findOfferingAgents(cfp_current.getHasOperation());
+					for (int i = 0;i<resourceAgents.size();i++){
+						cfp.addReceiver(resourceAgents.get(i));
+						//System.out.println(myAgent.SimpleDateFormat.format(new Date())+" "+myAgent.getLocalName()+logLinePrefix+"cfp sent to receiver: "+result[i].getName().getLocalName()+" with content "+cfp.getContent());
+					}
+					myAgent.send(cfp);
+					break;									
+				}			
 			}
-
-			for (int i = 0;i<resourceAgents.size();i++){
-				cfp.addReceiver(resourceAgents.get(i));
-				//System.out.println(myAgent.SimpleDateFormat.format(new Date())+" "+myAgent.getLocalName()+logLinePrefix+"cfp sent to receiver: "+result[i].getName().getLocalName()+" with content "+cfp.getContent());
-			}
-			myAgent.send(cfp);	
+			
+			
 	}
 
 	private void acceptProposalsOfCombination(OperationCombination combination_best) {
@@ -580,7 +766,7 @@ public class RequestPerformer_transport extends Behaviour {
 		//accept_proposal.setConversationId(conversationID);
 		accept_proposal.setLanguage(myAgent.getCodec().getName());
 		accept_proposal.setOntology(myAgent.getOntology().getName());
-		long reply_by_date_long2 = System.currentTimeMillis()+myAgent.getProductionManagerBehaviour().reply_by_time;
+		long reply_by_date_long2 = System.currentTimeMillis()+Run_Configuration.reply_by_time_wp_agent;
 		Date reply_by_date2 = new Date(reply_by_date_long2);
 		this.reply_by_date_inform = reply_by_date_long2;
 		accept_proposal.setReplyByDate(reply_by_date2);
@@ -600,7 +786,7 @@ public class RequestPerformer_transport extends Behaviour {
 				//accept_Proposal_onto.setID_Number(combination_best.getBest_path().getList_of_best_proposals().get(i).getID_Number());
 				//accept_Proposal_onto.setID_String(combination_best.getBest_path().getList_of_best_proposals().get(i).getID_String());
 				accept_Proposal_onto.addHasProposal(combination_best.getBest_path().getList_of_best_proposals().get(i));
-				
+				accept_proposal.setInReplyTo((String.valueOf(combination_best.getBest_path().getList_of_best_proposals().get(i).getID_Number())));
 				//if there is another proposal from that agent --> add that as well
 				for(int j = i+1;j<combination_best.getBest_path().getList_of_best_proposals().size();j++) {
 					if(combination_best.getBest_path().getList_of_best_proposals().get(j).getHasSender().getLocalName().contentEquals(name_of_sender)) {
@@ -686,7 +872,8 @@ public class RequestPerformer_transport extends Behaviour {
 		Timeslot timeslot = new Timeslot();
 		AllocatedWorkingStep LAST_alWS_Production = myAgent.getLastProductionStepAllocated();
 		//take step allocated in the planning round before as start and start of new step as end
-			timeslot.setStartDate(Long.toString(Long.parseLong(LAST_alWS_Production.getHasTimeslot().getEndDate())+myAgent.getTransport_estimation()));
+		//	timeslot.setStartDate(Long.toString(Long.parseLong(LAST_alWS_Production.getHasTimeslot().getEndDate())+myAgent.getTransport_estimation_CFP()));
+			timeslot.setStartDate(Long.toString(Long.parseLong(LAST_alWS_Production.getHasTimeslot().getEndDate())));
 			timeslot.setEndDate(Long.toString(Long.parseLong(((AllocatedWorkingStep)prop_production.getConsistsOfAllocatedWorkingSteps().get(0)).getHasTimeslot().getStartDate())-myAgent.getTransport_estimation()));
 	
 		return timeslot;
@@ -695,6 +882,6 @@ public class RequestPerformer_transport extends Behaviour {
 
 	public boolean done() {
 	
-		return step == 4;
+		return step == 5;
 	}
 }  

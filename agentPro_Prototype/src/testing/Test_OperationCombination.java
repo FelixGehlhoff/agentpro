@@ -104,7 +104,7 @@ public class Test_OperationCombination {
 		System.out.println(quantity);
 		
 		System.out.println(feasibilityCheckAndDetermineDurationParameters());
-		
+		*/
 		createGantt();
 		
 		

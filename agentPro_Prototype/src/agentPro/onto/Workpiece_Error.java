@@ -7,20 +7,9 @@ import jade.core.*;
 /**
 * Protege name: Workpiece_Error
 * @author ontology bean generator
-* @version 2019/11/11, 09:45:55
+* @version 2020/06/26, 11:54:55
 */
 public class Workpiece_Error extends DisturbanceType{ 
-
-   /**
-* Protege name: expected_date_of_repair_Start
-   */
-   private float expected_date_of_repair_Start;
-   public void setExpected_date_of_repair_Start(float value) { 
-    this.expected_date_of_repair_Start=value;
-   }
-   public float getExpected_date_of_repair_Start() {
-     return this.expected_date_of_repair_Start;
-   }
 
    /**
 * Protege name: expected_Duration_Of_Repair
@@ -31,6 +20,17 @@ public class Workpiece_Error extends DisturbanceType{
    }
    public float getExpected_Duration_Of_Repair() {
      return this.expected_Duration_Of_Repair;
+   }
+
+   /**
+* Protege name: expected_date_of_repair_Start
+   */
+   private float expected_date_of_repair_Start;
+   public void setExpected_date_of_repair_Start(float value) { 
+    this.expected_date_of_repair_Start=value;
+   }
+   public float getExpected_date_of_repair_Start() {
+     return this.expected_date_of_repair_Start;
    }
 
 }

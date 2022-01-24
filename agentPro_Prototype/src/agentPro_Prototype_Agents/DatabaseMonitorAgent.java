@@ -1,6 +1,9 @@
 package agentPro_Prototype_Agents;
 
 import DatabaseConnection.MonitorDBChangedBehaviour;
+import agentPro.onto.AgentPro_ProductionOntology;
+import agentPro.onto.AllocatedWorkingStep;
+import agentPro.onto.WorkPlan;
 import jade.content.lang.Codec;
 import jade.content.lang.sl.SLCodec;
 import jade.content.onto.Ontology;
@@ -17,10 +20,6 @@ import java.sql.Statement;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Iterator;
-
-import agentPro.onto.AgentPro_ProductionOntology;
-import agentPro.onto.AllocatedWorkingStep;
-import agentPro.onto.WorkPlan;
 
 
 /*

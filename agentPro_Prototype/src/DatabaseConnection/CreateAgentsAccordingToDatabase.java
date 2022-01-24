@@ -30,6 +30,7 @@ import jade.core.behaviours.OneShotBehaviour;
 import jade.wrapper.AgentController;
 import jade.wrapper.ContainerController;
 import jade.wrapper.StaleProxyException;
+import support_classes.DatabaseValues;
 import webservice.ManufacturingOrder;
 import webservice.ManufacturingOrderList;
 import webservice.ProcessSchedule;
@@ -53,8 +54,8 @@ public class CreateAgentsAccordingToDatabase extends OneShotBehaviour{
 	@Override
 	public void action() {
 	    Statement stmt = null;
-	    String query = "SELECT * FROM "+myAgent.tableNameResource+" where "+myAgent.columnNameResourceType+" != 'simulation'";
-	    		
+	    String query = "SELECT * FROM "+DatabaseValues.tableNameResource+" where "+DatabaseValues.columnNameResourceType+" != 'simulation'";
+	    
 	   
 	    try {
 	        //stmt = myAgent.getConnection().createStatement();
@@ -62,22 +63,25 @@ public class CreateAgentsAccordingToDatabase extends OneShotBehaviour{
 	        ResultSet rs = stmt.executeQuery(query);
 	        
 	        while (rs.next()) {
+	        	/*
 	        	try {
 					Thread.sleep(150);
 				} catch (InterruptedException e1) {
 					// TODO Auto-generated catch block
 					e1.printStackTrace();
-				}
+				}*/
 	        	Boolean createAgent = true;
-	        	String name = rs.getString(myAgent.columnNameResourceName_simulation);
+	        	String name = rs.getString(DatabaseValues.columnNameResourceName_simulation);
 	        	//int id = rs.getInt(columnNameID);
-	        	String res_type = rs.getString(myAgent.columnNameResourceType);
-	        	String res_detailed_type = rs.getString(myAgent.columnNameResourceDetailedType);
+	        	String res_type = rs.getString(DatabaseValues.columnNameResourceType);
+	        	String res_detailed_type = rs.getString(DatabaseValues.columnNameResourceDetailedType);
 	        	String path_for_agent_class = "agentPro_Prototype_Agents.";
 	        	if(res_type.equals("transport") && res_detailed_type.equals("buffer")) {
 	        		path_for_agent_class = path_for_agent_class + "BufferAgent_Stringer";
 	        	}else if(res_type.equals("production") && res_detailed_type.equals("buffer")){
 	        		path_for_agent_class = path_for_agent_class + "BufferAgent_new";
+	        	}else if(res_type.equals("transport") && res_detailed_type.equals("crane_rail")){
+	        		path_for_agent_class = path_for_agent_class + "Crane_RailAgent";
 	        	}else if(res_type.equals("transport")){
 	        		path_for_agent_class = path_for_agent_class + "TransportResourceAgent";
 	        	}else if(res_type.equals("production")){

@@ -8,30 +8,19 @@ import jade.core.*;
 /**
 * Protege name: OrderPosition
 * @author ontology bean generator
-* @version 2019/11/11, 09:45:55
+* @version 2020/06/26, 11:54:55
 */
 public class OrderPosition implements Concept {
 
    /**
-* Protege name: quantity
+* Protege name: containsProduct
    */
-   private int quantity;
-   public void setQuantity(int value) { 
-    this.quantity=value;
+   private Product containsProduct;
+   public void setContainsProduct(Product value) { 
+    this.containsProduct=value;
    }
-   public int getQuantity() {
-     return this.quantity;
-   }
-
-   /**
-* Protege name: sequence_Number
-   */
-   private int sequence_Number;
-   public void setSequence_Number(int value) { 
-    this.sequence_Number=value;
-   }
-   public int getSequence_Number() {
-     return this.sequence_Number;
+   public Product getContainsProduct() {
+     return this.containsProduct;
    }
 
    /**
@@ -46,17 +35,6 @@ public class OrderPosition implements Concept {
    }
 
    /**
-* Protege name: releaseDate
-   */
-   private String releaseDate;
-   public void setReleaseDate(String value) { 
-    this.releaseDate=value;
-   }
-   public String getReleaseDate() {
-     return this.releaseDate;
-   }
-
-   /**
 * Protege name: hasTargetWarehouse
    */
    private Warehouse_Resource hasTargetWarehouse;
@@ -68,14 +46,25 @@ public class OrderPosition implements Concept {
    }
 
    /**
-* Protege name: containsProduct
+* Protege name: sequence_Number
    */
-   private Product containsProduct;
-   public void setContainsProduct(Product value) { 
-    this.containsProduct=value;
+   private int sequence_Number;
+   public void setSequence_Number(int value) { 
+    this.sequence_Number=value;
    }
-   public Product getContainsProduct() {
-     return this.containsProduct;
+   public int getSequence_Number() {
+     return this.sequence_Number;
+   }
+
+   /**
+* Protege name: quantity
+   */
+   private int quantity;
+   public void setQuantity(int value) { 
+    this.quantity=value;
+   }
+   public int getQuantity() {
+     return this.quantity;
    }
 
    /**
@@ -87,6 +76,17 @@ public class OrderPosition implements Concept {
    }
    public String getDueDate() {
      return this.dueDate;
+   }
+
+   /**
+* Protege name: releaseDate
+   */
+   private String releaseDate;
+   public void setReleaseDate(String value) { 
+    this.releaseDate=value;
+   }
+   public String getReleaseDate() {
+     return this.releaseDate;
    }
 
    /**

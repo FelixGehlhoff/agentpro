@@ -58,8 +58,9 @@ public class BufferAgent_new extends ProductionResourceAgent{
 		Proposal proposal = new Proposal();
 		Production_Operation buffer_operation = (Production_Operation) operation;
 		float price = 1;
-		buffer_operation.setBuffer_after_operation(10*60*60*1000);
-		buffer_operation.setBuffer_before_operation(10*60*60*1000);
+		buffer_operation.setBuffer_after_operation_end(10*60*60*1000);
+		buffer_operation.setBuffer_after_operation_start(10*60*60*1000);
+		buffer_operation.setBuffer_before_operation_start(10*60*60*1000);
 		//buffer_operation.setName("buffer_"+this.getOfferNumber());
 		//this.getReceiveCFPBehav().timeslot_for_schedule.setEndDate(String.valueOf(cfp_timeslot.getEndDate())); //time increment is reduced / put to the other busy interval later
 		//this.getReceiveCFPBehav().timeslot_for_schedule.setStartDate(String.valueOf(cfp_timeslot.getStartDate()));	

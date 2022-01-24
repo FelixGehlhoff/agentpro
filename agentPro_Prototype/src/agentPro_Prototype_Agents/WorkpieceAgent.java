@@ -8,10 +8,7 @@ import java.util.Iterator;
 
 import agentPro.onto.AllocatedWorkingStep;
 import agentPro.onto.CFP;
-
-//import org.json.JSONArray;
-//import org.json.JSONObject;
-
+import agentPro.onto.Capability;
 import agentPro.onto.Location;
 import agentPro.onto.Operation;
 import agentPro.onto.OrderPosition;
@@ -40,6 +37,7 @@ import jade.lang.acl.ACLMessage;
 import jade.lang.acl.MessageTemplate;
 import support_classes.Interval;
 import support_classes.OperationCombination;
+import support_classes.Run_Configuration;
 import webservice.ManufacturingOrder;
 
 /*
@@ -65,7 +63,6 @@ public class WorkpieceAgent extends _Agent_Template{
 	//private int amountOfTimeLeft;
 	private int orderNumber;
 	
-	public static long transport_estimation = (long) 1000*60*15;//(long) 1000*60*15;	//estimated duration of transport = 15 min
 	//public int avg_pickUp = 5;
 	
 	private OrderPosition orderPos;
@@ -74,7 +71,7 @@ public class WorkpieceAgent extends _Agent_Template{
 	//private Location lastLocation;
 	//private Resource nextProductionResource;
 	public boolean useCurrentLocationDueToDisturbance = false;
-	public static boolean transport_needed = true;
+	
 	public long startCoordinationProcess;
 	public long EndCoordinationProcess;
 	private ManufacturingOrder mo;
@@ -141,7 +138,14 @@ public class WorkpieceAgent extends _Agent_Template{
         Simulation_Listener = new Simulation_Listener(this);
         addBehaviour(Simulation_Listener);	
 	}
-	
+	public ArrayList<AID> findOfferingAgents(Capability cap){ //translate the capability to a similar operation
+		
+		Operation requested_operation = new Operation();
+		requested_operation.setName(cap.getName());
+		requested_operation.setType("shared_resource");
+		
+		return findOfferingAgents(requested_operation);	
+	}
 	public ArrayList<AID> findOfferingAgents(Operation requested_operation){
 		ArrayList<AID> resourceAgents = new ArrayList<AID>();
 		DFAgentDescription template = new DFAgentDescription();
@@ -154,7 +158,10 @@ public class WorkpieceAgent extends _Agent_Template{
 			String[] parts = req_capability.split("_");	
 			sd.setName(parts[0]);	//or requested_destination
 			service_name = parts[0];
-		}		
+		}else if(requested_operation.getType().equals("shared_resource")) {
+			sd.setName(requested_operation.getName());	//or requested_destination
+			service_name = requested_operation.getName();
+		}
 		
 		template.addServices(sd);
 		
@@ -285,15 +292,11 @@ public class WorkpieceAgent extends _Agent_Template{
 	public long getTime_until_end() {
 		return time_until_end;
 	}
-	public void setTime_until_end(long time_until_end) {
-		this.time_until_end = time_until_end;
-	}
+
 	public long getTransport_estimation() {
 		return transport_estimation;
 	}
-	public void setTransport_estimation(long transport_estimation) {
-		WorkpieceAgent.transport_estimation = transport_estimation;
-	}
+
 	public AllocatedWorkingStep getLastProductionStepAllocated() {
 		//counts down from the last object in the allocated WS and tries to find the last production step
 		AllocatedWorkingStep LAST_alWS_Production = null;
@@ -506,6 +509,9 @@ public class WorkpieceAgent extends _Agent_Template{
 
 	public void setMo(ManufacturingOrder mo) {
 		this.mo = mo;
+	}
+	public long getTransport_estimation_CFP() {
+		return Run_Configuration.transport_estimation_CFP;
 	}
 
 }

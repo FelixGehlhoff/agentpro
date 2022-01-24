@@ -13,6 +13,7 @@ import java.util.Date;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Set;
+
 import agentPro.onto.AgentPro_ProductionOntology;
 import agentPro.onto.AllocatedWorkingStep;
 import agentPro.onto.Cancellation;
@@ -35,14 +36,16 @@ import jade.domain.DFService;
 import jade.domain.FIPAException;
 import jade.domain.FIPAAgentManagement.DFAgentDescription;
 import jade.lang.acl.ACLMessage;
+import support_classes.DatabaseValues;
 import support_classes.Interval;
 import support_classes.OperationCombination;
+import support_classes.Run_Configuration;
 
 /*
  * Serves as a template for other agents and provides take down procedure and some other variables
  */
 
-public abstract class _Agent_Template extends Agent{
+public abstract class _Agent_Template extends Agent implements Run_Configuration, DatabaseValues{
 	//Other attributes
 	private static final long serialVersionUID = 1L;
 	private static String DateFormat = "yyyy-MM-dd HH:mm:ss";
@@ -56,87 +59,13 @@ public abstract class _Agent_Template extends Agent{
 	//Ontology
 	private Ontology ontology = AgentPro_ProductionOntology.getInstance();
 	private Codec codec = new SLCodec();
-	
-	
-	//Orders and Interfaces
-	public static int limit = 10; //number of orders to create	
-	public static boolean webservice_mode = false;
-	public static boolean simulate_order_generation = true;
-	public static Boolean simulation_enercon_mode = false;
-	
-	//Agent System Cofiguration
-	public int duration_repair_workpiece = 20;
-	public int duration_light_disturbance = 2;
-	public int duration_severe_disturbance = 8;
-	public static long bufferThreshold = 15;
-	public long start_simulation = 1533074400000L; //01.08.2018 00:00
-	public long start_simulation_agentpto = 1556632800000L; //Tue Apr 30 2019 16:00:00 GMT+0200 1556632800000L
-	public long time_until_end = (long) 1000*60*60*30*31;// 25 pieces (24+6 buffer) * 31 h 1000*60*60*24; //24 h
-	public static String opimizationCriterion = "time_of_finish"; //duration_setup    //TODO receive that from database? TBD
-	
-	//Table names etc.
-	public static String dbaddress_sim = "jdbc:mysql://localhost:3306/MySQL?"+"user=root&password=SQL_0518&useUnicode=true&useJDBCCompliantTimezoneShift=true&useLegacyDatetimeCode=false&serverTimezone=UTC&useSSL=false";	//Address od database   serverTimezone=UTC
-	public static String columnNameChangeOfState = "changeOfState";
-	public static String columnNameChangedState = "ChangedState";
-	public static String columnNameOfOperation = "Operation"; //Operation
-	public static String columnNameOfResource = "Resource";
-	public static String columnNameOfResource_ID = "Resource_ID";
-	public String columnNameOfSetupTime = "SetupTime";
-	public static String columnNameOfPlanStart = "PlanStart";
-	public static String columnNameOfPlanEnd = "PlanEnde";
-	public String columnNameOfIstStart = "IstStart";
-	public String columnNameOfIstEnd = "IstEnde";
-	public String columnNameOfDueDate = "dueDate";
-	public String columnNameOfReleaseDate = "releaseDate";
-	public String columnNameOfPriority = "priority";
-	public String columnNameOfNumber = "number";
-	public String columnNameOfProduct = "product";
-	public String columnNameOfTargetWarehouse = "targetWarehouse";
-	public static String columnNameAuftrags_ID = "Auftrags_ID"; //Auftrags_ID
-	public static String columnNameOperation_Type = "Operation_Type";
-	public static String columnNameOfStarted = "Started";
-	public static String columnNameOfFinished = "Finished";
-	public static String prefix_schema = "agentpro";
-	//public static String prefix_schema = "flexsimdata";
-	//public static String nameOfMES_Data_Resource = prefix_schema+".total_operations_my";
-	public static String nameOfMES_Data_Resource = prefix_schema+".transporte";
-	public String nameOfMES_Data = prefix_schema+".productionplan_new";
-	public static String nameOfOrderbook = prefix_schema+".orderbook";
-	//private String columnNameFinished = "Finished";
-	//private String columnNameOfIstStart = "IstStart";
-	//private String columnNameOfIstEnde = "IstEnde";
-	public String columnNameStartSimulation = "PlanStart_Simulation";
-	public String columnNameEndSimulation = "PlanEnd_Simulation";
-	public String columnNameResourceName_simulation = "Bezeichnung";
-	public String columnNameErrorType = "Error_Type";
-	public String columnNameError_Occur_Time = "Error_Occur_Time";
-	public String columnNameID = "ID";
-	public String columnNameRunning = "Status";//"On(1)/Off(0)";
-	public String columnNameResourceType = "resource_type";
-	public String columnNameResourceDetailedType = "resource_detailed_type";
-	public String columNameStartIst = "StartIst";		//number is missing, e.g. StartIst1
-	public String columNameGestartet = "Gestartet?";
-	public String columNameEndeIst = "EndeIst";
-	public String columNameBeendet = "Beendet?";
-	public String columnNameStartSoll = "StartSoll";
-	public String columnNameEndeSoll = "EndeSoll";
-	public String tableNameBetriebskalender = prefix_schema+".betriebskalender";
-	public String tableNameResource = prefix_schema+".resources";
-	//public String tableNameResource = prefix_schema+".resources_project";
-	public String tableNameProductionPlan = prefix_schema+".productionplan";
-	public String tableNameResourceSetupMatrix = prefix_schema+".resources_setupmatrix";
-	public String columnNameColumnInProductionPlan = "columninproductionplan";
-	public static String columnNameLocationX = "locationX";
-	public static String columnNameLocationY = "locationY";
-	public String columNameColumnNameInProductionPlan = "columnnameinproductionplan";
-	public String columnNameorderid = "orderid";
-	
-	public String columnNameOfChangeover = "prod_changeover";
-	
-	
+	public static String tableNameResource;
+
 	protected void setup (){
 		if(webservice_mode) {
-			tableNameResource = tableNameResource+"_project";
+			tableNameResource = DatabaseValues.tableNameResource+"_project";
+		}else {
+			tableNameResource = DatabaseValues.tableNameResource;
 		}
 		System.out.println(SimpleDateFormat.format(new Date())+ " Agent " + getAID().getLocalName() + " started...");
 		
@@ -244,9 +173,9 @@ public abstract class _Agent_Template extends Agent{
 		    	if(showMessageContent && !ACLMessage.getPerformative(msg.getPerformative()).equals("ACCEPT-PROPOSAL")) {
 		    		printoutx = printoutx +" with content "+msg.getContent();
 				}
-		    	if(!receiver.getLocalName().equals("Kranschiene") && !this.getLocalName().equals("Kranschiene")) {
+		    	//if(!receiver.getLocalName().equals("Kranschiene") && !this.getLocalName().equals("Kranschiene")) {
 		    		System.out.println(printoutx);	
-		    	}			
+		    	//}			
 		    }
 	}
 	public static WorkPlan createWorkplanFromDatabase(String wp_id) {
@@ -518,5 +447,15 @@ public abstract class _Agent_Template extends Agent{
 			return_string += element.toString()+" ";
 		}
 		return return_string;
+	}
+
+	public static <T> Boolean containedInList(jade.util.leap.Iterator list_iterator, T element) {
+		Boolean contains = false;
+		while(list_iterator.hasNext()) {
+			if(list_iterator.next().equals(element)) {
+				contains = true;
+			}
+		}
+			return contains;	
 	}
 }

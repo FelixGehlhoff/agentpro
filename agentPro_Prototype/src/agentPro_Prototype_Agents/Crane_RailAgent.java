@@ -7,10 +7,12 @@ import java.sql.Statement;
 import agentPro.onto.AllocatedWorkingStep;
 import agentPro.onto.CFP;
 import agentPro.onto.Capability;
+import agentPro.onto.Location;
 import agentPro.onto.Operation;
 import agentPro.onto.Proposal;
 import agentPro.onto.Resource;
 import agentPro.onto.Shared_Resource;
+import agentPro.onto.State;
 import agentPro.onto.Timeslot;
 import agentPro.onto.Transport_Operation;
 import agentPro_Prototype_ResourceAgent.ReceiveCFPBehaviour;
@@ -27,7 +29,7 @@ public class Crane_RailAgent extends SharedResourceAgent{
 
 	private static final long serialVersionUID = 1L;
 	//private ReceiveCFPBehaviour ReceiveCFPBehav;
-	
+	private Interval range;
 
 	protected void setup (){
 		super.setup();
@@ -40,8 +42,20 @@ public class Crane_RailAgent extends SharedResourceAgent{
 
 	@Override
 	public boolean feasibilityCheckAndDetermineDurationParameters(Operation operation) {
-		// TODO Auto-generated method stub
-		return true;
+		boolean return_value = true;
+		Transport_Operation transport_op = (Transport_Operation) operation;
+		Location start = (Location) transport_op.getStartStateNeeded();
+		Location end = (Location) transport_op.getEndState();
+		
+		//System.out.println("DEBUG___"+this.getName()+" range "+range.toString()+" contains "+end.getCoordX()+" and contains "+ start.getCoordX());
+		
+		if(range.contains((long)start.getCoordX()) && range.contains((long)end.getCoordX())) {
+			
+		}else {
+			return_value =  false;
+		}
+	
+		return return_value;
 	}
 
 	@Override
@@ -57,8 +71,9 @@ public class Crane_RailAgent extends SharedResourceAgent{
 		Transport_Operation operation = (Transport_Operation) cfp.getHasOperation();
 		
 		//TBD real procedure
-		operation.setBuffer_after_operation(3*60*60*1000);
-		operation.setBuffer_before_operation(3*60*60*1000);
+		operation.setBuffer_after_operation_end(3*60*60*1000);
+		operation.setBuffer_after_operation_start(3*60*60*1000);
+		operation.setBuffer_before_operation_start(3*60*60*1000);
 		
 		/*
 		long estimated_start_date = 0;
@@ -141,13 +156,86 @@ public class Crane_RailAgent extends SharedResourceAgent{
 	}
 
 
+	
 	@Override
-	
-		protected Resource createResource() {
-			Resource res = new Resource();
-			return res;
-		}
-	
+	public void receiveValuesFromDB(Resource r) {
+		
+		//Shared_Resource shared_r = (Shared_Resource) r;
+		
+		 Statement stmt = null;
+		 String query = "select * from "+tableNameResource+" where "+columnNameResourceName_simulation+" = '"+representedResource.getName()+"'"; 	    		    
+ 
+	    try {
+	        stmt = connection.createStatement();
+	        ResultSet rs = stmt.executeQuery(query);
+	      
+	        while (rs.next()) {
+	        	
+			    	Capability cap = new Capability();
+			    	cap.setName(rs.getString(columnNameOfCapability));
+			    r.setHasCapability(cap);
+			    r.setType(rs.getString(columnNameOfResource_Type));
+			    r.setID_Number(rs.getInt(columnNameOfID));		
+			    r.setDetailed_Type(rs.getString(columnNameOfResource_Detailed_Type));
+	        }	   
+	        
+	    } catch (SQLException e ) {
+	    	e.printStackTrace();
+	    } 
+	    
+	    //r = shared_r;
+	    //Statement stmt2 = null;
+	    String query2 = "";
+	   
+	    query2 = "select * from "+nameOfCapability_Operations_Mapping_Table+" where "+columnNameOfCapability_Name+" = '"+representedResource.getHasCapability().getName()+"'";
+   
+	    try {
+	        //stmt2 = connection.createStatement();
+	        ResultSet rs = stmt.executeQuery(query2);
+	     if(consider_shared_resources ) {
+	    	 while (rs.next()) {
+	    		 String enabled_operation = rs.getString(columnNameOfEnables_Operation); 
+	    		 Operation enabled_operation_onto = new Operation();
+	    		 enabled_operation_onto.setName(enabled_operation);
+	    		 enabled_operation_onto.setType("transport");
+	 
+	    		 enabled_operation_onto.getIsEnabledBy().add(this.getRepresentedResource().getHasCapability());
+	    		 enabled_operations.add(enabled_operation_onto);
+	    		 String [] split =enabled_operation_onto.getName().split("_");
+	    	        String [] coordinates = split[1].split(";");
+	    	        
+	    	        range = new Interval(coordinates[0], coordinates[1], false);
+	    	 	}
+	     }
+
+	        
+	        
+	    } catch (SQLException e ) {
+	    	e.printStackTrace();
+	    } finally {
+	        if (stmt != null) { try {
+				stmt.close();
+			} catch (SQLException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			} }
+	    }
+	    
+	  //determine the possible operations from the capability
+	     //System.out.println("DEBUG______enabled_operation _"+enabled_operation);
+        
+
+      //System.out.println("DEBUG______enabled_operation _"+enabled_operation+"  range "+range.toString());
+        
+	    
+	}
+
+
+	@Override
+	public float calculateTimeBetweenStates(State start_next_task, State end_new, long end_of_free_interval) {
+		// TODO Auto-generated method stub
+		return 0;
+	}
 
 
 
