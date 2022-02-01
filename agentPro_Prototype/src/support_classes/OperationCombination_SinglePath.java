@@ -44,8 +44,12 @@ public class OperationCombination_SinglePath {
 	//workplan and values are calculated and the timeslot is replaced
 	public void calculateWorkplan() {
 		if(startStep != null) {
+			
+			if(transport_to_production == null && transport_to_buffer == null) {	
+				//startStep.getHasOperation().setAvg_PickupTime(0); //no tranpsort needed
+				//startStep.getHasTimeslot().setEndDate(String.valueOf(Long.parseLong(startStep.getHasTimeslot().getEndDate())-Run_Configuration.avg_pickUp));			
+			}
 			workplan.addConsistsOfAllocatedWorkingSteps(startStep);	//neue Zeit muss noch übergeben werden an den Anbieter von startStep
-				
 		}
 		if(buffer!= null) {
 			if(transport_to_buffer != null) {
@@ -59,9 +63,14 @@ public class OperationCombination_SinglePath {
 			workplan.addConsistsOfAllocatedWorkingSteps(transport_to_production);
 			((AllocatedWorkingStep) best_proposal_transport_to_production.getConsistsOfAllocatedWorkingSteps().get(0)).setHasTimeslot(transport_to_production.getHasTimeslot());	
 		}
+		if(transport_to_production == null && transport_to_buffer == null && startStep != null) {	 //startStep == null bei der ersten Operation
+			nextProductionStep.getHasOperation().setAvg_PickupTime(0); //no tranpsort needed
+			nextProductionStep.getHasTimeslot().setStartDate(String.valueOf(Long.parseLong(nextProductionStep.getHasTimeslot().getStartDate())-Run_Configuration.avg_pickUp*60*1000));
+			nextProductionStep.getHasTimeslot().setEndDate(String.valueOf(Long.parseLong(nextProductionStep.getHasTimeslot().getEndDate())-Run_Configuration.avg_pickUp*60*1000));
+		}
 		workplan.addConsistsOfAllocatedWorkingSteps(nextProductionStep);	
 			((AllocatedWorkingStep) proposal_production.getConsistsOfAllocatedWorkingSteps().get(0)).setHasTimeslot(nextProductionStep.getHasTimeslot());
-		_Agent_Template.printoutWorkPlan(workplan, "agent ");
+		//_Agent_Template.printoutWorkPlan(workplan, "agent ");
 		durationSetup = _Agent_Template.calculateDurationSetup(workplan);
 		utilization = _Agent_Template.calculateUtilization(workplan);
 		AllocatedWorkingStep lastStep = (AllocatedWorkingStep) workplan.getConsistsOfAllocatedWorkingSteps().get(workplan.getConsistsOfAllocatedWorkingSteps().size()-1);
@@ -202,10 +211,17 @@ public class OperationCombination_SinglePath {
 				System.out.println("DEBUG______________"+(Long.parseLong(nextProductionStep.getHasTimeslot().getEndDate())+(long)nextProductionStep.getHasOperation().getBuffer_after_operation_end())+" >= "+ (Long.parseLong(transport_to_production.getHasTimeslot().getEndDate())+length+Math.round(nextProductionStep.getHasOperation().getSet_up_time()*60*1000)));
 				//check if the later arrival can be accounted for with the buffer after operation: Enddate + buffer after muss >= enddate transp +  duration + setup
 				if(Long.parseLong(nextProductionStep.getHasTimeslot().getEndDate())+Math.round(nextProductionStep.getHasOperation().getBuffer_after_operation_end())>= Long.parseLong(transport_to_production.getHasTimeslot().getEndDate())+length+Math.round(nextProductionStep.getHasOperation().getSet_up_time()*60*1000)) {
-					nextProductionStep.getHasTimeslot().setStartDate(transport_to_production.getHasTimeslot().getEndDate());
-					nextProductionStep.getHasTimeslot().setEndDate(Long.toString(Long.parseLong(nextProductionStep.getHasTimeslot().getStartDate())+length));
-					nextProductionStep.getHasOperation().setAvg_PickupTime(transport_to_production.getHasOperation().getAvg_PickupTime());
-				
+				//25.01.2022 and check that the transport is not too early
+					if(Long.parseLong(nextProductionStep.getHasTimeslot().getStartDate())-(long)nextProductionStep.getHasOperation().getBuffer_before_operation_start()<=Long.parseLong(transport_to_production.getHasTimeslot().getEndDate())) {
+						//if
+						nextProductionStep.getHasTimeslot().setStartDate(transport_to_production.getHasTimeslot().getEndDate());
+						nextProductionStep.getHasTimeslot().setEndDate(Long.toString(Long.parseLong(nextProductionStep.getHasTimeslot().getStartDate())+length));
+						nextProductionStep.getHasOperation().setAvg_PickupTime(transport_to_production.getHasOperation().getAvg_PickupTime());					
+					}else {
+						System.out.println("DEBUG___________________operationCombSinglePath 212");
+					}
+					
+					
 					//if both resources are fine
 					if(!latest_start_violated) {
 						this.transport_to_production = transport_to_production;	

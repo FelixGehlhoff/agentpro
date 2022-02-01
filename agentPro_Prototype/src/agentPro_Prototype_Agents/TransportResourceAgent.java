@@ -379,14 +379,15 @@ public class TransportResourceAgent extends ResourceAgent{
 							}
 							Storage_element_slot slot = createStorageElement(operation, timeslot_for_proposal, duration_to_get_to_workpiece*60*1000, (long)(time_increment_or_decrement_to_be_added_for_setup_of_next_task*60*1000));						
 							float price = duration_total_for_schedule + deadline_not_met;
-							Proposal proposal = createProposal(price, operation, timeslot_for_proposal, cfp.getHasSender(), cfp.getID_String());	//cfp.getIDString() is empty in CFPs to production resources
+							Proposal proposal = createProposal(price, operation, timeslot_for_proposal, cfp.getHasSender(), cfp.getID_String(), getOfferNumber());	//cfp.getIDString() is empty in CFPs to production resources
+							setOfferNumber(getOfferNumber()+1);
 							slot.setProposal(proposal);
 							this.getReceiveCFPBehav().getProposed_slots().add(slot);
 							proposal_list.add(proposal);
 						}
 						
 		
-				 //break;
+				 break;
 			 }
 	 
 	}
@@ -669,7 +670,7 @@ public class TransportResourceAgent extends ResourceAgent{
 	}
 
 	@Override
-	protected void considerPickup(AllocatedWorkingStep allocatedWorkingStep) {
+	protected void considerPickup(AllocatedWorkingStep allocatedWorkingStep, Storage_element_slot slot) {
 		// nothing has to happen
 		
 	}

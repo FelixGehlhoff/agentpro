@@ -147,6 +147,7 @@ public class DatabaseConnectorAgent extends _Agent_Template{
 
 				@SuppressWarnings("unchecked")
 				Iterator<AllocatedWorkingStep> it = workplan.getConsistsOfAllocatedWorkingSteps().iterator();
+				
 			    while(it.hasNext()) {
 			    	AllocatedWorkingStep allWorkingStep = it.next();
 			    	
@@ -159,8 +160,11 @@ public class DatabaseConnectorAgent extends _Agent_Template{
 					     //       ResultSet.TYPE_SCROLL_SENSITIVE, // Vor- und Rücksprünge möglich
 					     //       ResultSet.CONCUR_UPDATABLE);     // Veränderbar
 
-			    		String new_name = replaceName(allWorkingStep.getHasOperation().getName(), allWorkingStep.getHasResource().getID_Number(), allWorkingStep.getHasResource().getName());
-				    //12.02.2019 rs ERstellung ausgeschnitten
+			    		String new_name = replaceName(allWorkingStep, allWorkingStep.getHasResource().getID_Number(), allWorkingStep.getHasResource().getName());
+				   if(new_name.equals("Durchsatz.6")) {
+					   System.out.println("here");
+				   }
+			    		//12.02.2019 rs ERstellung ausgeschnitten
 				    	ResultSet rs2 = stmt.executeQuery(		
 				    			//"select * from "+nameOfMES_Data+" where "+columnNameOfOperation+" = '"+allWorkingStep.getHasOperation().getName()+"' and "+columnNameAuftrags_ID+" = '"+allWorkingStep.getHasOperation().getAppliedOn().getID_String()+"' and "+columnNameFinished+" = 'false'"); 
 				    			"select * from "+mes_table_to_be_used+" where "+columnNameOfOperation+" = '"+new_name+"' and "+columnNameAuftrags_ID+" = '"+allWorkingStep.getHasOperation().getAppliedOn().getID_String()+"'"); 
@@ -264,12 +268,31 @@ public class DatabaseConnectorAgent extends _Agent_Template{
 		       
 	}
 	
-	private String replaceName(String name_operation, int id, String res_name) {
-		if(name_operation.contains("maintenance")) {
-			return name_operation;
+	private String replaceName(AllocatedWorkingStep allWS, int id, String res_name) {
+		if(allWS.getHasOperation().getName().contains("maintenance")) {
+			return allWS.getHasOperation().getName();
 		}
+		if(Run_Configuration.include_locations_in_transport_operation_name) {
+			if (res_name.contains("Transport")) {
+				String [] split = allWS.getHasOperation().getName().split("_", 2); //2 parts
+				String res_start_transport = "";
+				Location loc = new Location();
+				loc.setCoordX(Float.parseFloat(split[0].split(";")[0]));
+				loc.setCoordY(Float.parseFloat(split[0].split(";")[1]));
+				
+				for (Map.Entry<Integer, Resource_Extension> entry : resource_hashmap.entrySet()) {
+				    if(_Agent_Template.doLocationsMatch(loc, entry.getValue().getHasLocation())){
+				    	res_start_transport =  entry.getValue().getName();
+				    	return res_start_transport+"-"+split[1];
+				    }
+				}			
+				
+				return "no match";
+			}
+		}
+		/*
 		if(res_name.contains("Transport")) {
-			String [] split = name_operation.split("_", 2); //2 parts
+			String [] split = allWS.getHasOperation().getName().split("_", 2); //2 parts
 			String res_start_transport = "";
 			Location loc = new Location();
 			loc.setCoordX(Float.parseFloat(split[0].split(";")[0]));
@@ -283,9 +306,16 @@ public class DatabaseConnectorAgent extends _Agent_Template{
 			}			
 			
 			return "no match";
-		}else {
-			return name_operation;
+		}*/
+		else {
+			String [] split = allWS.getID_String().split("@", 2);
+					String name = split[1];					
+			return name;
 		}
+		System.out.println("DEBUG_____________DATABASECONNECTOR 313 why needed????");
+		String [] split = allWS.getID_String().split("@", 2);
+		String name = split[1];
+		return name;
 		
 	}
 

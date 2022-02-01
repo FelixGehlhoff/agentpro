@@ -79,7 +79,8 @@ public class CreateAgentsAccordingToDatabase extends OneShotBehaviour{
 	        	if(res_type.equals("transport") && res_detailed_type.equals("buffer")) {
 	        		path_for_agent_class = path_for_agent_class + "BufferAgent_Stringer";
 	        	}else if(res_type.equals("production") && res_detailed_type.equals("buffer")){
-	        		path_for_agent_class = path_for_agent_class + "BufferAgent_new";
+	        		path_for_agent_class = path_for_agent_class + "BufferAgent_new"; 
+	        		//path_for_agent_class = path_for_agent_class + "ProductionResourceAgent"; 
 	        	}else if(res_type.equals("transport") && res_detailed_type.equals("crane_rail")){
 	        		path_for_agent_class = path_for_agent_class + "Crane_RailAgent";
 	        	}else if(res_type.equals("transport")){

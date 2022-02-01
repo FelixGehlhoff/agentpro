@@ -259,7 +259,7 @@ public class RequestPerformer_transport extends Behaviour {
 			    	checkConsistencyAndAddStepsToWorkplan(combination_best);
 			    	//agenten informieren, wann Werkstück abgeholt wird
 			    	if(combination_best.getBest_path().getFirstTransport()!= null) { //is null if there is no transport
-			    		myAgent.addBehaviour(new InformWorkpieceArrivalAndDeparture(myAgent, combination_best.getBest_path().getFirstTransport(), combination_best.getBest_path().getFirstTransportAllWS()));		    		
+			    		myAgent.addBehaviour(new InformWorkpieceArrivalAndDeparture(myAgent, combination_best.getLastProductionStepAllocated(), combination_best.getBest_path().getFirstTransport(), combination_best.getBest_path().getFirstTransportAllWS()));		    		
 			    	}
 			    	
 					myAgent.getProductionManagerBehaviour().setStep(0);
@@ -385,7 +385,11 @@ public class RequestPerformer_transport extends Behaviour {
 				//cfp_onto.getHasOperation().setAvg_Duration(myAgent.getTransport_estimation());
 				//cfp_onto.getHasOperation().setBuffer_before_operation_end(end.getHasOperation().getBuffer_before_operation_start()); // //buffer before steht für früher beenden 
 				//cfp_onto.getHasOperation().setBuffer_before_operation_start(0); // nicht früher starten, weil Vor-Operation nicht früher starten und beendet werden kann (Annahme). Außer z.B. bei Teillieferungen??
-				cfp_onto.getHasOperation().setBuffer_before_operation_start(start.getHasOperation().getBuffer_before_operation_end()); // nicht früher starten, weil Vor-Operation nicht früher starten und beendet werden kann (Annahme). Außer z.B. bei Teillieferungen??
+				//27.01.2022 Does this need to be the minimum of the buffer of production and transport?
+				//or 0???
+				//Float new_buffer_before_operation_start = Math.min(a, b);
+				//cfp_onto.getHasOperation().setBuffer_before_operation_start(start.getHasOperation().getBuffer_before_operation_end()); // nicht früher starten, weil Vor-Operation nicht früher starten und beendet werden kann (Annahme). Außer z.B. bei Teillieferungen??
+				cfp_onto.getHasOperation().setBuffer_before_operation_start(0); // nicht früher starten, weil Vor-Operation nicht früher starten und beendet werden kann (Annahme). Außer z.B. bei Teillieferungen??
 				
 				
 				return cfp_onto;

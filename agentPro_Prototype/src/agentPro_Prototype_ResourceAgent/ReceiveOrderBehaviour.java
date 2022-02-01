@@ -142,11 +142,12 @@ public class ReceiveOrderBehaviour extends Behaviour {
 				accept_proposal = accept_proposal_onto.getHasAccept_Proposal();
 				
 				// inform_scheduled = new Inform_Scheduled();
+				/*
 				if(myAgent.getLocalName().equals("Durchsatz")) {
 					myAgent.printoutBusyIntervals();
 					_Agent_Template.printoutWorkPlan(myAgent.getWorkplan(), myAgent.getLocalName());
 				}
-
+				*/
 				Boolean bool1 = myAgent.bookIntoSchedule(accept_proposal);
 				if (!bool1) {
 					System.out.println(

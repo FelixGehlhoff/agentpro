@@ -24,11 +24,13 @@ public class InformWorkpieceArrivalAndDeparture extends OneShotBehaviour {
 	private WorkpieceAgent myAgent;
 	private Transport_Operation requested_operation;
 	private AllocatedWorkingStep allocatedWorkingStep_transport;
+	private AllocatedWorkingStep lastProductionStepAllocated;
 
-	public InformWorkpieceArrivalAndDeparture(WorkpieceAgent myAgent, Transport_Operation requested_operation, AllocatedWorkingStep transport_step_to_give_to_Inform_Arrival) {
+	public InformWorkpieceArrivalAndDeparture(WorkpieceAgent myAgent, AllocatedWorkingStep lastProductionStepAllocated, Transport_Operation requested_operation, AllocatedWorkingStep transport_step_to_give_to_Inform_Arrival) {
 		this.myAgent = myAgent;
 		this.requested_operation = requested_operation;
 		allocatedWorkingStep_transport = transport_step_to_give_to_Inform_Arrival;
+		this.lastProductionStepAllocated = lastProductionStepAllocated;
 	}
 
 	@Override
@@ -101,7 +103,7 @@ public class InformWorkpieceArrivalAndDeparture extends OneShotBehaviour {
 					break; //leave the for loop and dont send another message (if there is no one left to get the message)
 				}
 				
-				inform_arrivalAndDeparture.setID_String(requested_operation.getAppliedOn().getID_String());
+				inform_arrivalAndDeparture.setID_String(lastProductionStepAllocated.getID_String());
 				sendInform_departure.setHasInform_Departure(inform_arrivalAndDeparture);			
 				Action content = new Action(myAgent.getAID(),sendInform_departure);
 						

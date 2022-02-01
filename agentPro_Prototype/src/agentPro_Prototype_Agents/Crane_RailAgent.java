@@ -22,6 +22,7 @@ import jade.domain.FIPAException;
 import jade.domain.FIPAAgentManagement.DFAgentDescription;
 import jade.domain.FIPAAgentManagement.ServiceDescription;
 import support_classes.Interval;
+import support_classes.Storage_element_slot;
 
 /*
  * Models a shared resource. 
@@ -132,7 +133,7 @@ public class Crane_RailAgent extends SharedResourceAgent{
 		timeslot_for_proposal.setEndDate(Long.toString(enddate_cfp));
 		timeslot_for_proposal.setStartDate(Long.toString(startdate_cfp));	
 		
-		Proposal proposal = createProposal(price, operation, timeslot_for_proposal, cfp.getHasSender(), "");	//cfp.getIDString() is empty in CFPs to production resources
+		Proposal proposal = createProposal(price, operation, timeslot_for_proposal, cfp.getHasSender(), "", 0);	//cfp.getIDString() is empty in CFPs to production resources
 		proposal_list.add(proposal);
 		return proposal_list;
 	}
@@ -153,7 +154,7 @@ public class Crane_RailAgent extends SharedResourceAgent{
 
 
 	@Override
-	protected void considerPickup(AllocatedWorkingStep allocatedWorkingStep) {
+	protected void considerPickup(AllocatedWorkingStep allocatedWorkingStep, Storage_element_slot slot) {
 		// TODO Auto-generated method stub
 		
 	}

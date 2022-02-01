@@ -93,6 +93,7 @@ public void setEndState(State endState) {
 
 	public Boolean checkNewTimeslot(AllocatedWorkingStep allWS) {																		// new end = 12, old end = 11 + 1 (buffer)
 		Timeslot timeslot_new = allWS.getHasTimeslot();
+		
 		if(Long.parseLong(timeslot_new.getStartDate())>=Long.parseLong(timeslot.getStartDate())-buffer_before && Long.parseLong(timeslot_new.getEndDate())<=Long.parseLong(timeslot.getEndDate())+buffer_after){	//eg new start = 10 vorher 11-1(buffer before)
 			return true;
 		}else {
@@ -182,6 +183,11 @@ public void setEndState(State endState) {
 	}
 	public void setRes(Resource res) {
 		this.res = res;
+	}
+
+	public long getDurationSetupMachinewise() {
+		// TODO Auto-generated method stub
+		return 0;
 	}
 
 

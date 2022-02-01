@@ -61,23 +61,24 @@ public class ProductionManagerBehaviour extends Behaviour{
 		switch(step){
 		
 		case 0:
-			//System.out.println("DEBUG____________prod Manager at step = 0");
-			
-			int position_next_step = 0;
+			//System.out.println("DEBUG____________prod Manager at step = 0");						
 			
 			//check which step is needed
 			//TBD if this can be handled better
 			int number_of_finished_production_steps = determine_number_of_finished_production_steps();		//allocated and finished
 			int number_of_planned_production_steps = determine_number_of_planned_production_steps();		//allocated but not finished
 			
-			position_next_step = number_of_finished_production_steps+number_of_planned_production_steps;	// e.g. one finished step and 1 planned step --> size = 2, position in workplan array = 2 (3rd position)
+			int position_next_step = number_of_finished_production_steps+number_of_planned_production_steps;	// e.g. one finished step and 1 planned step --> size = 2, position in workplan array = 2 (3rd position)
 			String name_of_last_operation = ((OrderedOperation)myAgent.getProdPlan().getConsistsOfOrderedOperations().get(myAgent.getProdPlan().getConsistsOfOrderedOperations().size()-1)).getHasProductionOperation().getName();
 			if(myAgent.getLastProductionStepAllocated() != null && myAgent.getLastProductionStepAllocated().getHasOperation().getName().contentEquals(name_of_last_operation)) {
+				if(number_of_planned_production_steps == myAgent.getProdPlan().getConsistsOfOrderedOperations().size()) {
+					step = 2;
+					break;
+				}
 				if(WorkpieceAgent.transport_needed) {
 					//arrangeTransportToWarehouse();
 				}
-				step = 2;
-				break;
+				
 			}
 			
 			//determine needed operation
@@ -168,7 +169,7 @@ public class ProductionManagerBehaviour extends Behaviour{
 					//AllocatedWorkingStep allWS2 = (AllocatedWorkingStep) myAgent.getWorkplan().getConsistsOfAllocatedWorkingSteps().get(myAgent.getWorkplan().getConsistsOfAllocatedWorkingSteps().size()-2);
 					
 					//System.out.println("DEBUG____________Last element_"+allWS1.getHasOperation().getName()+ " before last element "+allWS2.getHasOperation().getName());
-					_Agent_Template.printoutWorkPlan(myAgent.getWorkplan(), myAgent.getLocalName());
+					System.out.println(_Agent_Template.printoutWorkPlan(myAgent.getWorkplan(), myAgent.getLocalName()));
 			       final GanttDemo1 demo = new GanttDemo1("Workplan_"+myAgent.getLocalName(), myAgent.getWorkplan());
 			        demo.pack();
 			        RefineryUtilities.centerFrameOnScreen(demo);

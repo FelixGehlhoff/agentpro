@@ -3,11 +3,11 @@ package support_classes;
 public interface Run_Configuration {
 	//Orders and Interfaces
 	int limit = 1; //number of orders to create	
-	long initial_wait =12000;
+	long initial_wait =1000;
 	boolean IntervalWait = false;
-	double wait_between_agent_creation = 300;	
-	double wait_betwee_agent_creation_max = 600;
-	int numberOfProducts = 2;
+	double wait_between_agent_creation = 2200;	
+	double wait_betwee_agent_creation_max = 1200;
+	int numberOfProducts = 3;
 	long reply_by_time_wp_agent = 1250; //war 1250
 	long reply_by_time_resource_agent = 300; //war 300
 	
@@ -40,5 +40,6 @@ public interface Run_Configuration {
 		Boolean parallel_processing_pick_and_setup_possible = false;
 		String gant_1 = "D:/TeamDrive/Agent.Pro/04_AgentPro/Prototyp/GANTT_Charts/eclipse/";
 		String gant_2 = "_gantt";
+		boolean include_locations_in_transport_operation_name = false;
 		
 }

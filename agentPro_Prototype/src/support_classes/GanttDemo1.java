@@ -179,12 +179,13 @@ public class GanttDemo1 extends ApplicationFrame implements Run_Configuration{
 		    
 		    @SuppressWarnings("unchecked")
 			Iterator<AllocatedWorkingStep> it = workplan.getConsistsOfAllocatedWorkingSteps().iterator();
-    	 
+		    int i = 1;
 		    while(it.hasNext()) {
 		    	AllocatedWorkingStep allWorkingStep = it.next();
-		    	s1.add(new Task(allWorkingStep.getHasResource().getName()+"."+allWorkingStep.getHasOperation().getName(),
+		    	s1.add(new Task(i+" | "+allWorkingStep.getHasResource().getName()+"."+allWorkingStep.getHasOperation().getName(),
 		    			  new SimpleTimePeriod(date2(allWorkingStep.getHasTimeslot().getStartDate()),
 				        		  date2(allWorkingStep.getHasTimeslot().getEndDate()))));	
+		    	i++;
 		    }
 
         /*

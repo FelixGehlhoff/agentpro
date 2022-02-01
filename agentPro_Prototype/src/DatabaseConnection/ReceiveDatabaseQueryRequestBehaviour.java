@@ -47,7 +47,7 @@ public class ReceiveDatabaseQueryRequestBehaviour extends CyclicBehaviour{
 		this.myAgent = myAgent;
 		if(_Agent_Template.simulate_order_generation) {
 			try {
-				Thread.sleep(10000);
+				Thread.sleep(2000);
 			} catch (InterruptedException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();

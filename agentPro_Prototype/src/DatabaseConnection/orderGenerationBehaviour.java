@@ -101,13 +101,20 @@ public class orderGenerationBehaviour extends OneShotBehaviour{
 			double rand = Math.random();
 			//int quantity = Math.max(5, (int) (Math.random()*20));
 			int quantity = 10;
-			if(rand>0) {
+			/*
+			if(rand<0.33) {
 				prod_name = "A";
-			}else if(rand>0.33){
+			}else if(rand<0.66){
+				prod_name = "B";
+			}else {
+				prod_name = "C";
+			}*/
+			if(i == 1) {
 				prod_name = "B";
 			}else {
 				prod_name = "C";
 			}
+			//prod_name = "B";
 			product.setName(prod_name);
 			orderPos.setContainsProduct(product);
 			orderPos.setQuantity(quantity);

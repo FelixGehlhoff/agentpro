@@ -32,7 +32,7 @@ public class BufferAgent_Stringer extends TransportResourceAgent{
 		this.getReceiveCFPBehav().timeslot_for_schedule.setStartDate(String.valueOf(cfp_timeslot.getStartDate()));	
 		this.getReceiveCFPBehav().timeslot_for_schedule.setLength(cfp_timeslot.getLength());
 		
-	Proposal proposal = createProposal(price, transport_op_to_destination, cfp_timeslot, cfp.getHasSender(), cfp.getID_String());
+	Proposal proposal = createProposal(price, transport_op_to_destination, cfp_timeslot, cfp.getHasSender(), cfp.getID_String(), 0);
 	proposal_list.add(proposal);
 	return proposal_list;
 	}

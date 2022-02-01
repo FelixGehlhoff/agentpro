@@ -58,11 +58,13 @@ public class ReceiveInformWorkpieceDepartureBehaviour extends CyclicBehaviour{
 				String id_workpiece = "";
 				String time_of_departure_process_started = "";
 				int avg_pickUp = 0;
+				String id_string = "";
 				try {
 					act = (Action) myAgent.getContentManager().extractContent(inform_departure);
 					_SendInform_ArrivalAndDeparture send_infArrivalAndDep = (_SendInform_ArrivalAndDeparture) act.getAction();
 					Inform_ArrivalAndDeparture infArrivalAndDep = send_infArrivalAndDep.getHasInform_Departure();
-					id_workpiece = infArrivalAndDep.getID_String();
+					id_string = infArrivalAndDep.getID_String();
+					
 					time_of_departure_process_started = infArrivalAndDep.getDepartureTime();
 					avg_pickUp = infArrivalAndDep.getAvg_PickupTime();
 					//System.out.println("DEBUG____RECEIVEINFORMWPARR avg_pickUp "+avg_pickUp);
@@ -86,7 +88,8 @@ public class ReceiveInformWorkpieceDepartureBehaviour extends CyclicBehaviour{
 				Iterator<AllocatedWorkingStep> it = myAgent.getWorkplan().getConsistsOfAllocatedWorkingSteps().iterator();
 			    while(it.hasNext()) {
 			    	AllocatedWorkingStep allocWS = it.next();
-			    	if(allocWS.getHasOperation().getAppliedOn().getID_String().equals(id_workpiece)) {
+			    	//if(allocWS.getHasOperation().getAppliedOn().getID_String().equals(id_workpiece) && allocWS.getHasOperation().getName().equals("")) {
+			    	if(allocWS.getID_String().equals(id_string)) {
 			    		old_enddate = Long.parseLong(allocWS.getHasTimeslot().getEndDate());
 			    		new_enddate = Long.parseLong(time_of_departure_process_started)+avg_pickUp*60*1000;
 			    		allocWS.getHasTimeslot().setEndDate(String.valueOf(new_enddate));	//d

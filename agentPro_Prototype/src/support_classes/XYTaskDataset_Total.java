@@ -212,6 +212,7 @@ public class XYTaskDataset_Total extends ApplicationFrame {
         
         @SuppressWarnings("unchecked")
 		Iterator<AllocatedWorkingStep> it = workplan.getConsistsOfAllocatedWorkingSteps().iterator();
+        int j = 1;
 	    while(it.hasNext()) {
 	    	
 	    	AllocatedWorkingStep allWorkingStep = it.next();

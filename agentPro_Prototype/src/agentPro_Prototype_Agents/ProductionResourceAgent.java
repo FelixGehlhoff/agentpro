@@ -28,6 +28,7 @@ import jade.domain.FIPAAgentManagement.ServiceDescription;
 import support_classes.DatabaseValues;
 import support_classes.Interval;
 import support_classes.Run_Configuration;
+import support_classes.Storage_element;
 import support_classes.Storage_element_slot;
 
 /* 
@@ -384,6 +385,11 @@ public ArrayList<Proposal> checkScheduleDetermineTimeslotAndCreateProposal(CFP c
 	for(int i = 0;i<getFree_interval_array().size();i++) {	
 		Production_Operation operation = createOperationCopy((Production_Operation)cfp.getHasOperation());
 		operation.setType("production");
+		long buffer_before_operation_end = (long) operation.getBuffer_before_operation_end();
+		long buffer_before_operation_start = (long) operation.getBuffer_before_operation_start();
+		long buffer_after_operation_end = (long) operation.getBuffer_after_operation_end();
+		long buffer_after_operation_start = (long) operation.getBuffer_after_operation_start();
+		//long earliest_finish_date_from_arrive_at_resource = enddate_cfp-buffer_before_operation_end;
 		float duration_eff = calculateDurationOfProcessWithoutSetup(operation, cfp.getQuantity());
 		Boolean slot_found_this_FI = false;
 		//dependent parameters
@@ -420,7 +426,9 @@ public ArrayList<Proposal> checkScheduleDetermineTimeslotAndCreateProposal(CFP c
 		// the process can be finised much earlier than the enddate of the CFP, e.g. at the start of the cfp
 		ArrayList<Interval> listOfIntervals = calculateIntervals(startdate_cfp, enddate_cfp, (long)(setup_and_pickup_to_consider*60*1000), (long)(duration_eff*60*1000), (long)(time_increment_or_decrement_to_be_added_for_setup_of_next_task*60*1000), (enddate_cfp-startdate_cfp), i); //0 = buffer that production can start earlier
 		//System.out.println(this.printoutArraylistIntervals(listOfIntervals));
-		
+		 //check when to start (+- buffer) and when to end
+		 //checkFeasibilityNew(listOfIntervals, startdate_cfp, buffer_before_operation_start, buffer_after_operation_start, "start");
+		 //checkFeasibilityNew(listOfIntervals, enddate_cfp, buffer_before_operation_end, buffer_after_operation_end, "end");
 		 checkFeasibility(listOfIntervals, startdate_cfp, enddate_cfp, (enddate_cfp-startdate_cfp)); //no buffer that production can start earlier
 		 //System.out.println(this.printoutArraylistIntervals(listOfIntervals));
 		
@@ -457,7 +465,8 @@ public ArrayList<Proposal> checkScheduleDetermineTimeslotAndCreateProposal(CFP c
 				Storage_element_slot slot = new Storage_element_slot();
 				slot = createStorageElement(operation, timeslot_for_proposal, setup_and_pickup_to_consider*60*1000, (long)(time_increment_or_decrement_to_be_added_for_setup_of_next_task*60*1000));
 				float price = duration_total_for_price + deadline_not_met;
-				Proposal proposal = createProposal(price, operation, timeslot_for_proposal, cfp.getHasSender(), cfp.getHasSender().getLocalName()+"@"+this.getLocalName());		
+				Proposal proposal = createProposal(price, operation, timeslot_for_proposal, cfp.getHasSender(), cfp.getHasSender().getLocalName()+"@"+this.getLocalName(), getOfferNumber());		
+				setOfferNumber(getOfferNumber()+1);
 				slot.setProposal(proposal);
 				this.getReceiveCFPBehav().getProposed_slots().add(slot);
 				proposal_list.add(proposal);	
@@ -512,7 +521,30 @@ public ArrayList<Proposal> checkScheduleDetermineTimeslotAndCreateProposal(CFP c
 	//System.out.println("DEBUG_____operation.getAvg_Duration()*quantity "+operation.getAvg_Duration()+"______"+this.getLocalName()+" timeslot "+timeslot_for_proposal.getStartDate()+" "+timeslot_for_proposal.getEndDate()+" "+timeslot_for_proposal.getLength());
 	return proposal_list;
 }
-
+protected void checkFeasibilityNew (ArrayList<Interval> listOfIntervals, long cfp_date, long buffer_before, long buffer_after, String start_or_end) {
+	 Iterator<Interval> it = listOfIntervals.iterator();	
+	 Interval test = new Interval(cfp_date-buffer_before, cfp_date+buffer_after, false);
+	 
+	 if(start_or_end.equals("end")) {
+		 while(it.hasNext()) {
+		    	Interval i = it.next();	    	
+		    	if(test.contains(i.upperBound())) { //checks if the end is within the interval
+		    		//good
+		    	}else {
+		    		it.remove();
+		    	}
+		 }			   
+	 }else if(start_or_end.equals("start")){
+		 while(it.hasNext()) {
+		    	Interval i = it.next();	    	
+		    	if(test.contains(i.lowerBound())) { //checks if the start is within the interval
+		    		//good
+		    	}else {
+		    		it.remove();
+		    	}
+		 }		
+	 }
+}
 public void checkSchedule(ArrayList<Interval> listOfIntervals_possibleFromResourceSide, long setup_and_pickup_to_consider, long time_increment_or_decrement_to_be_added_for_setup_of_next_task, int i2) {
 	
 	//Interval timeslot_interval_to_be_booked_production = new Interval( startdate_cfp-(Math.max((long)duration_setup, avg_pickUp))*60*1000, enddate_interval+avg_pickUp*60*1000, false);	//18.06. pick-up added
@@ -586,7 +618,7 @@ public ArrayList<Interval> calculateIntervals(long startdate_cfp, long enddate_c
 	return array;
 }*/
 
-private float calculateDurationOfProcessWithoutSetup(Operation operation, int number_of_times_to_be_executed) {
+protected float calculateDurationOfProcessWithoutSetup(Operation operation, int number_of_times_to_be_executed) {
 	float duration_before = operation.getAvg_Duration();
 	operation.setAvg_Duration(duration_before*number_of_times_to_be_executed);	//set duration to timePerPiece * quantity
 	return duration_before*number_of_times_to_be_executed;
@@ -690,10 +722,36 @@ public void setRepresentedResource(Resource res) {
 }
 
 @Override
-protected void considerPickup(AllocatedWorkingStep allocatedWorkingStep) {
+protected void considerPickup(AllocatedWorkingStep allocatedWorkingStep, Storage_element_slot slot) {
 	if(allocatedWorkingStep.getHasOperation().getAvg_PickupTime()!=Run_Configuration.avg_pickUp) {
-		System.out.println(logLinePrefix+" pick is different --> what routine??"); //TODO
-	}
+		int pickUp = allocatedWorkingStep.getHasOperation().getAvg_PickupTime();
+		int pickUp_difference = pickUp - Run_Configuration.avg_pickUp; //this can be negative!
+		Timeslot timeslot_in_slot = slot.getTimeslot();
+			if(Long.parseLong(allocatedWorkingStep.getHasTimeslot().getStartDate())>=Long.parseLong(timeslot_in_slot.getStartDate())-slot.getBuffer_before()+pickUp_difference*60*1000 && Long.parseLong(allocatedWorkingStep.getHasTimeslot().getEndDate())<=Long.parseLong(timeslot_in_slot.getEndDate())+slot.getBuffer_after()+pickUp_difference*60*1000){	//eg new start = 10 vorher 11-1(buffer before)
+				Timeslot timeslot_new = allocatedWorkingStep.getHasTimeslot();
+				//add the pickup time before the "real" startdate of the machine
+				//timeslot_new.setStartDate(Long.toString((Long.parseLong(timeslot_new.getStartDate())-allocatedWorkingStep.getHasOperation().getAvg_PickupTime()*1000*60)));
+				//timeslot_new.setEndDate(Long.toString((Long.parseLong(timeslot_new.getEndDate())-allocatedWorkingStep.getHasOperation().getAvg_PickupTime()*1000*60)));
+				
+				//allocatedWorkingStep.setHasTimeslot(timeslot_new);	
+				slot.setTimeslot(timeslot_new);
+				if(parallel_processing_pick_and_setup_possible) {
+					if(slot.getDurationSetupMachinewise()<avg_pickUp) {
+						slot.setDuration_to_get_to_workpiece(Math.max((long)slot.getDurationSetupMachinewise(), (long)avg_pickUp));  //not implemented
+						System.out.println("DEBUG_________PRODUCTION RESOURCE AGENT 741    method not implemented!");
+					}else {
+						//slot.setDuration_to_get_to_workpiece(slot.getDurationSetupMachinewise());  //not implemented
+					}
+					
+				}else {
+					slot.setDuration_to_get_to_workpiece(slot.getDuration_to_get_to_workpiece()+pickUp_difference*60*1000); 
+				}
+			} 
+			
+		}
+		
+		
+	
 	/*if(!parallel_processing_pick_and_setup_possible) {
 		Timeslot timeslot_new = allocatedWorkingStep.getHasTimeslot();
 		//add the pickup time before the "real" startdate of the machine

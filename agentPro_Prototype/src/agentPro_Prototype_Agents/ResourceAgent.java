@@ -222,7 +222,7 @@ public abstract class ResourceAgent extends _Agent_Template{
 				//if(((AllocatedWorkingStep)proposal.getConsistsOfAllocatedWorkingSteps().get(0)).getHasOperation().getName().contentEquals("20.0;5.0_Rollformen")){
 				//}
 				//currntly nothing happens for transport resources
-				considerPickup((AllocatedWorkingStep)proposal.getConsistsOfAllocatedWorkingSteps().get(0));	//prod. res adds the pick up at the beginning
+				considerPickup((AllocatedWorkingStep)proposal.getConsistsOfAllocatedWorkingSteps().get(0), slot);	//prod. res adds the pick up at the beginning
 				if(slot.checkNewTimeslot((AllocatedWorkingStep)proposal.getConsistsOfAllocatedWorkingSteps().get(0))) {
 					timeslot_proposed.setStartDate(((AllocatedWorkingStep)proposal.getConsistsOfAllocatedWorkingSteps().get(0)).getHasTimeslot().getStartDate());
 					timeslot_proposed.setEndDate(((AllocatedWorkingStep)proposal.getConsistsOfAllocatedWorkingSteps().get(0)).getHasTimeslot().getEndDate());
@@ -386,7 +386,7 @@ public abstract class ResourceAgent extends _Agent_Template{
 		        demo.setVisible(false);	*/
 	}
 	
-	protected abstract void considerPickup(AllocatedWorkingStep allocatedWorkingStep);
+	protected abstract void considerPickup(AllocatedWorkingStep allocatedWorkingStep, Storage_element_slot slot);
 
 	/*
 	protected void adjustBusyInterval () {
@@ -732,12 +732,15 @@ public abstract class ResourceAgent extends _Agent_Template{
 		return array;
 	}
 	
-	public Proposal createProposal(float price, Operation operation, Timeslot timeslot_for_proposal, AID sender, String id_string) {
-		Proposal proposal = new Proposal();
-		int proposal_id = getOfferNumber();
-		proposal.setID_Number(proposal_id);
-		setOfferNumber(getOfferNumber()+1);
-		proposal.setID_String(id_string);
+	public Proposal createProposal(float price, Operation operation, Timeslot timeslot_for_proposal, AID sender, String id_string, int offer_number) {
+		Proposal proposal = new Proposal();		
+		if(this.getRepresentedResource().getDetailed_Type().equals("production")) {
+			proposal.setID_String(id_string+"."+offer_number);
+		}else {
+			proposal.setID_String(id_string);		
+		}
+		
+		proposal.setID_Number(offer_number);	
 		proposal.setHasSender(this.getAID());
 		AllocatedWorkingStep proposed_slot = new AllocatedWorkingStep();
 		//25.02. in Operation
@@ -756,7 +759,7 @@ public abstract class ResourceAgent extends _Agent_Template{
 		proposal.setPrice(price);
 
 		proposed_slot.setHasTimeslot(timeslot_for_proposal);
-		proposed_slot.setID_String(sender.getLocalName()+"@"+getLocalName()+"."+proposal_id);
+		proposed_slot.setID_String(sender.getLocalName()+"@"+getLocalName()+"."+offer_number);
 		//System.out.println("DEBUG_________Res Agent create Proposal ID String "+sender.getLocalName()+"@"+getLocalName()+"."+proposal_id);
 		//25.02. in Operation
 		//proposed_slot.setBuffer_before_operation(this.getReceiveCFPBehav().buffer_time_that_production_can_start_earlier);
@@ -1097,6 +1100,7 @@ public abstract class ResourceAgent extends _Agent_Template{
 		operationCopy.setBuffer_before_operation_start(hasOperation.getBuffer_before_operation_start());
 		operationCopy.setName(hasOperation.getName());
 		operationCopy.setType(hasOperation.getType());
+		operationCopy.setAvg_PickupTime(hasOperation.getAvg_PickupTime());
 		
 		if(hasOperation.getStartState() != null) {
 			operationCopy.setStartState(createStateCopy(hasOperation.getStartState()));
