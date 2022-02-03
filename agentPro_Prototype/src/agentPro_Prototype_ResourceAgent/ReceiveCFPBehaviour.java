@@ -78,7 +78,14 @@ public class ReceiveCFPBehaviour extends Behaviour {
 			// receive Message from Inbox
 			MessageTemplate mt1 = MessageTemplate.MatchPerformative(ACLMessage.CFP);
 			ACLMessage msg = null;
-			if (!reservation_lock) {
+			/*
+			if (myAgent.getRepresentedResource().getType().contentEquals("transport") && !reservation_lock) {
+				msg = myAgent.receive(mt1);
+			}else if(myAgent.getRepresentedResource().getType().contentEquals("production")){
+				msg = myAgent.receive(mt1);
+			}*/
+			
+			if(!reservation_lock) {
 				msg = myAgent.receive(mt1);
 			}
 
@@ -88,6 +95,7 @@ public class ReceiveCFPBehaviour extends Behaviour {
 				sender.add(msg.getSender().getLocalName());
 				// check if current time < deadline for ANSWERING CFP TBD TODO
 
+				
 				// analyze msg.content
 				_SendCFP sendcfp_onto = null;
 				try {
@@ -105,6 +113,13 @@ public class ReceiveCFPBehaviour extends Behaviour {
 					e.printStackTrace();
 				}
 
+				System.out.println(System.currentTimeMillis() + " "
+						+ _Agent_Template.SimpleDateFormat.format(new Date()) + " " + myAgent.getLocalName()
+						+ logLinePrefix + "cfp received from " + msg.getSender().getLocalName() + ". Reply by: " + deadline
+						 + " order should start at: ");
+						//+ _Agent_Template.SimpleDateFormat.format(startdate_cfp) + " and end at "
+						//+ _Agent_Template.SimpleDateFormat.format(enddate_cfp));
+				
 				if (myAgent.getRepresentedResource().getClass().equals(Shared_Resource.class)) {
 					// determineSharedResourceBehaviour(); TODO
 				} else {
@@ -128,12 +143,7 @@ public class ReceiveCFPBehaviour extends Behaviour {
 						long startdate_cfp = Long.parseLong(cfp_timeslot.getStartDate());
 						long enddate_cfp = Long.parseLong(cfp_timeslot.getEndDate());
 
-						System.out.println(System.currentTimeMillis() + " "
-								+ _Agent_Template.SimpleDateFormat.format(new Date()) + " " + myAgent.getLocalName()
-								+ logLinePrefix + "cfp received from " + msg.getSender().getLocalName() + ". Reply by: "
-								+ deadline + " order should start at: "
-								+ _Agent_Template.SimpleDateFormat.format(startdate_cfp) + " and end at "
-								+ _Agent_Template.SimpleDateFormat.format(enddate_cfp));
+						
 						
 						//check if there is already a proposal to the id (for example, a transport to a buffer)
 						//and where the endlocation equals this CFP's start location
@@ -143,9 +153,10 @@ public class ReceiveCFPBehaviour extends Behaviour {
 							}
 							
 						}*/
+						/*
 						if(myAgent.getLocalName().equals("Transport1") && cfp.getHasOperation().getName().equals("10.0;11.0_Fraese")) {
 							System.out.println("here");
-						}
+						}*/
 						boolean proposalAdded = false;
 						ArrayList<Proposal> list_to_add = new ArrayList<Proposal>();
 						if(myAgent.getRepresentedResource().getType().equals("Transport")) {
@@ -199,9 +210,14 @@ public class ReceiveCFPBehaviour extends Behaviour {
 		
 					if(!proposalAdded) {
 						ArrayList<Proposal> newProposals_independent = myAgent.checkScheduleDetermineTimeslotAndCreateProposal(cfp);
-						for(Proposal p_ind : newProposals_independent) {
-							proposals.add(p_ind);
+						if(newProposals_independent.size() == 0) {
+							numberOfRefusals++;
+						}else {
+							for(Proposal p_ind : newProposals_independent) {
+								proposals.add(p_ind);
+							}	
 						}
+						
 							
 					}
 			

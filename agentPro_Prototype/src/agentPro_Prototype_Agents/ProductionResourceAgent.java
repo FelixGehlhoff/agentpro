@@ -382,6 +382,10 @@ public ArrayList<Proposal> checkScheduleDetermineTimeslotAndCreateProposal(CFP c
 	long setup_and_pickup_to_consider = 0;
 	//Storage_element_slot slot = null;
 	
+	if(this.getLocalName().contentEquals("Durchsatz") && cfp.getHasSender().getLocalName().contains("1")) {
+		System.out.println("here");
+	}
+	
 	for(int i = 0;i<getFree_interval_array().size();i++) {	
 		Production_Operation operation = createOperationCopy((Production_Operation)cfp.getHasOperation());
 		operation.setType("production");

@@ -2,14 +2,16 @@ package support_classes;
 
 public interface Run_Configuration {
 	//Orders and Interfaces
-	int limit = 1; //number of orders to create	
+	int limit = 17; //number of orders to create	
 	long initial_wait =1000;
 	boolean IntervalWait = false;
-	double wait_between_agent_creation = 2200;	
+	double wait_between_agent_creation = 300;	
 	double wait_betwee_agent_creation_max = 1200;
+	long db_actication_wait = 15000;
+	boolean random_order_generation = true;
 	int numberOfProducts = 3;
-	long reply_by_time_wp_agent = 1250; //war 1250
-	long reply_by_time_resource_agent = 300; //war 300
+	long reply_by_time_wp_agent = 1250; //war 200 war 1250
+	long reply_by_time_resource_agent = 300; //war 125 war 300  //momentan 2*reply_ny_time in receive order behaviour
 	
 	boolean webservice_mode = false;
 	boolean simulate_order_generation = true;
@@ -41,5 +43,7 @@ public interface Run_Configuration {
 		String gant_1 = "D:/TeamDrive/Agent.Pro/04_AgentPro/Prototyp/GANTT_Charts/eclipse/";
 		String gant_2 = "_gantt";
 		boolean include_locations_in_transport_operation_name = false;
+		
+		
 		
 }

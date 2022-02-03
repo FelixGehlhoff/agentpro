@@ -164,7 +164,18 @@ public class ReceiveInformWorkpieceDepartureBehaviour extends CyclicBehaviour{
 			    }else {
 			    	 myAgent.addBehaviour(new RequestDatabaseEntryBehaviour(myAgent, edited_Step));  
 			    }
-		     
+			    
+			    myAgent.getReceiveCFPBehav().setReservation_lock(false); // reactivate Receive CFP Behaviour
+				myAgent.getReceiveCFPBehav().getProposals().clear();
+				myAgent.getReceiveCFPBehav().getProposed_slots().clear(); // erase slots
+				myAgent.getReceiveCFPBehav().restart();  //new
+				
+			    /*
+			    myAgent.getReceiveCFPBehav().done();
+				ReceiveCFPBehaviour receiveCFPBehav = new ReceiveCFPBehaviour(myAgent);
+				myAgent.setReceiveCFPBehav(receiveCFPBehav);
+				myAgent.addBehaviour(receiveCFPBehav);
+		     */
 		     /*
 		        try {
 					myAgent.addDataToDatabase("resource", myAgent.getWorkplan());

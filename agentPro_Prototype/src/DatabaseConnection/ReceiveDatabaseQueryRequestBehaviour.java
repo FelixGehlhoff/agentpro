@@ -16,6 +16,7 @@ import jade.content.onto.basic.Action;
 import jade.core.behaviours.CyclicBehaviour;
 import jade.lang.acl.ACLMessage;
 import jade.lang.acl.MessageTemplate;
+import support_classes.Run_Configuration;
 
 /*
  * Listens for OrderCompletion messages and sends INFORM to the ERP system (dummy agent)
@@ -47,7 +48,7 @@ public class ReceiveDatabaseQueryRequestBehaviour extends CyclicBehaviour{
 		this.myAgent = myAgent;
 		if(_Agent_Template.simulate_order_generation) {
 			try {
-				Thread.sleep(2000);
+				Thread.sleep(Run_Configuration.db_actication_wait);
 			} catch (InterruptedException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();

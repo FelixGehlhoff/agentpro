@@ -161,9 +161,9 @@ public class DatabaseConnectorAgent extends _Agent_Template{
 					     //       ResultSet.CONCUR_UPDATABLE);     // Veränderbar
 
 			    		String new_name = replaceName(allWorkingStep, allWorkingStep.getHasResource().getID_Number(), allWorkingStep.getHasResource().getName());
-				   if(new_name.equals("Durchsatz.6")) {
-					   System.out.println("here");
-				   }
+				  // if(new_name.equals("Durchsatz.6")) {
+					//   System.out.println("here");
+				  // }
 			    		//12.02.2019 rs ERstellung ausgeschnitten
 				    	ResultSet rs2 = stmt.executeQuery(		
 				    			//"select * from "+nameOfMES_Data+" where "+columnNameOfOperation+" = '"+allWorkingStep.getHasOperation().getName()+"' and "+columnNameAuftrags_ID+" = '"+allWorkingStep.getHasOperation().getAppliedOn().getID_String()+"' and "+columnNameFinished+" = 'false'"); 

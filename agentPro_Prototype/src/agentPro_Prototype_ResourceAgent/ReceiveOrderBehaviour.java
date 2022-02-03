@@ -112,8 +112,19 @@ public class ReceiveOrderBehaviour extends Behaviour {
 			} else {
 				ACLMessage reject_proposal_message = myAgent.receive(mt_total_reject);
 
-				if (reject_proposal_message != null) {				
-
+				if (reject_proposal_message != null) {		
+					/*
+					if(myAgent.getRepresentedResource().getType().contentEquals("transport")) {
+						myAgent.getReceiveCFPBehav().setReservation_lock(false); // reactivate Receive CFP Behaviour
+						myAgent.getReceiveCFPBehav().getProposals().clear();
+						myAgent.getReceiveCFPBehav().getProposed_slots().clear(); // erase slots
+					}else {
+						myAgent.getReceiveCFPBehav().done();
+						ReceiveCFPBehaviour receiveCFPBehav = new ReceiveCFPBehaviour(myAgent);
+						myAgent.setReceiveCFPBehav(receiveCFPBehav);
+						myAgent.addBehaviour(new ReceiveCFPBehaviour(myAgent));
+					}
+					*/
 					myAgent.getReceiveCFPBehav().getProposed_slots().clear(); // erase slots
 					myAgent.getReceiveCFPBehav().getProposals().clear();
 					myAgent.getReceiveCFPBehav().setReservation_lock(false); // reactivate Receive CFP Behaviour
@@ -191,9 +202,16 @@ public class ReceiveOrderBehaviour extends Behaviour {
 				e.printStackTrace();
 			}
 
-			myAgent.getReceiveCFPBehav().setReservation_lock(false); // reactivate Receive CFP Behaviour
-			myAgent.getReceiveCFPBehav().getProposals().clear();
-			myAgent.getReceiveCFPBehav().getProposed_slots().clear(); // erase slots
+			// 02.02.2022 concurrency problems --> need to go into receive departure
+			 
+			//if(myAgent.getRepresentedResource().getType().contentEquals("transport")) {
+				myAgent.getReceiveCFPBehav().setReservation_lock(false); // reactivate Receive CFP Behaviour
+				myAgent.getReceiveCFPBehav().getProposals().clear();
+				myAgent.getReceiveCFPBehav().getProposed_slots().clear(); // erase slots
+			//}
+			
+			 
+			
 			// TBD --> any condition why a failure should occure at this point?
 
 			// step = 3;

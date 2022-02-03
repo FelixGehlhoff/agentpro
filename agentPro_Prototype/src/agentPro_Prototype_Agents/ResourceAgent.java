@@ -155,6 +155,11 @@ public abstract class ResourceAgent extends _Agent_Template{
 	}
 
 
+	public void setReceiveCFPBehav(ReceiveCFPBehaviour receiveCFPBehav) {
+		ReceiveCFPBehav = receiveCFPBehav;
+	}
+
+
 	protected abstract Resource createResource();
 
 

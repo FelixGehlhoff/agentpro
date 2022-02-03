@@ -185,7 +185,7 @@ public class RequestPerformer_transport extends Behaviour {
 			//deadline	
 			//if deadline expired or all proposals are received --> book best offer
 			if(System.currentTimeMillis()>reply_by_date_CFP) {
-				System.out.println(System.currentTimeMillis()+" DEBUG_________________   @@@@@@@@@@@@@@@@@@@@@@@@@@@@@  WWWWWWWWWWWWWWWW   TIME EXPIRED");
+				System.out.println(System.currentTimeMillis()+" DEBUG_________________ "+myAgent.getLocalName()+" requestperformer transport  @@@@@@@@@@@@@@@@@@@@@@@@@@@@@  WWWWWWWWWWWWWWWW   TIME EXPIRED");
 				step = 3;
 				break;
 			}else if(numberOfAnswers == resourceAgents.size()) {
@@ -418,11 +418,15 @@ public class RequestPerformer_transport extends Behaviour {
 
 	private Boolean checkIfTransportIsNeeded(OperationCombination opComb, Proposal proposal) {
 		Location nextProductionOrBuffer = ((AllocatedWorkingStep)proposal.getConsistsOfAllocatedWorkingSteps().get(0)).getHasResource().getHasLocation();
-		if(myAgent.useCurrentLocationDueToDisturbance || myAgent.getLastProductionStepAllocated() == null) {
+		//if(myAgent.useCurrentLocationDueToDisturbance || myAgent.getLastProductionStepAllocated() == null) {
+		if(myAgent.useCurrentLocationDueToDisturbance) {
 			if(_Agent_Template.doLocationsMatch(myAgent.getLocation(), nextProductionOrBuffer)) {
 				opComb.setTransport_needed(false);
 				return false;
 			}
+		}else if(myAgent.getLastProductionStepAllocated() == null) {
+			opComb.setTransport_needed(false);
+			return false;
 		}else if(myAgent.getLastProductionStepAllocated() != null) {
 			if(_Agent_Template.doLocationsMatch(opComb.getLastProductionStepAllocated().getHasResource().getHasLocation(), nextProductionOrBuffer)) {
 				opComb.setTransport_needed(false);
