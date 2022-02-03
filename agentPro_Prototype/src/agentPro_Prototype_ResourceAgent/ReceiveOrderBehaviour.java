@@ -3,6 +3,8 @@ package agentPro_Prototype_ResourceAgent;
 import java.util.Date;
 
 import agentPro.onto.Accept_Proposal;
+import agentPro.onto.AllocatedWorkingStep;
+import agentPro.onto.Proposal;
 import agentPro.onto._SendAccept_Proposal;
 import agentPro_Prototype_Agents.ResourceAgent;
 import agentPro_Prototype_Agents._Agent_Template;
@@ -13,6 +15,7 @@ import jade.content.onto.basic.Action;
 import jade.core.behaviours.Behaviour;
 import jade.lang.acl.ACLMessage;
 import jade.lang.acl.MessageTemplate;
+import support_classes.Run_Configuration;
 
 /*
  * Listens for a specified time for orders on a specific PROPOSAL. If there is no offer within the time the behaviour
@@ -71,6 +74,8 @@ public class ReceiveOrderBehaviour extends Behaviour {
 				myAgent.getReceiveCFPBehav().getProposed_slots().clear(); // erase slots
 				myAgent.getReceiveCFPBehav().getProposals().clear();
 				myAgent.getReceiveCFPBehav().setReservation_lock(false); // reactivate Receive CFP Behaviour
+				myAgent.getReceiveCFPBehav().step = 0;  //03.02.2022
+				myAgent.getReceiveCFPBehav().restart();
 				step = 3;
 				System.out.println(System.currentTimeMillis() + " DEBUG_____" + myAgent.getLocalName() + " "
 						+ logLinePrefix + " time expired in recieve Order    conv id  " + this.conversationID
@@ -125,10 +130,14 @@ public class ReceiveOrderBehaviour extends Behaviour {
 						myAgent.addBehaviour(new ReceiveCFPBehaviour(myAgent));
 					}
 					*/
+					//if(myAgent.getRepresentedResource().getType().contentEquals("transport")) {
 					myAgent.getReceiveCFPBehav().getProposed_slots().clear(); // erase slots
 					myAgent.getReceiveCFPBehav().getProposals().clear();
 					myAgent.getReceiveCFPBehav().setReservation_lock(false); // reactivate Receive CFP Behaviour
-
+					myAgent.getReceiveCFPBehav().step = 0;  //03.02.2022
+					myAgent.getReceiveCFPBehav().restart();
+					//}
+					
 					step = 3;
 					break;
 
@@ -204,11 +213,27 @@ public class ReceiveOrderBehaviour extends Behaviour {
 
 			// 02.02.2022 concurrency problems --> need to go into receive departure
 			 
-			//if(myAgent.getRepresentedResource().getType().contentEquals("transport")) {
+			if(myAgent.getRepresentedResource().getType().contentEquals("transport") || myAgent.getRepresentedResource().getDetailed_Type().contentEquals("buffer")) {
+			
 				myAgent.getReceiveCFPBehav().setReservation_lock(false); // reactivate Receive CFP Behaviour
 				myAgent.getReceiveCFPBehav().getProposals().clear();
 				myAgent.getReceiveCFPBehav().getProposed_slots().clear(); // erase slots
-			//}
+				myAgent.getReceiveCFPBehav().step = 0;  //03.02.2022
+				myAgent.getReceiveCFPBehav().restart();
+			}else if(myAgent.getRepresentedResource().getType().contentEquals("production") && myAgent.getRepresentedResource().getDetailed_Type().contentEquals("production")) {
+				if(((AllocatedWorkingStep)((Proposal)accept_proposal.getHasProposal().get(0)).getConsistsOfAllocatedWorkingSteps().get(0)).getLastOperation()) {
+					System.out.println(myAgent.logLinePrefix+" LAST OPERATION "+myAgent.getLocalName());
+					myAgent.getReceiveCFPBehav().setReservation_lock(false); // reactivate Receive CFP Behaviour
+					myAgent.getReceiveCFPBehav().getProposals().clear();
+					myAgent.getReceiveCFPBehav().getProposed_slots().clear(); // erase slots
+					myAgent.getReceiveCFPBehav().step = 0;  //03.02.2022
+					myAgent.getReceiveCFPBehav().restart();
+				}
+				 
+			}
+			
+				
+			
 			
 			 
 			

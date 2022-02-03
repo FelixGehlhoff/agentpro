@@ -22,6 +22,7 @@ import agentPro.onto.Workpiece;
 import agentPro.onto._SendCFP;
 import agentPro.onto._SendProposal;
 import agentPro_Prototype_WorkpieceAgent_Behaviours.ProductionManagerBehaviour;
+import agentPro_Prototype_WorkpieceAgent_Behaviours.InformWorkpieceArrivalAndDeparture;
 import agentPro_Prototype_WorkpieceAgent_Behaviours.MQTTListener_dummy;
 import agentPro_Prototype_WorkpieceAgent_Behaviours.Simulation_Listener;
 import jade.content.lang.Codec.CodecException;
@@ -85,7 +86,7 @@ public class WorkpieceAgent extends _Agent_Template{
 		//get OrderPosition and ProductionPlan(ontology)
 		setOrderPos((OrderPosition) args[0]);
 		setProductionPlan(orderPos.getContainsProduct().getHasProductionPlan());
-		System.out.println(((OrderedOperation)orderPos.getContainsProduct().getHasProductionPlan().getConsistsOfOrderedOperations().get(0)).getHasProductionOperation().getName());
+		//System.out.println(((OrderedOperation)orderPos.getContainsProduct().getHasProductionPlan().getConsistsOfOrderedOperations().get(0)).getHasProductionOperation().getName());
 		setTypeOfOperationsToProduction();												//sets the Type of all production operations to production --> needed in RequestPerformer line 367
 		//createWorkplan
 		setWorkplan(new WorkPlan());
@@ -491,8 +492,11 @@ public class WorkpieceAgent extends _Agent_Template{
 					
 	
 	for (int i = 0;i<resourceAgents.size();i++){
+		if(this.getLastProductionStepAllocated() != null && resourceAgents.get(i).getLocalName().contentEquals(this.getLastProductionStepAllocated().getHasResource().getName())) {
+			InformWorkpieceArrivalAndDeparture.prepareAndSendInformDepartureMessage(this, 0, this.getLastProductionStepAllocated().getHasTimeslot().getEndDate(), this.getLastProductionStepAllocated().getHasResource().getName(), this.getLastProductionStepAllocated().getID_String());
+		}
 		cfp.addReceiver(resourceAgents.get(i));
-		//System.out.println(myAgent.SimpleDateFormat.format(new Date())+" "+myAgent.getLocalName()+logLinePrefix+"cfp sent to receiver: "+result[i].getName().getLocalName()+" with content "+cfp.getContent());
+		System.out.println(this.SimpleDateFormat.format(new Date())+" "+this.getLocalName()+logLinePrefix+"cfp sent to receiver: "+resourceAgents.get(i).getName()+" with content "+cfp.getContent());
 	}
 	//myAgent.printOutSent(cfp);			
 	send(cfp);

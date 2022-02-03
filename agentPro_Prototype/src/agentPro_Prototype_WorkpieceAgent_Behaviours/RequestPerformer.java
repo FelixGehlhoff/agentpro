@@ -95,7 +95,7 @@ public class RequestPerformer extends Behaviour {
 			myAgent.sendCfps(cfp_timeslot, requested_operation, conversationID, resourceAgents, reply_by_date);
 				
 			step = 1;
-			block((long) (0.5*Run_Configuration.reply_by_time_wp_agent));
+			block((long) (Run_Configuration.factor_request_performer*Run_Configuration.reply_by_time_wp_agent)); //factpr war 0,5
 			break;
 		case 1:	
 			//deadline	

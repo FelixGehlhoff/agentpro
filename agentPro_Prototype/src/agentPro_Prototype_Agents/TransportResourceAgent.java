@@ -189,7 +189,7 @@ public class TransportResourceAgent extends ResourceAgent{
 	    try {
 	        stmt = connection.createStatement();
 	        ResultSet rs = stmt.executeQuery(query);
-	     if(consider_shared_resources ) {
+	     
 	    	 while (rs.next()) {
 		        	//String needed_capability = rs.getString(columnNameOfCapability_Name);
 	    		 String needed_capability = rs.getString(columnNameOfRequiresCapability); //TODO erweitern auf 2 / x Capabilites
@@ -197,9 +197,13 @@ public class TransportResourceAgent extends ResourceAgent{
 	    		 Transport_Operation enabled_operation_onto = new Transport_Operation();
 	    		 enabled_operation_onto.setName(enabled_operation);
 	    		 enabled_operation_onto.setType("transport");
-	    		 Capability cap = new Capability();
-	    		 cap.setName(needed_capability);
-	    		 enabled_operation_onto.getIsEnabledBy().add(cap);
+	    		 if(consider_shared_resources ) {
+	    			 Capability cap = new Capability();
+		    		 cap.setName(needed_capability); 
+		    		 enabled_operation_onto.getIsEnabledBy().add(cap);
+	    		 }
+	    		 
+	    		 
 	    		 enabled_operations.add(enabled_operation_onto);
 	    		 
 	    		 	//06.01.20 kann raus    -->  NOCH DRIN FÜR RANGE
@@ -208,7 +212,7 @@ public class TransportResourceAgent extends ResourceAgent{
 		        	
 		        	//System.out.println("DEBUG_____needed resource added: "+needed_capability);
 		        }
-	     }
+	     
 	     /*
 	     ResultSet rs2 = stmt.executeQuery(query2);
 	     while (rs2.next()) {

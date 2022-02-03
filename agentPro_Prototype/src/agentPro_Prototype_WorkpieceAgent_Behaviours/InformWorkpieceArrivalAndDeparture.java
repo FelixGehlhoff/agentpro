@@ -25,11 +25,16 @@ public class InformWorkpieceArrivalAndDeparture extends OneShotBehaviour {
 	private Transport_Operation requested_operation;
 	private AllocatedWorkingStep allocatedWorkingStep_transport;
 	private AllocatedWorkingStep lastProductionStepAllocated;
-
+	//InformWorkpieceArrivalAndDeparture(myAgent, combination_best.getBest_path().getBuffer(), combination_best.getBest_path().getTransportToProductionOperation(), combination_best.getBest_path().getTransport_to_production())
 	public InformWorkpieceArrivalAndDeparture(WorkpieceAgent myAgent, AllocatedWorkingStep lastProductionStepAllocated, Transport_Operation requested_operation, AllocatedWorkingStep transport_step_to_give_to_Inform_Arrival) {
 		this.myAgent = myAgent;
 		this.requested_operation = requested_operation;
 		allocatedWorkingStep_transport = transport_step_to_give_to_Inform_Arrival;
+		this.lastProductionStepAllocated = lastProductionStepAllocated;
+	}
+	
+	public InformWorkpieceArrivalAndDeparture(WorkpieceAgent myAgent, AllocatedWorkingStep lastProductionStepAllocated) {
+		this.myAgent = myAgent;	
 		this.lastProductionStepAllocated = lastProductionStepAllocated;
 	}
 
@@ -40,39 +45,47 @@ public class InformWorkpieceArrivalAndDeparture extends OneShotBehaviour {
 		 * 	by determine location of any resource in the allocWS List and compare it to the start / end location of requested operation 
 		 * get its name / their names for the ACL message receiver
 		 */
-		AllocatedWorkingStep allocWS_start = null;
+		
+		 //1. for production resource that the workpiece exits
+	    //2. for prod res that the workpiece arrives at
+	    int limit = 2;
+	    AllocatedWorkingStep allocWS_start = null;
 		AllocatedWorkingStep allocWS_end = null;
-		Location startlocation = (Location) requested_operation.getStartStateNeeded();
-		Location endlocation = (Location) requested_operation.getEndState();
-		Boolean findWarehouseOutbound = _Agent_Template.doLocationsMatch(myAgent.getOrderPos().getHasTargetWarehouse().getHasLocation(),endlocation);
-		Boolean findWarehouseInbound = _Agent_Template.doLocationsMatch(myAgent.getLocationOfStartingWarehouse(),startlocation);
 		
+		if(requested_operation != null) {
+			
+			Location startlocation = (Location) requested_operation.getStartStateNeeded();
+			Location endlocation = (Location) requested_operation.getEndState();
+			Boolean findWarehouseOutbound = _Agent_Template.doLocationsMatch(myAgent.getOrderPos().getHasTargetWarehouse().getHasLocation(),endlocation);
+			Boolean findWarehouseInbound = _Agent_Template.doLocationsMatch(myAgent.getLocationOfStartingWarehouse(),startlocation);
+			
 
-		 @SuppressWarnings("unchecked")
-			Iterator<AllocatedWorkingStep> it = myAgent.getWorkplan().getConsistsOfAllocatedWorkingSteps().iterator();
-		    while(it.hasNext()) {
-		    	AllocatedWorkingStep this_step_in_allocated_working_steps = it.next();
-		    	Location location_of_this_res = this_step_in_allocated_working_steps.getHasResource().getHasLocation();
-		    	Boolean doLocationsMatch_startlocation = _Agent_Template.doLocationsMatch(location_of_this_res, startlocation);
-		    	Boolean doLocationsMatch_endloaction = _Agent_Template.doLocationsMatch(location_of_this_res, endlocation);
-		    	
-		    	if(this_step_in_allocated_working_steps.getHasResource().getType().equals("production") && doLocationsMatch_startlocation) {
-		    		allocWS_start = this_step_in_allocated_working_steps;
-		    	}
-		    	if(!findWarehouseOutbound && this_step_in_allocated_working_steps.getHasResource().getType().equals("production") && doLocationsMatch_endloaction) {
-		    		allocWS_end = this_step_in_allocated_working_steps;
-		    		
-		    	}
-		    }
+			 @SuppressWarnings("unchecked")
+				Iterator<AllocatedWorkingStep> it = myAgent.getWorkplan().getConsistsOfAllocatedWorkingSteps().iterator();
+			    while(it.hasNext()) {
+			    	AllocatedWorkingStep this_step_in_allocated_working_steps = it.next();
+			    	Location location_of_this_res = this_step_in_allocated_working_steps.getHasResource().getHasLocation();
+			    	Boolean doLocationsMatch_startlocation = _Agent_Template.doLocationsMatch(location_of_this_res, startlocation);
+			    	Boolean doLocationsMatch_endloaction = _Agent_Template.doLocationsMatch(location_of_this_res, endlocation);
+			    	
+			    	if(this_step_in_allocated_working_steps.getHasResource().getType().equals("production") && doLocationsMatch_startlocation) {
+			    		allocWS_start = this_step_in_allocated_working_steps;
+			    	}
+			    	if(!findWarehouseOutbound && this_step_in_allocated_working_steps.getHasResource().getType().equals("production") && doLocationsMatch_endloaction) {
+			    		allocWS_end = this_step_in_allocated_working_steps;
+			    		
+			    	}
+			    }
+			    if(findWarehouseOutbound || findWarehouseInbound) {
+			    	limit = 1;		    	
+			    }
+		}
 		
 		
 		
-		    //1. for production resource that the workpiece exits
-		    //2. for prod res that the workpiece arrives at
-		    int limit = 2;
-		    if(findWarehouseOutbound || findWarehouseInbound) {
-		    	limit = 1;		    	
-		    }
+		
+		   
+		    
 		   // System.out.println("DEBUG______"+myAgent.getLocation().getCoordX()+";"+myAgent.getLocation().getCoordY()+"______"+findWarehouseOutbound+"_____"+findWarehouseInbound+"____limit "+limit);
 		 for(int i = 0;i<limit;i++) {
 			//create ACL Message				
@@ -84,10 +97,20 @@ public class InformWorkpieceArrivalAndDeparture extends OneShotBehaviour {
 			//create ontology contents
 				_SendInform_ArrivalAndDeparture sendInform_departure = new _SendInform_ArrivalAndDeparture();
 				Inform_ArrivalAndDeparture inform_arrivalAndDeparture = new Inform_ArrivalAndDeparture();
+				
+				//if two operations are adjacent on the same resource
+				if(requested_operation == null) {
+					inform_arrivalAndDeparture.setAvg_PickupTime(0);
+					inform_arrivalAndDeparture.setDepartureTime(lastProductionStepAllocated.getHasTimeslot().getStartDate());
+					allocWS_start = lastProductionStepAllocated;
+				}else {
+					inform_arrivalAndDeparture.setAvg_PickupTime(requested_operation.getAvg_PickupTime());
+					inform_arrivalAndDeparture.setDepartureTime(String.valueOf(Long.parseLong(allocatedWorkingStep_transport.getHasTimeslot().getStartDate())));
+				}
 				String action = "";
 				if(i == 0 && allocWS_start != null) {
-					inform_arrivalAndDeparture.setDepartureTime(String.valueOf(Long.parseLong(allocatedWorkingStep_transport.getHasTimeslot().getStartDate())));
-					inform_arrivalAndDeparture.setAvg_PickupTime(requested_operation.getAvg_PickupTime());
+					
+					
 					receiver.setLocalName(allocWS_start.getHasResource().getName());
 					inform_acl.setConversationId("Inform_Departure");
 					action = "departure";
@@ -137,4 +160,43 @@ public class InformWorkpieceArrivalAndDeparture extends OneShotBehaviour {
 
 	}
 
+	public static void prepareAndSendInformDepartureMessage(WorkpieceAgent myAgent, int pickup_time, String departure_time, String local_name_receiver, String id_string) {
+		ACLMessage inform_acl = new ACLMessage(ACLMessage.INFORM);
+		inform_acl.setLanguage(myAgent.getCodec().getName());
+		inform_acl.setOntology(myAgent.getOntology().getName());
+		
+		_SendInform_ArrivalAndDeparture sendInform_departure = new _SendInform_ArrivalAndDeparture();
+		Inform_ArrivalAndDeparture inform_arrivalAndDeparture = new Inform_ArrivalAndDeparture();
+		
+		inform_arrivalAndDeparture.setAvg_PickupTime(pickup_time);
+		inform_arrivalAndDeparture.setDepartureTime(departure_time);
+		
+		AID receiver = new AID();
+		receiver.setLocalName(local_name_receiver);
+		
+		inform_acl.setConversationId("Inform_Departure");
+		String action = "departure";
+		
+		inform_arrivalAndDeparture.setID_String(id_string);
+		sendInform_departure.setHasInform_Departure(inform_arrivalAndDeparture);			
+		Action content = new Action(myAgent.getAID(),sendInform_departure);
+				
+		inform_acl.addReceiver(receiver);
+		
+	
+		//ontology --> fill content
+		try {
+			myAgent.getContentManager().fillContent(inform_acl, content);
+		} catch (CodecException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (OntologyException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
+		myAgent.send(inform_acl);
+		System.out.println(myAgent.SimpleDateFormat.format(new Date())+" "+myAgent.getLocalName()+myAgent.logLinePrefix+" inform_acl "+action+" sent to receiver "+receiver.getLocalName()+" with content "+inform_acl.getContent());
+		
+	}
 }

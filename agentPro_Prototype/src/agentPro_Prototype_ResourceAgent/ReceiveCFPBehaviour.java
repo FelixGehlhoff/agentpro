@@ -235,6 +235,8 @@ public class ReceiveCFPBehaviour extends Behaviour {
 					myAgent.sendRefusal(msg);
 					sender.clear(); // clears the arraylist of senders for the next message
 					numberOfRefusals = 0;
+					step = 0;
+					block();
 					break;
 				} else if (proposals.size() + numberOfRefusals >= sendcfp_onto.getHasCFP().size()) {
 					step = 1;
@@ -246,7 +248,11 @@ public class ReceiveCFPBehaviour extends Behaviour {
 					break;
 				}
 			} else {
-				block();
+				block();	
+				if(myAgent.getLocalName().contentEquals("QS")) {
+					System.out.println(System.currentTimeMillis()+" receivecfp on blocked");
+				}
+				step = 0;
 				break;
 			}
 			break;
@@ -267,6 +273,9 @@ public class ReceiveCFPBehaviour extends Behaviour {
 			 * +"___STEP could not be added"); }
 			 */
 
+			if(proposals.size() == 0) {
+				System.out.println("error");
+			}
 			// / ADD BEHAVIOURS
 			// /////////////////////////////////////////////////////////
 			if (myAgent.getLocalName().equals("Kranschiene")) {
@@ -281,6 +290,7 @@ public class ReceiveCFPBehaviour extends Behaviour {
 						.wrap(new ReceiveOrderBehaviour(myAgent, conversationID, (long) (2 * Run_Configuration.reply_by_time_resource_agent),
 								System.currentTimeMillis() + (long) (2.5 * Run_Configuration.reply_by_time_resource_agent),
 								proposals.get(0).getID_Number())));
+				
 
 			}
 
@@ -288,7 +298,7 @@ public class ReceiveCFPBehaviour extends Behaviour {
 			step = 0;
 			sender.clear(); // clears the arraylist of senders for the next message
 			numberOfRefusals = 0;
-
+			//block();
 			break;
 		case 2:
 			

@@ -51,7 +51,7 @@ public class ProductionManagerBehaviour extends Behaviour{
 		super(myAgent);
 		this.myAgent = myAgent;	
 		myAgent.startCoordinationProcess = System.currentTimeMillis();
-		System.out.println("@@@@@@@@@@@@@@@@@@@@@@@@@@ START     "+myAgent.startCoordinationProcess);
+		System.out.println("@@@@@@@@@@@@@@@@@@@@@@@@@@ START     "+myAgent.startCoordinationProcess+"  "+myAgent.getLocalName());
 		//System.out.println(myAgent.SimpleDateFormat.format(new Date())+" "+myAgent.getLocalName()+logLinePrefix+" started");
 	}
 	

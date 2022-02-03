@@ -102,44 +102,48 @@ public class ReceiveInformWorkpieceDepartureBehaviour extends CyclicBehaviour{
 			    	
 			    	}
 			    }
+			    
+			    if(old_enddate != new_enddate){
+				    Interval new_busy_interval = new Interval();
+				    for(int i = 0;i<myAgent.getBusyInterval_array().size();i++) {
+				    	//System.out.println("DEBUG______________myAgent.getBusyInterval_array().get(i).upperBound()_"+myAgent.getBusyInterval_array().get(i).upperBound()+" = old_enddate "+old_enddate);
+				    	if(myAgent.getBusyInterval_array().get(i).upperBound() == old_enddate) {
+				    		//check whether the new busy interval is possible or if the new enddate is within an existing busy interval
+				    		//new_busy_interval = new Interval (myAgent.getBusyInterval_array().get(i).lowerBound(), new_enddate, false);
+				    		//11.06.19 neu: weiteres busy interval für blocked state
+				    		new_busy_interval = new Interval (myAgent.getBusyInterval_array().get(i).upperBound(), new_enddate, false);
+				    		new_busy_interval.setId(myAgent.getBusyInterval_array().get(i).getId()+"_waitingForDeparture");
+				    		//System.out.println("DEBUG_______RECEIVE INFWP ARR__NEW BUSY INTERVAL  "+new_busy_interval.toString());
+				    			//look at the next busy interval that behind in the array and has not been checked yet (if it exists)--> they are sorted chronologically
+				    		if(i+1<myAgent.getBusyInterval_array().size()) {
+				    			Interval interval_to_be_checked = myAgent.getBusyInterval_array().get(i+1);		    			
+			    				if(interval_to_be_checked.intersection(new_busy_interval).getSize()>1) { //more than the Bound is shared
+			    					System.out.println(_Agent_Template.SimpleDateFormat.format(new Date())+" "+myAgent.getLocalName()+logLinePrefix+" Interval cannot be increased to that size. Busy interval "+interval_to_be_checked.toString()+" conflicts. ");
+			    					//Better ErrorHandling TBD
+			    					//TODO
+			    					//if this is not possible, the resource must inform the workpiece, that it has to leave before X
+			    					//the workpiece might have to arrange a buffer place in that case or follow another routine to fix the issue
+			    				}else if(interval_to_be_checked.intersection(new_busy_interval).getSize()==1){ //now the free interval can be deleted 
+			    					for(int j = 0; j<myAgent.getFree_interval_array().size();j++) {
+			    						Interval free_interval_old = myAgent.getFree_interval_array().get(j);
+			    						//the lower bound of the free interval was the same as the upperbound of the old busy interval
+			    						if(free_interval_old.lowerBound() == old_enddate) {
+			    							myAgent.getFree_interval_array().remove(j);
+			    						}
+			    					}
+			    				}else { //no intersection
+			    					addNewBusyIntervalAndReduceFreeInterval(i, new_busy_interval, old_enddate);
+			    				}
+				    		}else { //no intersection because no other element exists
+				    			addNewBusyIntervalAndReduceFreeInterval(i, new_busy_interval, old_enddate);
+				    					
+				    				}		
+				    	}
+				    }
+			    }
 			    //find busy interval which has the old_enddate as upperBound
 			    //replace it with a new busy interval that has the time of departure as upperBound (and the same old lower Bound)
-			    Interval new_busy_interval = new Interval();
-			    for(int i = 0;i<myAgent.getBusyInterval_array().size();i++) {
-			    	//System.out.println("DEBUG______________myAgent.getBusyInterval_array().get(i).upperBound()_"+myAgent.getBusyInterval_array().get(i).upperBound()+" = old_enddate "+old_enddate);
-			    	if(myAgent.getBusyInterval_array().get(i).upperBound() == old_enddate) {
-			    		//check whether the new busy interval is possible or if the new enddate is within an existing busy interval
-			    		//new_busy_interval = new Interval (myAgent.getBusyInterval_array().get(i).lowerBound(), new_enddate, false);
-			    		//11.06.19 neu: weiteres busy interval für blocked state
-			    		new_busy_interval = new Interval (myAgent.getBusyInterval_array().get(i).upperBound(), new_enddate, false);
-			    		new_busy_interval.setId(myAgent.getBusyInterval_array().get(i).getId()+"_waitingForDeparture");
-			    		//System.out.println("DEBUG_______RECEIVE INFWP ARR__NEW BUSY INTERVAL  "+new_busy_interval.toString());
-			    			//look at the next busy interval that behind in the array and has not been checked yet (if it exists)--> they are sorted chronologically
-			    		if(i+1<myAgent.getBusyInterval_array().size()) {
-			    			Interval interval_to_be_checked = myAgent.getBusyInterval_array().get(i+1);		    			
-		    				if(interval_to_be_checked.intersection(new_busy_interval).getSize()>1) { //more than the Bound is shared
-		    					System.out.println(_Agent_Template.SimpleDateFormat.format(new Date())+" "+myAgent.getLocalName()+logLinePrefix+" Interval cannot be increased to that size. Busy interval "+interval_to_be_checked.toString()+" conflicts. ");
-		    					//Better ErrorHandling TBD
-		    					//TODO
-		    					//if this is not possible, the resource must inform the workpiece, that it has to leave before X
-		    					//the workpiece might have to arrange a buffer place in that case or follow another routine to fix the issue
-		    				}else if(interval_to_be_checked.intersection(new_busy_interval).getSize()==1){ //now the free interval can be deleted 
-		    					for(int j = 0; j<myAgent.getFree_interval_array().size();j++) {
-		    						Interval free_interval_old = myAgent.getFree_interval_array().get(j);
-		    						//the lower bound of the free interval was the same as the upperbound of the old busy interval
-		    						if(free_interval_old.lowerBound() == old_enddate) {
-		    							myAgent.getFree_interval_array().remove(j);
-		    						}
-		    					}
-		    				}else { //no intersection
-		    					addNewBusyIntervalAndReduceFreeInterval(i, new_busy_interval, old_enddate);
-		    				}
-			    		}else { //no intersection because no other element exists
-			    			addNewBusyIntervalAndReduceFreeInterval(i, new_busy_interval, old_enddate);
-			    					
-			    				}		
-			    	}
-			    }
+
 			    
 			    
 			     //create GANTT Chart
@@ -168,6 +172,7 @@ public class ReceiveInformWorkpieceDepartureBehaviour extends CyclicBehaviour{
 			    myAgent.getReceiveCFPBehav().setReservation_lock(false); // reactivate Receive CFP Behaviour
 				myAgent.getReceiveCFPBehav().getProposals().clear();
 				myAgent.getReceiveCFPBehav().getProposed_slots().clear(); // erase slots
+				myAgent.getReceiveCFPBehav().step = 0;  //03.02.2022			
 				myAgent.getReceiveCFPBehav().restart();  //new
 				
 			    /*

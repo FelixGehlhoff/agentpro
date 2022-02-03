@@ -17,6 +17,8 @@ public class OperationCombination_SinglePath {
 	private WorkPlan workplan = new WorkPlan();
 	private Proposal proposal_buffer;
 	private AllocatedWorkingStep buffer;
+
+
 	private AllocatedWorkingStep nextProductionStep;
 
 	private long timeOfFinish;
@@ -324,6 +326,13 @@ public class OperationCombination_SinglePath {
 			return null;
 		}
 	}
+	public Transport_Operation getTransportToProductionOperation() {
+		if(transport_to_production != null){
+			return (Transport_Operation) transport_to_production.getHasOperation();
+		}else {
+			return null;
+		}
+	}
 
 	public AllocatedWorkingStep getFirstTransportAllWS() {
 		if(buffer != null) {
@@ -331,5 +340,12 @@ public class OperationCombination_SinglePath {
 		}else {
 			return transport_to_production;
 		}
+	}
+	public AllocatedWorkingStep getBuffer() {
+		return buffer;
+	}
+
+	public void setBuffer(AllocatedWorkingStep buffer) {
+		this.buffer = buffer;
 	}
 }

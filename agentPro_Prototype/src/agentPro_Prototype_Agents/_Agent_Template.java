@@ -53,6 +53,9 @@ public abstract class _Agent_Template extends Agent implements Run_Configuration
 	public String logLinePrefix;
 	public String ability;
 	public ArrayList <DFAgentDescription> resourceAgents = new ArrayList<DFAgentDescription>();
+	public DFAgentDescription dbAgent;
+	
+
 	public Boolean showMessageContent = false;
 	private WorkPlan workplan;
 	protected Connection connection;			//Connection to database
@@ -458,4 +461,12 @@ public abstract class _Agent_Template extends Agent implements Run_Configuration
 		}
 			return contains;	
 	}
+	public DFAgentDescription getDbAgent() {
+		return dbAgent;
+	}
+
+	public void setDbAgent(DFAgentDescription dbAgent) {
+		this.dbAgent = dbAgent;
+	}
+
 }

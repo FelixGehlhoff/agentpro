@@ -179,7 +179,7 @@ public class RequestPerformer_transport extends Behaviour {
 			sendCfps(sendCFP);
 					
 			step = 1;
-			block((long) (0.25*Run_Configuration.reply_by_time_wp_agent));
+			block((long) (0.1*Run_Configuration.reply_by_time_wp_agent));
 			break;
 		case 1:	
 			//deadline	
@@ -252,6 +252,12 @@ public class RequestPerformer_transport extends Behaviour {
 					System.out.println("Best combination = "+combination_best.toString());
 
 					//book best offers
+					if(last_operation) {
+						for(Proposal prop : combination_best.getProposals()) {
+							((AllocatedWorkingStep)prop.getConsistsOfAllocatedWorkingSteps().get(0)).setLastOperation(last_operation);
+						}						
+						//System.out.println(myAgent.logLinePrefix+" DEBUG LAST OPERATION is set");
+					}
 					acceptProposalsOfCombination(combination_best);	//do not send the proposal itself again			
 					//reject the rest
 					rejectProposals(listOfCombinations);
@@ -260,8 +266,12 @@ public class RequestPerformer_transport extends Behaviour {
 			    	//agenten informieren, wann Werkstück abgeholt wird
 			    	if(combination_best.getBest_path().getFirstTransport()!= null) { //is null if there is no transport
 			    		myAgent.addBehaviour(new InformWorkpieceArrivalAndDeparture(myAgent, combination_best.getLastProductionStepAllocated(), combination_best.getBest_path().getFirstTransport(), combination_best.getBest_path().getFirstTransportAllWS()));		    		
+			    	}else if(myAgent.getWorkplan().getConsistsOfAllocatedWorkingSteps().size()>1){
+			    		myAgent.addBehaviour(new InformWorkpieceArrivalAndDeparture(myAgent, combination_best.getLastProductionStepAllocated()));
 			    	}
-			    	
+			    	//if(combination_best.getBest_path().getTransport_to_buffer() != null) {
+			    	//	myAgent.addBehaviour(new InformWorkpieceArrivalAndDeparture(myAgent, combination_best.getLastProductionStepAllocated(), combination_best.getBest_path().getTransportToProductionOperation(), combination_best.getBest_path().getTransport_to_production()));
+			    	//}
 					myAgent.getProductionManagerBehaviour().setStep(0);
 					myAgent.getProductionManagerBehaviour().restart();
 					step = 5;					
@@ -273,7 +283,7 @@ public class RequestPerformer_transport extends Behaviour {
 				}
 
 			}else {
-				System.out.println("ERROR Operation could not be arranged.");
+				System.out.println(System.currentTimeMillis()+" "+myAgent.logLinePrefix+" ERROR Operation could not be arranged. No combination");
 				step=5;
 				break;
 			}
@@ -479,7 +489,7 @@ public class RequestPerformer_transport extends Behaviour {
 				
 					
 				step1 = 1;
-				block((long) (0.25*Run_Configuration.reply_by_time_wp_agent));
+				block((long) (Run_Configuration.factor_request_performer*Run_Configuration.reply_by_time_wp_agent));
 				break;
 			case 1:	
 				//deadline	

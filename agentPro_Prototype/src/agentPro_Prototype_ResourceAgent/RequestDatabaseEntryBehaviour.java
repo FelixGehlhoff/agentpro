@@ -59,27 +59,18 @@ public class RequestDatabaseEntryBehaviour extends OneShotBehaviour{
 		DFAgentDescription[] result = null;
 		
 		//check the agents we already have stored
-		if(myAgent.resourceAgents.size() > 0) {
+		if(myAgent.getDbAgent() != null) {
 			//DFAgentDescription[] result = 
-			for(DFAgentDescription a : myAgent.resourceAgents) {
-				
-				  @SuppressWarnings("unchecked")
-					Iterator<ServiceDescription> it = a.getAllServices();
-				    while(it.hasNext()) {
-				    	ServiceDescription service_description = it.next();
-				    	if(service_description.getType().equals(service_type)) {
-				    		result = new DFAgentDescription[1];
-				    		result[0] = a;
-				    		break;
-				    	}
-				    }
-			}
+				    result = new DFAgentDescription[1];
+				    result[0] = myAgent.getDbAgent();
+			
 		}
 		//if there is no agent with ne needed capabiltiy stored, search the DF
 		if(result  == null) {	//TBD subscription!!
 		
 		try {
-			result = DFService.search(myAgent, template);	
+			result = DFService.search(myAgent, template);			
+			myAgent.setDbAgent(result[0]);
 		} catch (FIPAException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
