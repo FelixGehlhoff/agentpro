@@ -113,13 +113,13 @@ public class orderGenerationBehaviour extends OneShotBehaviour{
 				if(i == 1) {
 					prod_name = "A";
 				}else if(i==2){
-					prod_name = "A";
+					prod_name = "B";
 				}else {
 					prod_name = "B";
 				}
 			}			
 			
-			prod_name = "B";
+			//prod_name = "B";
 			product.setName(prod_name);
 			orderPos.setContainsProduct(product);
 			orderPos.setQuantity(quantity);

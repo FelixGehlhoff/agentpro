@@ -347,9 +347,9 @@ public class RequestPerformer_transport extends Behaviour {
 			for(Proposal prop_buffer : buffers) {	//for each buffer operation there needs to be a transport from the old prod. step to the buffer
 				System.out.println("DEBUG____________transport needed "+checkIfTransportIsNeeded(opComb, prop_buffer));
 				if(checkIfTransportIsNeeded(opComb, prop_buffer)) {	
-					sendCFP.addHasCFP(createCFP_ontologyElement(myAgent.getLastProductionStepAllocated(), (AllocatedWorkingStep)prop_buffer.getConsistsOfAllocatedWorkingSteps().get(0), opComb.getIdenticiation_string(), null, null));		//add buffer operations to CFPs --> Start = last alloc step, end = buffer
+					sendCFP.addHasCFP(createCFP_ontologyElement(myAgent.getLastProductionStepAllocated(), (AllocatedWorkingStep)prop_buffer.getConsistsOfAllocatedWorkingSteps().get(0), opComb, null, null ));		//add buffer operations to CFPs --> Start = last alloc step, end = buffer
 					//and from the buffer to the new step
-					sendCFP.addHasCFP(createCFP_ontologyElement((AllocatedWorkingStep)prop_buffer.getConsistsOfAllocatedWorkingSteps().get(0), (AllocatedWorkingStep)opComb.getInitial_proposal_production().getConsistsOfAllocatedWorkingSteps().get(0), opComb.getIdenticiation_string(), null, null));		//add buffer operations to CFPs --> Start = last alloc step, end = buffer			
+					sendCFP.addHasCFP(createCFP_ontologyElement((AllocatedWorkingStep)prop_buffer.getConsistsOfAllocatedWorkingSteps().get(0), (AllocatedWorkingStep)opComb.getInitial_proposal_production().getConsistsOfAllocatedWorkingSteps().get(0), opComb, null, null));		//add buffer operations to CFPs --> Start = last alloc step, end = buffer			
 				
 				}
 			}		
@@ -357,17 +357,18 @@ public class RequestPerformer_transport extends Behaviour {
 			//there needs to be a transport from the old one to the new production step if a transport is needed		
 			System.out.println("DEBUG____________transport needed "+checkIfTransportIsNeeded(opComb, opComb.getInitial_proposal_production()));
 			if(checkIfTransportIsNeeded(opComb, opComb.getInitial_proposal_production())) {		
-			sendCFP.addHasCFP(createCFP_ontologyElement(myAgent.getLastProductionStepAllocated(), (AllocatedWorkingStep)opComb.getInitial_proposal_production().getConsistsOfAllocatedWorkingSteps().get(0), opComb.getIdenticiation_string(), null, null));		//add buffer operations to CFPs --> Start = last alloc step, end = buffer							
+			sendCFP.addHasCFP(createCFP_ontologyElement(myAgent.getLastProductionStepAllocated(), (AllocatedWorkingStep)opComb.getInitial_proposal_production().getConsistsOfAllocatedWorkingSteps().get(0), opComb, null, null));		//add buffer operations to CFPs --> Start = last alloc step, end = buffer							
 			}
 		}		
 	}
 
-	private CFP createCFP_ontologyElement(AllocatedWorkingStep start, AllocatedWorkingStep end, String id_of_production_step, Operation op, Timeslot timeslot) {										
+	private CFP createCFP_ontologyElement(AllocatedWorkingStep start, AllocatedWorkingStep end, OperationCombination opcomb, Operation op, Timeslot timeslot) {										
 			CFP cfp_onto = new CFP();
+			String id_of_production_step = opcomb.getIdenticiation_string();
 			if(timeslot != null) {
 				cfp_onto.setHasTimeslot(timeslot); //determine the requested timeslot (earliest start date, latest finish date) of the operation					
 			}else {
-				cfp_onto.setHasTimeslot(determineCFPTimeslotTransport(start, end)); //determine the requested timeslot (earliest start date, latest finish date) of the operation										
+				cfp_onto.setHasTimeslot(determineCFPTimeslotTransport(start, end, opcomb)); //determine the requested timeslot (earliest start date, latest finish date) of the operation										
 			}
 			if(op != null) {
 				cfp_onto.setHasOperation(op);	
@@ -381,7 +382,26 @@ public class RequestPerformer_transport extends Behaviour {
 				//24.01.2022 Buffer after operation start muss eig das Minimum aus den beiden Buffer after operation End sein
 				//Beispiel: Wenn ich zwar 10h später beim Zuscnitt weg kann, aber nur 2 h später beim Durchsatz ankommen darf
 				// kann ich ja effektiv nicht 6h später abholen beim Zuschnitt
-				Float new_Buffer_after_operation_start = Math.min(start.getHasOperation().getBuffer_after_operation_end(), end.getHasOperation().getBuffer_after_operation_start());
+				Float number1 = Math.min(start.getHasOperation().getBuffer_after_operation_end(), end.getHasOperation().getBuffer_after_operation_start());
+				Float number2;
+				if(opcomb.getInitial_proposal_production() != null && end.getHasResource().getDetailed_Type().contentEquals("buffer")) {
+					number2 = ((AllocatedWorkingStep)opcomb.getInitial_proposal_production().getConsistsOfAllocatedWorkingSteps().get(0)).getHasOperation().getBuffer_after_operation_end();
+					
+				}else {
+					number2 = number1;
+				}
+				Float new_Buffer_before_operation_start = Math.min(start.getHasOperation().getBuffer_before_operation_end(), end.getHasOperation().getBuffer_before_operation_start());
+				cfp_onto.getHasOperation().setBuffer_before_operation_end(new_Buffer_before_operation_start); // //buffer before steht für früher beenden 
+				
+				Float new_Buffer_after_operation_start;
+				if(start.getHasResource().getDetailed_Type().contentEquals("buffer")) {
+					Float value1 = end.getHasOperation().getBuffer_after_operation_start();
+					Long value = Long.parseLong(end.getHasTimeslot().getStartDate())+ value1.longValue()-Run_Configuration.transport_estimation-Long.parseLong(cfp_onto.getHasTimeslot().getStartDate());
+					new_Buffer_after_operation_start = value.floatValue();
+				}else {
+					new_Buffer_after_operation_start = Math.min(number1, number2);
+				}
+				
 				//25.06.2020
 				//cfp_onto.getHasOperation().setBuffer_after_operation_start(start.getHasOperation().getBuffer_after_operation_end()); //is currently not checked by the crane
 				cfp_onto.getHasOperation().setBuffer_after_operation_start(new_Buffer_after_operation_start);
@@ -389,8 +409,6 @@ public class RequestPerformer_transport extends Behaviour {
 				cfp_onto.getHasOperation().setBuffer_after_operation_end(end.getHasOperation().getBuffer_after_operation_start()); //24.01.2022
 				
 				//Beispiel: Zuschnitt: Dort kann ich 1 h früher abgeholt werden. Beim Durchsatz kann ich 2 h früher anfangen. Also kann ich effektiv 1h früher abgeholt werden
-				Float new_Buffer_before_operation_start = Math.min(start.getHasOperation().getBuffer_before_operation_end(), end.getHasOperation().getBuffer_before_operation_start());
-				cfp_onto.getHasOperation().setBuffer_before_operation_end(new_Buffer_before_operation_start); // //buffer before steht für früher beenden 
 				
 				//cfp_onto.getHasOperation().setAvg_Duration(myAgent.getTransport_estimation());
 				//cfp_onto.getHasOperation().setBuffer_before_operation_end(end.getHasOperation().getBuffer_before_operation_start()); // //buffer before steht für früher beenden 
@@ -405,9 +423,15 @@ public class RequestPerformer_transport extends Behaviour {
 				return cfp_onto;
 	}
 
-	private Timeslot determineCFPTimeslotTransport(AllocatedWorkingStep start, AllocatedWorkingStep end) {
+	private Timeslot determineCFPTimeslotTransport(AllocatedWorkingStep start, AllocatedWorkingStep end, OperationCombination opcomb) {
 		Timeslot timeslot = new Timeslot();
-		timeslot.setStartDate(start.getHasTimeslot().getEndDate());
+		if(start.getHasResource().getDetailed_Type().contentEquals("buffer")) {
+			long startdate= Long.parseLong(opcomb.getLastProductionStepAllocated().getHasTimeslot().getEndDate())+Run_Configuration.transport_estimation+Run_Configuration.bufferThreshold*1000*60;
+			timeslot.setStartDate(String.valueOf(startdate)); //the earlist possible start is the earliest arrival at the buffer + minimal buffer time
+		}else {
+			timeslot.setStartDate(start.getHasTimeslot().getEndDate());  //the machine says when it is finished with the process
+		}
+		
 		timeslot.setEndDate(end.getHasTimeslot().getStartDate());
 		return timeslot;
 	}
@@ -668,7 +692,9 @@ public class RequestPerformer_transport extends Behaviour {
 				//}
 			//determine the requested timeslot (earliest start date, latest finish date) of the operation
 			Timeslot cfp_timeslot =  determineCFPTimeslot(prop);	 
-			CFP cfp = createCFP_ontologyElement(lastProductionStepAllocated, (AllocatedWorkingStep)prop.getConsistsOfAllocatedWorkingSteps().get(0), prop.getID_String(), requested_operation, cfp_timeslot);
+			OperationCombination opcomb = new OperationCombination(prop, null);
+			
+			CFP cfp = createCFP_ontologyElement(lastProductionStepAllocated, (AllocatedWorkingStep)prop.getConsistsOfAllocatedWorkingSteps().get(0), opcomb, requested_operation, cfp_timeslot);
 		
 		return cfp;
 	}

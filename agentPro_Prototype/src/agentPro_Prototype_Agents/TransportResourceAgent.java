@@ -356,16 +356,16 @@ public class TransportResourceAgent extends ResourceAgent{
 						//System.out.println("DEBUG___________duration_for_answering_CFP_so_for_Workpiece_schedule "+duration_for_answering_CFP_so_for_Workpiece_schedule+" start minus end = "+(estimated_enddate-estimated_start_date)/(1000*60));
 				 operation.setSet_up_time(duration_to_get_to_workpiece);
 				 operation.setAvg_PickupTime(this.getRepresentedResource().getAvg_PickupTime());
-						long transport_buffer_after_operation = this.getNextLowerBoundOfBusyInterval(listOfIntervals.get(0).upperBound()) - listOfIntervals.get(0).upperBound();
+						Long transport_buffer_after_operation = this.getNextLowerBoundOfBusyInterval(listOfIntervals.get(0).upperBound()) - listOfIntervals.get(0).upperBound();
 						//long buffer_end_2 = (getFree_interval_array().get(i).upperBound()-(long)(time_increment_or_decrement_to_be_added_for_setup_of_next_task*60*1000))-listOfIntervals.get(0).upperBound();
-						long transport_buffer_before_operation = listOfIntervals.get(0).upperBound() - this.getPreviousUpperBoundOfBusyInterval(listOfIntervals.get(0).lowerBound());
+						Long transport_buffer_before_operation = listOfIntervals.get(0).lowerBound() - this.getPreviousUpperBoundOfBusyInterval(listOfIntervals.get(0).lowerBound());
 						//long buffer_start_2 = (listOfIntervals.get(0).lowerBound()-(long)(duration_to_get_to_workpiece*60*1000))-getFree_interval_array().get(i).lowerBound();
 						//System.out.println("DEBUG_TransportResource: transport_buffer_after_operation ="+transport_buffer_after_operation+" buffer_end_2 = "+buffer_end_2+" transport_buffer_before_operation = "+transport_buffer_before_operation+" buffer_start_2 = "+buffer_start_2);
 						//transport_op_to_destination.setBuffer_after_operation_start(transport_buffer_after_operation); //start later because the crane has time to start later
 						//transport_op_to_destination.setBuffer_after_operation_end(Math.min(transport_buffer_after_operation, cfp.getHasOperation().getBuffer_after_operation_end()));	//finish later because the crane and the next resource have time finish later
-						operation.setBuffer_after_operation_end(transport_buffer_after_operation);	//finish later because the crane and the next resource have time finish later		
+						operation.setBuffer_after_operation_end(transport_buffer_after_operation.floatValue());	//finish later because the crane and the next resource have time finish later		
 						operation.setBuffer_after_operation_start(operation.getBuffer_after_operation_end());
-						operation.setBuffer_before_operation_start(transport_buffer_before_operation);	//not needed?
+						operation.setBuffer_before_operation_start(transport_buffer_before_operation.floatValue());	//not needed?
 						operation.setBuffer_before_operation_end(operation.getBuffer_before_operation_start());
 						//transport_op_to_destination.setBuffer_before_operation_end(Math.min(transport_buffer_before_operation, cfp.getHasOperation().getBuffer_before_operation_end()));	
 						Timeslot timeslot_for_proposal = new Timeslot();

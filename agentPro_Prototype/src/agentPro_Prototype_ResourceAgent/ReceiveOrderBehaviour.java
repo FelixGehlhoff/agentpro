@@ -228,6 +228,19 @@ public class ReceiveOrderBehaviour extends Behaviour {
 					myAgent.getReceiveCFPBehav().getProposed_slots().clear(); // erase slots
 					myAgent.getReceiveCFPBehav().step = 0;  //03.02.2022
 					myAgent.getReceiveCFPBehav().restart();
+				}else {
+					try {
+						Thread.sleep(3*Run_Configuration.reply_by_time_resource_agent);
+					} catch (InterruptedException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					}
+					myAgent.getReceiveCFPBehav().setReservation_lock(false); // reactivate Receive CFP Behaviour
+					myAgent.getReceiveCFPBehav().getProposals().clear();
+					myAgent.getReceiveCFPBehav().getProposed_slots().clear(); // erase slots
+					myAgent.getReceiveCFPBehav().step = 0;  //03.02.2022
+					myAgent.getReceiveCFPBehav().restart();
+					//myAgent.getReceiveCFPBehav().block(3*Run_Configuration.reply_by_time_resource_agent);
 				}
 				 
 			}
