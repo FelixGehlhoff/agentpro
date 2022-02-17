@@ -445,10 +445,13 @@ public ArrayList<Proposal> checkScheduleDetermineTimeslotAndCreateProposal(CFP c
 			 slot_found_this_FI = true;
 			 //sort earliest end first
 			 this.sortArrayListIntervalsEarliestFirst(listOfIntervals, "end");
+			 if(this.getRepresentedResource().getName().contains("Durchsatz")) {
+				 System.out.println("here");
+			 }
 			 //now the best slot is found --> calculate buffers
 			operation.setBuffer_before_operation_start((listOfIntervals.get(0).lowerBound()-(long)(setup_and_pickup_to_consider*60*1000))-getFree_interval_array().get(i).lowerBound());			 			
 			operation.setBuffer_before_operation_end(operation.getBuffer_before_operation_start());
-			operation.setBuffer_after_operation_end((getFree_interval_array().get(i).upperBound()-(long)(time_increment_or_decrement_to_be_added_for_setup_of_next_task*60*1000))-listOfIntervals.get(0).upperBound());
+			operation.setBuffer_after_operation_end((getFree_interval_array().get(i).upperBound()-(long)(time_increment_or_decrement_to_be_added_for_setup_of_next_task*60*1000))-Run_Configuration.avg_pickUp*60*1000-listOfIntervals.get(0).upperBound());
 			operation.setBuffer_after_operation_start(operation.getBuffer_after_operation_end());
 			
 			

@@ -32,9 +32,9 @@ public interface Run_Configuration {
 		
 	//For algorithm
 		/*needs to be adjusted in case of transportation*/ int avg_pickUp = 10;//10; 
-		int minimal_distance = 1;
-		double transport_speed = 0.25;
-		long transport_estimation = (long) 1000*60*(avg_pickUp*2+ (long) (minimal_distance/transport_speed));//(long) 1000*60*15;	//estimated duration of transport = 15 min
+		int minimal_distance = 5;
+		double transport_speed = 0.0833333333;   // resulting in 60s for 5 m
+		long transport_estimation = (long) 1000*60*(avg_pickUp*2+ (long) (minimal_distance/(transport_speed*60)));//(long) 1000*60*15;	//estimated duration of transport = 15 min
 		long transport_estimation_CFP = 0;//(long) 1000*60*15;	//estimated duration of transport = 15 min
 		//long transport_estimation = 0;//(long) 1000*60*15;
 		

@@ -382,31 +382,93 @@ public class RequestPerformer_transport extends Behaviour {
 				//24.01.2022 Buffer after operation start muss eig das Minimum aus den beiden Buffer after operation End sein
 				//Beispiel: Wenn ich zwar 10h später beim Zuscnitt weg kann, aber nur 2 h später beim Durchsatz ankommen darf
 				// kann ich ja effektiv nicht 6h später abholen beim Zuschnitt
-				Float number1 = Math.min(start.getHasOperation().getBuffer_after_operation_end(), end.getHasOperation().getBuffer_after_operation_start());
-				Float number2;
+				Float min_start_end = Math.min(start.getHasOperation().getBuffer_after_operation_end(), end.getHasOperation().getBuffer_after_operation_start());
+				Float buffer_after_initial_proposal_production;
+				Float buffer_after_end_operation;
+				Float new_Buffer_after_operation_start;
+				Float buffer_after_operation_end;
+				//transport zum Puffer													
 				if(opcomb.getInitial_proposal_production() != null && end.getHasResource().getDetailed_Type().contentEquals("buffer")) {
-					number2 = ((AllocatedWorkingStep)opcomb.getInitial_proposal_production().getConsistsOfAllocatedWorkingSteps().get(0)).getHasOperation().getBuffer_after_operation_end();
+					//start timeslot = end n-1     end = start of next production step --> here = start of buffer proposal
+							//Start 18  earliest start = from cutting 18 Uhr
+							//End 18    earliest end = from buffer 18 Uhr
+					// buffer after operation basiert auf = min (LSn-1, LSB-Tmin, LSn-2Tmin-T buffer min)		
 					
-				}else {
-					number2 = number1;
+					buffer_after_initial_proposal_production = ((AllocatedWorkingStep)opcomb.getInitial_proposal_production().getConsistsOfAllocatedWorkingSteps().get(0)).getHasOperation().getBuffer_after_operation_end();
+					buffer_after_end_operation = end.getHasOperation().getBuffer_after_operation_start();
+					Float buffer_after_start_operation = start.getHasOperation().getBuffer_after_operation_end();
+					Long term1 = Long.parseLong(start.getHasTimeslot().getStartDate())+buffer_after_start_operation.longValue();
+					Long term2 = Long.parseLong(end.getHasTimeslot().getStartDate()) + buffer_after_end_operation.longValue()-Run_Configuration.transport_estimation;
+					Long term3 = Long.parseLong(((AllocatedWorkingStep)opcomb.getInitial_proposal_production().getConsistsOfAllocatedWorkingSteps().get(0)).getHasTimeslot().getStartDate())+buffer_after_initial_proposal_production.longValue()-2*Run_Configuration.transport_estimation-Run_Configuration.bufferThreshold*60*1000;
+					Long min_pre = Math.min(term1, term2);
+					Long latest_start = Math.min(min_pre, term3);
+					Long buffer_after_operation_start = latest_start-Long.parseLong(cfp_onto.getHasTimeslot().getStartDate());
+					new_Buffer_after_operation_start = buffer_after_operation_start.floatValue();
+					
+					Long latest_finish = latest_start + Run_Configuration.transport_estimation;
+					Long buffer_after_operation_end_l = latest_finish - Long.parseLong(cfp_onto.getHasTimeslot().getEndDate());
+					buffer_after_operation_end = buffer_after_operation_end_l.floatValue();
+					
+					//transport ab puffer zur ressource
+					//start interval = ES = end n-1 + transport estimation + minimal buffer threshold    end = start of next production step
+				}else if(start.getHasResource().getDetailed_Type().contentEquals("buffer")) {
+					//TBD
+					Float buffer_after_start_operation = start.getHasOperation().getBuffer_after_operation_end();
+					Long latest_finish_buffer = Long.parseLong(start.getHasTimeslot().getStartDate())+buffer_after_start_operation.longValue();
+					buffer_after_end_operation = end.getHasOperation().getBuffer_after_operation_start();
+					Long term2 = Long.parseLong(end.getHasTimeslot().getStartDate()) + buffer_after_end_operation.longValue()-Run_Configuration.transport_estimation;
+					Long latest_start = Math.min(latest_finish_buffer, term2);
+					Long buffer_after_operation_start = latest_start-Long.parseLong(cfp_onto.getHasTimeslot().getStartDate());
+					new_Buffer_after_operation_start = buffer_after_operation_start.floatValue();
+					
+					long latest_finish = Long.parseLong(end.getHasTimeslot().getStartDate()) + buffer_after_end_operation.longValue();
+					Long buffer_after_operation_end_l = latest_finish - Long.parseLong(cfp_onto.getHasTimeslot().getEndDate());
+					buffer_after_operation_end = buffer_after_operation_end_l.floatValue();
+					
+					//Float value1 = end.getHasOperation().getBuffer_after_operation_start();
+					//Long value = Long.parseLong(end.getHasTimeslot().getStartDate())+ value1.longValue()-Run_Configuration.transport_estimation-Long.parseLong(cfp_onto.getHasTimeslot().getStartDate());
+					//new_Buffer_after_operation_start = value.floatValue();
 				}
+				//interval  ESB = 18.00  EF B = S n - Tmin
+				else if(op != null && op.getType().equalsIgnoreCase("buffer")) {
+					Float buffer_after_end_operation_1 = end.getHasOperation().getBuffer_after_operation_end();
+					Long latest_finish = Long.parseLong(cfp_onto.getHasTimeslot().getEndDate())+buffer_after_end_operation_1.longValue();
+					Long buffer_after_operation_end_2 = latest_finish - Long.parseLong(cfp_onto.getHasTimeslot().getEndDate());
+					buffer_after_operation_end = buffer_after_operation_end_2.floatValue();
+					Long latest_start = latest_finish - Run_Configuration.bufferThreshold*1000*60;
+					Long buffer_after_operation_start = latest_start-Long.parseLong(cfp_onto.getHasTimeslot().getStartDate());
+					new_Buffer_after_operation_start = buffer_after_operation_start.floatValue();
+					
+					
+				}
+				else {
+					buffer_after_initial_proposal_production = min_start_end;
+					buffer_after_end_operation = end.getHasOperation().getBuffer_after_operation_start();
+					buffer_after_operation_end = buffer_after_end_operation;
+					
+					//13.02.
+					new_Buffer_after_operation_start = Math.min(min_start_end, buffer_after_initial_proposal_production);
+				}
+				cfp_onto.getHasOperation().setBuffer_after_operation_end(buffer_after_operation_end); //24.01.2022
+				cfp_onto.getHasOperation().setBuffer_after_operation_start(new_Buffer_after_operation_start);
+				cfp_onto.getHasOperation().setBuffer_before_operation_start(0); // nicht früher starten, weil Vor-Operation nicht früher starten und beendet werden kann (Annahme). Außer z.B. bei Teillieferungen??
+				
 				Float new_Buffer_before_operation_start = Math.min(start.getHasOperation().getBuffer_before_operation_end(), end.getHasOperation().getBuffer_before_operation_start());
 				cfp_onto.getHasOperation().setBuffer_before_operation_end(new_Buffer_before_operation_start); // //buffer before steht für früher beenden 
 				
-				Float new_Buffer_after_operation_start;
+			/*
 				if(start.getHasResource().getDetailed_Type().contentEquals("buffer")) {
 					Float value1 = end.getHasOperation().getBuffer_after_operation_start();
 					Long value = Long.parseLong(end.getHasTimeslot().getStartDate())+ value1.longValue()-Run_Configuration.transport_estimation-Long.parseLong(cfp_onto.getHasTimeslot().getStartDate());
 					new_Buffer_after_operation_start = value.floatValue();
 				}else {
-					new_Buffer_after_operation_start = Math.min(number1, number2);
+					new_Buffer_after_operation_start = Math.min(min_start_end, buffer_after_initial_proposal_production);
 				}
-				
+				*/
 				//25.06.2020
 				//cfp_onto.getHasOperation().setBuffer_after_operation_start(start.getHasOperation().getBuffer_after_operation_end()); //is currently not checked by the crane
-				cfp_onto.getHasOperation().setBuffer_after_operation_start(new_Buffer_after_operation_start);
+				
 				//cfp_onto.getHasOperation().setBuffer_after_operation_end(end.getHasOperation().getBuffer_after_operation_end());
-				cfp_onto.getHasOperation().setBuffer_after_operation_end(end.getHasOperation().getBuffer_after_operation_start()); //24.01.2022
 				
 				//Beispiel: Zuschnitt: Dort kann ich 1 h früher abgeholt werden. Beim Durchsatz kann ich 2 h früher anfangen. Also kann ich effektiv 1h früher abgeholt werden
 				
@@ -417,7 +479,7 @@ public class RequestPerformer_transport extends Behaviour {
 				//or 0???
 				//Float new_buffer_before_operation_start = Math.min(a, b);
 				//cfp_onto.getHasOperation().setBuffer_before_operation_start(start.getHasOperation().getBuffer_before_operation_end()); // nicht früher starten, weil Vor-Operation nicht früher starten und beendet werden kann (Annahme). Außer z.B. bei Teillieferungen??
-				cfp_onto.getHasOperation().setBuffer_before_operation_start(0); // nicht früher starten, weil Vor-Operation nicht früher starten und beendet werden kann (Annahme). Außer z.B. bei Teillieferungen??
+				
 				
 				
 				return cfp_onto;
@@ -431,8 +493,15 @@ public class RequestPerformer_transport extends Behaviour {
 		}else {
 			timeslot.setStartDate(start.getHasTimeslot().getEndDate());  //the machine says when it is finished with the process
 		}
+		//if(end.getHasResource().getDetailed_Type().contentEquals("buffer")) {
+		//	AllocatedWorkingStep a = (AllocatedWorkingStep)opcomb.getInitial_proposal_production().getConsistsOfAllocatedWorkingSteps().get(0);
+			
+		//	long enddate = Long.parseLong(a.getHasTimeslot().getStartDate())-Run_Configuration.transport_estimation-Run_Configuration.bufferThreshold*1000*60;
+		//	timeslot.setEndDate(String.valueOf(enddate));
+		//}else {
+			timeslot.setEndDate(end.getHasTimeslot().getStartDate());
+		//}
 		
-		timeslot.setEndDate(end.getHasTimeslot().getStartDate());
 		return timeslot;
 	}
 
